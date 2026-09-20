@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense } from "react";
+import React, { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import {
@@ -9,17 +9,90 @@ import {
   FileCheck,
   ShieldCheck,
   ArrowRight,
-  Printer,
   HelpCircle,
+  Loader2,
+  AlertCircle,
 } from "lucide-react";
 
 function CheckoutSuccessContent() {
   const searchParams = useSearchParams();
-  const token = searchParams.get("token") || "";
-  const orderNumber = searchParams.get("orderNumber") || "MH-ORD-VERIFIED";
-  const title = searchParams.get("title") || "Architectural Floor Plan Blueprint Kit";
+  const sessionId = searchParams.get("session_id") || "";
+  const initialToken = searchParams.get("token") || "";
+  const initialOrderNumber = searchParams.get("orderNumber") || "MH-ORD-VERIFIED";
+  const initialTitle = searchParams.get("title") || "Architectural Floor Plan Blueprint Kit";
+
+  const [loading, setLoading] = useState(Boolean(sessionId && !initialToken));
+  const [token, setToken] = useState(initialToken);
+  const [orderNumber, setOrderNumber] = useState(initialOrderNumber);
+  const [title, setTitle] = useState(initialTitle);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    async function verifyStripeSession() {
+      if (!sessionId || token) return;
+
+      setLoading(true);
+      try {
+        const res = await fetch(
+          `/api/payments/stripe/verify-session?session_id=${encodeURIComponent(sessionId)}`
+        );
+        const data = await res.json();
+
+        if (res.ok && data.success && data.downloadToken) {
+          setToken(data.downloadToken);
+          if (data.orderNumber) setOrderNumber(data.orderNumber);
+          if (data.planTitle) setTitle(data.planTitle);
+        } else {
+          throw new Error(data.error?.message || "Failed to verify Stripe payment session.");
+        }
+      } catch (err: any) {
+        console.error("Session verification error:", err);
+        setError(err.message || "Failed to verify payment status.");
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    verifyStripeSession();
+  }, [sessionId, token]);
 
   const downloadUrl = `/api/downloads/${token}`;
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#FAF8F5] flex flex-col items-center justify-center p-4">
+        <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center space-y-4 border border-stone-200/80 shadow-xl">
+          <Loader2 className="w-12 h-12 text-orange-600 animate-spin mx-auto" />
+          <h2 className="text-xl font-black text-stone-900">Verifying Stripe Payment...</h2>
+          <p className="text-xs text-stone-500">
+            Confirming your single-build architectural license and generating secure download access.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#FAF8F5] flex flex-col items-center justify-center p-4">
+        <div className="bg-white rounded-3xl p-8 max-w-md w-full text-center space-y-4 border border-red-200 shadow-xl">
+          <div className="w-12 h-12 rounded-full bg-red-100 text-red-600 flex items-center justify-center mx-auto">
+            <AlertCircle className="w-6 h-6" />
+          </div>
+          <h2 className="text-xl font-black text-stone-900">Payment Verification Issue</h2>
+          <p className="text-xs text-stone-600">{error}</p>
+          <div className="pt-2">
+            <Link
+              href="/floor-plans"
+              className="inline-flex items-center gap-2 px-6 py-2.5 bg-orange-600 text-white text-xs font-bold rounded-xl"
+            >
+              Back to Floor Plans
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#FAF8F5] text-stone-900 py-16 px-4 sm:px-6 lg:px-8">
@@ -32,7 +105,7 @@ function CheckoutSuccessContent() {
 
           <div className="space-y-2">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full">
-              Payment Verified & Licensed
+              Stripe Payment Verified & Licensed
             </span>
             <h1 className="text-2xl sm:text-4xl font-black text-stone-900">
               Thank You for Your Order!
@@ -73,7 +146,7 @@ function CheckoutSuccessContent() {
           </div>
 
           <p className="text-xs text-stone-400">
-            Clicking download starts an instant download of your full blueprint package.
+            Clicking download delivers your full CAD and architectural engineering blueprint package.
           </p>
         </div>
 

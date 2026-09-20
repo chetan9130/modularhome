@@ -305,8 +305,8 @@ CREATE TABLE IF NOT EXISTS orders (
   currency TEXT DEFAULT 'USD',
   payment_status TEXT DEFAULT 'PENDING', -- 'PENDING', 'PAID', 'FAILED', 'REFUNDED'
   order_status TEXT DEFAULT 'PENDING', -- 'PENDING', 'PROCESSING', 'COMPLETED', 'CANCELLED'
-  payment_provider TEXT DEFAULT 'RAZORPAY', -- 'RAZORPAY', 'STRIPE', 'TEST'
-  payment_id TEXT,
+  payment_provider TEXT DEFAULT 'STRIPE', -- 'STRIPE', 'TEST'
+  payment_id TEXT, -- Stripe Checkout Session ID or Payment Intent ID
   notes TEXT,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
@@ -315,6 +315,7 @@ CREATE TABLE IF NOT EXISTS orders (
 CREATE INDEX IF NOT EXISTS idx_orders_order_number ON orders(order_number);
 CREATE INDEX IF NOT EXISTS idx_orders_customer_email ON orders(customer_email);
 CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON orders(payment_status);
+CREATE INDEX IF NOT EXISTS idx_orders_payment_id ON orders(payment_id);
 CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at);
 
 -- 14. Order Items Table
@@ -335,9 +336,10 @@ CREATE INDEX IF NOT EXISTS idx_order_items_plan ON order_items(floor_plan_id);
 CREATE TABLE IF NOT EXISTS payments (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+  stripe_session_id TEXT,
+  stripe_payment_intent_id TEXT,
   razorpay_order_id TEXT,
   razorpay_payment_id TEXT,
-  razorpay_signature TEXT,
   amount NUMERIC NOT NULL,
   currency TEXT DEFAULT 'USD',
   status TEXT DEFAULT 'PENDING', -- 'PENDING', 'CAPTURED', 'FAILED', 'REFUNDED'
@@ -347,8 +349,8 @@ CREATE TABLE IF NOT EXISTS payments (
 );
 
 CREATE INDEX IF NOT EXISTS idx_payments_order ON payments(order_id);
-CREATE INDEX IF NOT EXISTS idx_payments_razorpay_order ON payments(razorpay_order_id);
-CREATE INDEX IF NOT EXISTS idx_payments_razorpay_payment ON payments(razorpay_payment_id);
+CREATE INDEX IF NOT EXISTS idx_payments_stripe_session ON payments(stripe_session_id);
+CREATE INDEX IF NOT EXISTS idx_payments_stripe_payment_intent ON payments(stripe_payment_intent_id);
 
 -- 16. Secure Download Access Table
 CREATE TABLE IF NOT EXISTS download_access (

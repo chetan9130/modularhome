@@ -47,7 +47,7 @@ export default function AdminOrdersPage() {
         <div>
           <h1 className="text-2xl font-black text-stone-900">Blueprint Orders & Downloads</h1>
           <p className="text-xs text-stone-500">
-            Monitor floor plan transactions, Razorpay payments, and customer download tokens
+            Monitor floor plan transactions, Stripe payments, and customer download tokens
           </p>
         </div>
         <button

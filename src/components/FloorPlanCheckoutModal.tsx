@@ -4,13 +4,7 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { FloorPlan } from "@/data/floorPlans";
-import { X, Lock, CheckCircle2, ShieldCheck, Download, Sparkles, Loader2 } from "lucide-react";
-
-declare global {
-  interface Window {
-    Razorpay?: any;
-  }
-}
+import { X, Lock, CheckCircle2, ShieldCheck, Download, Sparkles, Loader2, CreditCard } from "lucide-react";
 
 interface FloorPlanCheckoutModalProps {
   plan: FloorPlan | null;
@@ -37,20 +31,6 @@ export default function FloorPlanCheckoutModal({
 
   const price = plan.salePrice || plan.price;
 
-  const loadRazorpayScript = () => {
-    return new Promise((resolve) => {
-      if (window.Razorpay) {
-        resolve(true);
-        return;
-      }
-      const script = document.createElement("script");
-      script.src = "https://checkout.razorpay.com/v1/checkout.js";
-      script.onload = () => resolve(true);
-      script.onerror = () => resolve(false);
-      document.body.appendChild(script);
-    });
-  };
-
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg("");
@@ -63,8 +43,8 @@ export default function FloorPlanCheckoutModal({
         return;
       }
 
-      // 1. Create order on backend
-      const orderRes = await fetch("/api/payments/razorpay/create-order", {
+      // 1. Create Stripe Checkout Session on backend
+      const res = await fetch("/api/payments/stripe/create-checkout-session", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -76,89 +56,44 @@ export default function FloorPlanCheckoutModal({
         }),
       });
 
-      const orderData = await orderRes.json();
-      if (!orderRes.ok || !orderData.success) {
-        throw new Error(orderData.error?.message || "Failed to initiate order.");
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error?.message || "Failed to initiate checkout session.");
       }
 
-      const { order } = orderData;
-      const rzpLoaded = await loadRazorpayScript();
+      const { order } = data;
 
-      // Helper to verify and navigate
-      const completeVerification = async (verifyPayload: any) => {
-        const verifyRes = await fetch("/api/payments/razorpay/verify", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(verifyPayload),
-        });
-        const verifyData = await verifyRes.json();
+      // 2. If live Stripe Checkout URL provided, redirect to Stripe
+      if (order.checkoutUrl) {
+        window.location.href = order.checkoutUrl;
+        return;
+      }
 
-        if (verifyRes.ok && verifyData.success) {
-          onClose();
-          router.push(
-            `/checkout/success?token=${verifyData.downloadToken}&orderNumber=${order.orderNumber}&title=${encodeURIComponent(plan.title)}`
+      // 3. Sandbox / local offline fallback simulation
+      setTimeout(async () => {
+        try {
+          const verifyRes = await fetch(
+            `/api/payments/stripe/verify-session?session_id=${encodeURIComponent(order.sessionId)}`
           );
-        } else {
-          throw new Error(verifyData.error?.message || "Payment verification failed.");
-        }
-      };
+          const verifyData = await verifyRes.json();
 
-      // 2. Open Razorpay if script available and keys present
-      if (rzpLoaded && window.Razorpay && order.keyId && !order.keyId.includes("public_key")) {
-        const options = {
-          key: order.keyId,
-          amount: Math.round(price * 100),
-          currency: "USD",
-          name: "ModularHome.com",
-          description: `Architectural Blueprint Kit: ${plan.title}`,
-          image: "/finallogo.avif",
-          order_id: order.razorpayOrderId,
-          prefill: {
-            name: formData.name,
-            email: formData.email,
-            contact: formData.phone,
-          },
-          theme: {
-            color: "#E06322",
-          },
-          handler: async function (response: any) {
-            await completeVerification({
-              orderId: order.id,
-              razorpayOrderId: response.razorpay_order_id || order.razorpayOrderId,
-              razorpayPaymentId: response.razorpay_payment_id,
-              razorpaySignature: response.razorpay_signature,
-              floorPlanId: plan.slug,
-              customerEmail: formData.email,
-            });
-          },
-          modal: {
-            ondismiss: function () {
-              setLoading(false);
-            },
-          },
-        };
-
-        const rzp = new window.Razorpay(options);
-        rzp.on("payment.failed", function (response: any) {
-          setErrorMsg(response.error?.description || "Payment failed. Please try again.");
+          if (verifyRes.ok && verifyData.success) {
+            onClose();
+            router.push(
+              `/checkout/success?token=${verifyData.downloadToken}&orderNumber=${order.orderNumber}&title=${encodeURIComponent(
+                plan.title
+              )}`
+            );
+          } else {
+            throw new Error(verifyData.error?.message || "Payment verification failed.");
+          }
+        } catch (vErr: any) {
+          setErrorMsg(vErr.message || "Failed to verify session.");
           setLoading(false);
-        });
-        rzp.open();
-      } else {
-        // Safe sandbox / demo simulated verification
-        setTimeout(async () => {
-          await completeVerification({
-            orderId: order.id,
-            razorpayOrderId: order.razorpayOrderId,
-            razorpayPaymentId: `pay_sim_${Date.now()}`,
-            razorpaySignature: `sig_sim_${Date.now()}`,
-            floorPlanId: plan.slug,
-            customerEmail: formData.email,
-          });
-        }, 1200);
-      }
+        }
+      }, 1000);
     } catch (err: any) {
-      console.error(err);
+      console.error("Stripe checkout error:", err);
       setErrorMsg(err.message || "An unexpected error occurred during checkout.");
       setLoading(false);
     }
@@ -176,7 +111,7 @@ export default function FloorPlanCheckoutModal({
             <div>
               <h2 className="text-xl font-black">Instant Blueprint Checkout</h2>
               <p className="text-xs text-stone-400">
-                Official single-build license with verified engineering specs
+                Official single-build license with verified CAD & engineering specs
               </p>
             </div>
           </div>
@@ -307,12 +242,18 @@ export default function FloorPlanCheckoutModal({
               </div>
             </div>
 
-            {/* Security Guarantee Note */}
-            <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-center gap-3 text-xs text-stone-600">
-              <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
-              <span>
-                256-bit encrypted checkout. Instant digital download link delivered on screen & via email upon confirmation.
-              </span>
+            {/* Security & Stripe Guarantee */}
+            <div className="p-3 bg-stone-50 rounded-xl border border-stone-200/60 flex items-center justify-between text-xs text-stone-600">
+              <div className="flex items-center gap-2.5">
+                <ShieldCheck className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span>
+                  Secured with 256-bit SSL encryption via <strong>Stripe</strong>
+                </span>
+              </div>
+              <div className="flex items-center gap-1.5 font-semibold text-stone-400 text-[11px]">
+                <CreditCard className="w-4 h-4 text-stone-500" />
+                <span>Cards, Apple Pay, Google Pay</span>
+              </div>
             </div>
 
             {/* Submit Button */}
@@ -324,12 +265,12 @@ export default function FloorPlanCheckoutModal({
               {loading ? (
                 <>
                   <Loader2 className="w-5 h-5 animate-spin" />
-                  Processing Secure Order...
+                  Connecting to Stripe Checkout...
                 </>
               ) : (
                 <>
                   <Lock className="w-4 h-4" />
-                  Pay ${price.toLocaleString()} & Download Blueprints
+                  Pay ${price.toLocaleString()} via Stripe & Unlock Blueprints
                 </>
               )}
             </button>
