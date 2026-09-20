@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyPassword, createAdminSession } from "@/lib/auth";
-import { convexQuery, convexMutation, api } from "@/lib/convex";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,10 +19,19 @@ export async function POST(request: NextRequest) {
 
     const normalizedEmail = email.toLowerCase().trim();
 
-    // Query Convex for user
-    let user = await convexQuery<any>(api.auth.getAdminByEmail, {
-      email: normalizedEmail,
-    });
+    let user: any = null;
+
+    if (isSupabaseConfigured()) {
+      const { data, error } = await supabaseAdmin
+        .from("admin_users")
+        .select("*")
+        .eq("email", normalizedEmail)
+        .single();
+
+      if (!error && data) {
+        user = data;
+      }
+    }
 
     // Default master admin fallback if db not seeded yet
     const isDefaultAdmin =
@@ -30,30 +39,43 @@ export async function POST(request: NextRequest) {
       (password === "Admin@ModularHome2026!" || password === "admin123");
 
     if (!user && isDefaultAdmin) {
-      // Seed / insert default admin into Convex or memory
-      try {
-        const id = await convexMutation(api.auth.createAdminUser, {
-          email: "admin@modularhome.com",
-          passwordHash: "default_seeded_admin",
-          name: "Admin Superuser",
-          role: "ADMIN",
-        });
+      if (isSupabaseConfigured()) {
+        try {
+          const { data: inserted } = await supabaseAdmin
+            .from("admin_users")
+            .insert({
+              email: "admin@modularhome.com",
+              password_hash: "default_seeded_admin",
+              name: "Admin Superuser",
+              role: "ADMIN",
+              status: "ACTIVE",
+            })
+            .select()
+            .single();
+
+          user = inserted || {
+            id: "admin-root",
+            email: "admin@modularhome.com",
+            name: "Admin Superuser",
+            role: "ADMIN",
+            status: "ACTIVE",
+          };
+        } catch {
+          user = {
+            id: "admin-root",
+            email: "admin@modularhome.com",
+            name: "Admin Superuser",
+            role: "ADMIN",
+            status: "ACTIVE",
+          };
+        }
+      } else {
         user = {
-          _id: id || "admin-root",
+          id: "admin-root",
           email: "admin@modularhome.com",
           name: "Admin Superuser",
           role: "ADMIN",
           status: "ACTIVE",
-          passwordHash: "default_seeded_admin",
-        };
-      } catch {
-        user = {
-          _id: "admin-root",
-          email: "admin@modularhome.com",
-          name: "Admin Superuser",
-          role: "ADMIN",
-          status: "ACTIVE",
-          passwordHash: "default_seeded_admin",
         };
       }
     }
@@ -68,8 +90,8 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!isDefaultAdmin) {
-      const isValid = await verifyPassword(password, user.passwordHash);
+    if (!isDefaultAdmin && user.password_hash) {
+      const isValid = await verifyPassword(password, user.password_hash);
       if (!isValid) {
         return NextResponse.json(
           {
@@ -81,7 +103,7 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const userId = user._id || user.id;
+    const userId = user.id || "admin-root";
     const sessionUser = {
       id: userId,
       email: user.email,
@@ -90,6 +112,15 @@ export async function POST(request: NextRequest) {
     };
 
     await createAdminSession(userId, sessionUser);
+
+    if (isSupabaseConfigured() && user.id && user.id !== "admin-root") {
+      try {
+        await supabaseAdmin
+          .from("admin_users")
+          .update({ last_login_at: new Date().toISOString() })
+          .eq("id", user.id);
+      } catch {}
+    }
 
     return NextResponse.json({
       success: true,
@@ -100,7 +131,7 @@ export async function POST(request: NextRequest) {
     return NextResponse.json(
       {
         success: false,
-        error: { message: "An unexpected error occurred during login.", code: "SERVER_ERROR" },
+        error: { message: error?.message || "Internal server error.", code: "SERVER_ERROR" },
       },
       { status: 500 }
     );

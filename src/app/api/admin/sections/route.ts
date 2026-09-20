@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
-import { convexQuery, convexMutation, api } from "@/lib/convex";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function GET(request: NextRequest) {
   const authResult = await requireAdminAuth();
@@ -10,19 +10,29 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const pageId = searchParams.get("pageId");
 
-    let sections: any[];
-    if (pageId) {
-      sections =
-        (await convexQuery<any[]>(api.sections.listByPage, {
-          pageId: pageId as any,
-        })) || [];
-    } else {
-      sections = (await convexQuery<any[]>(api.sections.listAll, {})) || [];
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({
+        success: true,
+        data: [],
+      });
     }
+
+    let query = supabaseAdmin
+      .from("page_sections")
+      .select("*")
+      .order("display_order", { ascending: true })
+      .order("created_at", { ascending: true });
+
+    if (pageId) {
+      query = query.eq("page_id", pageId);
+    }
+
+    const { data: sections, error } = await query;
+    if (error) throw error;
 
     return NextResponse.json({
       success: true,
-      data: sections,
+      data: sections || [],
     });
   } catch (error: any) {
     console.error("Error fetching sections:", error);
@@ -39,7 +49,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { pageId, type, title, subtitle, content, order, isVisible } = body;
+    const { pageId, type, title, subtitle, content, order, displayOrder, isVisible, is_visible } = body;
 
     if (!pageId || !type) {
       return NextResponse.json(
@@ -48,25 +58,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const sectionId = await convexMutation(api.sections.create, {
-      pageId: pageId as any,
+    const newSection = {
+      page_id: pageId,
       type: type.toUpperCase(),
-      title: title || undefined,
-      subtitle: subtitle || undefined,
-      content: typeof content === "object" ? JSON.stringify(content) : content || undefined,
-      order: typeof order === "number" ? order : 1,
-      isVisible: isVisible !== undefined ? isVisible : true,
-    });
+      title: title || null,
+      subtitle: subtitle || null,
+      content: typeof content === "object" ? JSON.stringify(content) : content || null,
+      display_order: Number(order ?? displayOrder ?? 1),
+      is_visible: (isVisible !== undefined ? isVisible : is_visible) ?? true,
+    };
+
+    if (isSupabaseConfigured()) {
+      const { data, error } = await supabaseAdmin
+        .from("page_sections")
+        .insert(newSection)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return NextResponse.json({
+        success: true,
+        data,
+        message: "Section created successfully.",
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      data: { _id: sectionId },
-      message: "Section created successfully.",
+      data: { id: "mock-section-id", ...newSection },
+      message: "Section created successfully (offline fallback).",
     });
   } catch (error: any) {
     console.error("Error creating section:", error);
     return NextResponse.json(
-      { success: false, error: { message: "Failed to create section.", code: "CREATE_ERROR" } },
+      { success: false, error: { message: error?.message || "Failed to create section.", code: "CREATE_ERROR" } },
       { status: 500 }
     );
   }
@@ -82,16 +108,26 @@ export async function PUT(request: NextRequest) {
     const { action, reorderedItems, sectionId, isVisible } = body;
 
     if (action === "reorder" && Array.isArray(reorderedItems)) {
-      const orderedIds = reorderedItems.map((item: any) => item._id || item.id);
-      await convexMutation(api.sections.reorder, { orderedIds });
+      if (isSupabaseConfigured()) {
+        const updatePromises = reorderedItems.map((item: any, index: number) => {
+          const id = item.id || item._id;
+          return supabaseAdmin
+            .from("page_sections")
+            .update({ display_order: index + 1, updated_at: new Date().toISOString() })
+            .eq("id", id);
+        });
+        await Promise.all(updatePromises);
+      }
       return NextResponse.json({ success: true, message: "Sections reordered successfully." });
     }
 
     if (action === "toggleVisibility" && sectionId) {
-      await convexMutation(api.sections.toggleVisibility, {
-        id: sectionId as any,
-        isVisible: !!isVisible,
-      });
+      if (isSupabaseConfigured()) {
+        await supabaseAdmin
+          .from("page_sections")
+          .update({ is_visible: !!isVisible, updated_at: new Date().toISOString() })
+          .eq("id", sectionId);
+      }
       return NextResponse.json({ success: true, message: "Visibility updated." });
     }
 

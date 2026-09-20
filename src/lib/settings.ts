@@ -1,4 +1,4 @@
-import { convexQuery, api } from "./convex";
+import { supabase, isSupabaseConfigured } from "./supabase";
 
 export interface PublicGlobalSettings {
   companyName: string;
@@ -25,12 +25,13 @@ const DEFAULT_SETTINGS: PublicGlobalSettings = {
   logoUrl: "/finallogo.avif",
   faviconUrl: "/favicon.ico",
   phone: "+1 (812) 595-4033",
-  email: "contact@modularhome.com",
+  email: "support@modularhome.com",
   address: "Factory Headquarters, IN & Nationwide Delivery",
   socialLinks: {
     facebook: "https://facebook.com",
     instagram: "https://instagram.com",
     youtube: "https://youtube.com",
+    tiktok: "https://tiktok.com",
   },
   announcementEnabled: true,
   announcementText: "Direct Factory Modular & Prefab Home Builder • 2026 Models Released",
@@ -60,52 +61,60 @@ const DEFAULT_SETTINGS: PublicGlobalSettings = {
 
 export async function getPublicGlobalSettings(): Promise<PublicGlobalSettings> {
   try {
-    const raw = await convexQuery<any>(api.settings.get, {});
+    if (!isSupabaseConfigured()) {
+      return DEFAULT_SETTINGS;
+    }
 
-    if (!raw) return DEFAULT_SETTINGS;
+    const { data: raw, error } = await supabase
+      .from("global_settings")
+      .select("*")
+      .eq("key", "default")
+      .single();
+
+    if (error || !raw) return DEFAULT_SETTINGS;
 
     let socialLinks = DEFAULT_SETTINGS.socialLinks;
     try {
-      if (raw.socialLinks) {
-        socialLinks = typeof raw.socialLinks === "string" ? JSON.parse(raw.socialLinks) : raw.socialLinks;
+      if (raw.social_links) {
+        socialLinks = typeof raw.social_links === "string" ? JSON.parse(raw.social_links) : raw.social_links;
       }
     } catch {}
 
     let navLinks = DEFAULT_SETTINGS.navLinks;
     try {
-      if (raw.navLinks) {
-        navLinks = typeof raw.navLinks === "string" ? JSON.parse(raw.navLinks) : raw.navLinks;
+      if (raw.nav_links) {
+        navLinks = typeof raw.nav_links === "string" ? JSON.parse(raw.nav_links) : raw.nav_links;
       }
     } catch {}
 
     let footerLinks = DEFAULT_SETTINGS.footerLinks;
     try {
-      if (raw.footerLinks) {
-        footerLinks = typeof raw.footerLinks === "string" ? JSON.parse(raw.footerLinks) : raw.footerLinks;
+      if (raw.footer_links) {
+        footerLinks = typeof raw.footer_links === "string" ? JSON.parse(raw.footer_links) : raw.footer_links;
       }
     } catch {}
 
     return {
-      companyName: raw.companyName || DEFAULT_SETTINGS.companyName,
-      logoUrl: raw.logoUrl || DEFAULT_SETTINGS.logoUrl,
-      faviconUrl: raw.faviconUrl || DEFAULT_SETTINGS.faviconUrl,
+      companyName: raw.company_name || DEFAULT_SETTINGS.companyName,
+      logoUrl: raw.logo_url || DEFAULT_SETTINGS.logoUrl,
+      faviconUrl: raw.favicon_url || DEFAULT_SETTINGS.faviconUrl,
       phone: raw.phone || DEFAULT_SETTINGS.phone,
       email: raw.email || DEFAULT_SETTINGS.email,
       address: raw.address || DEFAULT_SETTINGS.address,
       socialLinks,
-      announcementEnabled: raw.announcementEnabled ?? true,
-      announcementText: raw.announcementText || DEFAULT_SETTINGS.announcementText,
-      announcementLink: raw.announcementLink || DEFAULT_SETTINGS.announcementLink,
+      announcementEnabled: raw.announcement_enabled ?? true,
+      announcementText: raw.announcement_text || DEFAULT_SETTINGS.announcementText,
+      announcementLink: raw.announcement_link || DEFAULT_SETTINGS.announcementLink,
       navLinks,
-      footerText: raw.footerText || DEFAULT_SETTINGS.footerText,
+      footerText: raw.footer_text || DEFAULT_SETTINGS.footerText,
       footerLinks,
-      defaultSeoTitle: raw.defaultSeoTitle || DEFAULT_SETTINGS.defaultSeoTitle,
-      defaultMetaDescription: raw.defaultMetaDescription || DEFAULT_SETTINGS.defaultMetaDescription,
-      ctaLabel: raw.ctaLabel || DEFAULT_SETTINGS.ctaLabel,
-      ctaLink: raw.ctaLink || DEFAULT_SETTINGS.ctaLink,
+      defaultSeoTitle: raw.default_seo_title || DEFAULT_SETTINGS.defaultSeoTitle,
+      defaultMetaDescription: raw.default_meta_description || DEFAULT_SETTINGS.defaultMetaDescription,
+      ctaLabel: raw.cta_label || DEFAULT_SETTINGS.ctaLabel,
+      ctaLink: raw.cta_link || DEFAULT_SETTINGS.ctaLink,
     };
   } catch (error) {
-    console.warn("Could not fetch global settings from Convex, using defaults:", error);
+    console.warn("Could not fetch global settings from Supabase, using defaults:", error);
     return DEFAULT_SETTINGS;
   }
 }

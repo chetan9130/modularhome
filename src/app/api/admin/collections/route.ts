@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
-import { convexQuery, convexMutation, api } from "@/lib/convex";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function GET(request: NextRequest) {
   const authResult = await requireAdminAuth();
@@ -8,16 +8,41 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status") || undefined;
+    const status = searchParams.get("status");
 
-    const collections =
-      (await convexQuery<any[]>(api.collections.list, {
-        status: status && status !== "ALL" ? status : undefined,
-      })) || [];
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({
+        success: true,
+        data: [],
+      });
+    }
+
+    let query = supabaseAdmin
+      .from("collections")
+      .select(`
+        *,
+        product_collections (
+          product_id
+        )
+      `)
+      .order("display_order", { ascending: true });
+
+    if (status && status !== "ALL") {
+      query = query.eq("status", status);
+    }
+
+    const { data: collections, error } = await query;
+
+    if (error) throw error;
+
+    const formatted = (collections || []).map((col: any) => ({
+      ...col,
+      productIds: col.product_collections ? col.product_collections.map((pc: any) => pc.product_id) : [],
+    }));
 
     return NextResponse.json({
       success: true,
-      data: collections,
+      data: formatted,
     });
   } catch (error: any) {
     console.error("Error fetching admin collections:", error);
@@ -59,33 +84,56 @@ export async function POST(request: NextRequest) {
 
     const cleanSlug = slug.toLowerCase().trim().replace(/[^a-z0-9_-]+/g, "-");
 
-    const collectionId = await convexMutation(api.collections.create, {
+    const newCollection = {
       name,
       slug: cleanSlug,
-      description: description || undefined,
-      tagline: tagline || undefined,
-      bannerImage: bannerImage || undefined,
+      description: description || null,
+      tagline: tagline || null,
+      banner_image: bannerImage || null,
       image:
         image ||
         "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
-      displayOrder: Number(displayOrder) || 0,
-      isFeatured: isFeatured !== undefined ? isFeatured : false,
+      display_order: Number(displayOrder) || 0,
+      is_featured: Boolean(isFeatured),
       status: status || "PUBLISHED",
-      seoTitle: seoTitle || `${name} | ModularHome.com Collection`,
-      metaDescription: metaDescription || description || undefined,
-      imageAltText: imageAltText || name,
-      productIds: Array.isArray(productIds) ? (productIds as any) : undefined,
-    });
+      seo_title: seoTitle || `${name} | ModularHome.com Collection`,
+      meta_description: metaDescription || description || null,
+      image_alt_text: imageAltText || name,
+    };
+
+    if (isSupabaseConfigured()) {
+      const { data: col, error } = await supabaseAdmin
+        .from("collections")
+        .insert(newCollection)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (Array.isArray(productIds) && productIds.length > 0) {
+        const mappings = productIds.map((pId) => ({
+          collection_id: col.id,
+          product_id: pId,
+        }));
+        await supabaseAdmin.from("product_collections").insert(mappings);
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: col,
+        message: "Collection created successfully.",
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      data: { _id: collectionId, name, slug: cleanSlug },
-      message: "Collection created successfully.",
+      data: { id: "mock-id", ...newCollection },
+      message: "Collection created successfully (offline fallback).",
     });
   } catch (error: any) {
     console.error("Error creating collection:", error);
     return NextResponse.json(
-      { success: false, error: { message: "Failed to create collection.", code: "CREATE_ERROR" } },
+      { success: false, error: { message: error?.message || "Failed to create collection.", code: "CREATE_ERROR" } },
       { status: 500 }
     );
   }

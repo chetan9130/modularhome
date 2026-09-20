@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
-import { convexQuery, convexMutation, api } from "@/lib/convex";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function GET(
   request: NextRequest,
@@ -11,9 +11,21 @@ export async function GET(
 
   try {
     const { id } = await params;
-    const blog = await convexQuery<any>(api.blogs.getById, { id: id as any });
 
-    if (!blog) {
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json(
+        { success: false, error: { message: "Database not configured.", code: "NOT_CONFIGURED" } },
+        { status: 503 }
+      );
+    }
+
+    const { data: blog, error } = await supabaseAdmin
+      .from("blogs")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error || !blog) {
       return NextResponse.json(
         { success: false, error: { message: "Blog article not found.", code: "NOT_FOUND" } },
         { status: 404 }
@@ -45,39 +57,47 @@ export async function PUT(
       ? body.slug.toLowerCase().trim().replace(/[^a-z0-9_-]+/g, "-")
       : undefined;
 
-    const updated = await convexMutation(api.blogs.update, {
-      id: id as any,
-      title: body.title,
-      slug: cleanSlug,
-      excerpt: body.excerpt,
-      content: body.content,
-      featuredImage: body.featuredImage,
-      author: body.author,
-      publishedAt: body.publishedAt ? new Date(body.publishedAt).getTime() : undefined,
-      status: body.status,
-      categories:
-        body.categories !== undefined
-          ? typeof body.categories === "object"
-            ? JSON.stringify(body.categories)
-            : body.categories
-          : undefined,
-      tags:
-        body.tags !== undefined
-          ? typeof body.tags === "object"
-            ? JSON.stringify(body.tags)
-            : body.tags
-          : undefined,
-      embeddedVideoUrl: body.embeddedVideoUrl,
-      seoTitle: body.seoTitle,
-      metaDescription: body.metaDescription,
-      imageAltText: body.imageAltText,
-      canonicalUrl: body.canonicalUrl,
-    });
+    const updates: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (body.title !== undefined) updates.title = body.title;
+    if (cleanSlug !== undefined) updates.slug = cleanSlug;
+    if (body.excerpt !== undefined) updates.excerpt = body.excerpt;
+    if (body.content !== undefined) updates.content = body.content;
+    if (body.featuredImage !== undefined) updates.featured_image = body.featuredImage;
+    if (body.author !== undefined) updates.author = body.author;
+    if (body.publishedAt !== undefined) updates.published_at = new Date(body.publishedAt).toISOString();
+    if (body.status !== undefined) updates.status = body.status;
+    if (body.categories !== undefined) updates.categories = Array.isArray(body.categories) ? body.categories : [];
+    if (body.tags !== undefined) updates.tags = Array.isArray(body.tags) ? body.tags : [];
+    if (body.embeddedVideoUrl !== undefined) updates.embedded_video_url = body.embeddedVideoUrl;
+    if (body.seoTitle !== undefined) updates.seo_title = body.seoTitle;
+    if (body.metaDescription !== undefined) updates.meta_description = body.metaDescription;
+    if (body.imageAltText !== undefined) updates.image_alt_text = body.imageAltText;
+    if (body.canonicalUrl !== undefined) updates.canonical_url = body.canonicalUrl;
+
+    if (isSupabaseConfigured()) {
+      const { data: updated, error } = await supabaseAdmin
+        .from("blogs")
+        .update(updates)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return NextResponse.json({
+        success: true,
+        data: updated,
+        message: "Blog article updated successfully.",
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      data: updated,
-      message: "Blog article updated successfully.",
+      data: { id, ...updates },
+      message: "Blog article updated successfully (offline).",
     });
   } catch (error: any) {
     console.error("Error updating blog:", error);
@@ -97,7 +117,11 @@ export async function DELETE(
 
   try {
     const { id } = await params;
-    await convexMutation(api.blogs.remove, { id: id as any });
+
+    if (isSupabaseConfigured()) {
+      const { error } = await supabaseAdmin.from("blogs").delete().eq("id", id);
+      if (error) throw error;
+    }
 
     return NextResponse.json({
       success: true,

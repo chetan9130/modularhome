@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
-import { convexQuery, convexMutation, api } from "@/lib/convex";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function GET(request: NextRequest) {
   const authResult = await requireAdminAuth();
@@ -8,18 +8,34 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status") || undefined;
-    const source = searchParams.get("source") || undefined;
+    const status = searchParams.get("status");
+    const source = searchParams.get("source");
 
-    const leads =
-      (await convexQuery<any[]>(api.leads.list, {
-        status: status && status !== "ALL" ? status : undefined,
-        source: source && source !== "ALL" ? source : undefined,
-      })) || [];
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({
+        success: true,
+        data: [],
+      });
+    }
+
+    let query = supabaseAdmin
+      .from("leads")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (status && status !== "ALL") {
+      query = query.eq("status", status);
+    }
+    if (source && source !== "ALL") {
+      query = query.eq("source", source);
+    }
+
+    const { data: leads, error } = await query;
+    if (error) throw error;
 
     return NextResponse.json({
       success: true,
-      data: leads,
+      data: leads || [],
     });
   } catch (error: any) {
     console.error("Error fetching leads:", error);
@@ -42,21 +58,38 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const leadId = await convexMutation(api.leads.create, {
+    const leadData = {
       name,
       email: email.toLowerCase().trim(),
-      phone: phone || undefined,
-      location: location || undefined,
-      zip: zip || undefined,
-      enquiryDetails: enquiryDetails || undefined,
+      phone: phone || null,
+      location: location || null,
+      zip: zip || null,
+      enquiry_details: enquiryDetails || null,
       source: source || "WEBSITE",
-      notes: notes || undefined,
-    });
+      status: "NEW",
+      notes: notes || null,
+    };
+
+    if (isSupabaseConfigured()) {
+      const { data, error } = await supabaseAdmin
+        .from("leads")
+        .insert(leadData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return NextResponse.json({
+        success: true,
+        data,
+        message: "Lead inquiry registered successfully.",
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      data: { _id: leadId, name, email },
-      message: "Lead inquiry registered successfully.",
+      data: { id: "mock-lead-id", ...leadData },
+      message: "Lead inquiry registered successfully (offline fallback).",
     });
   } catch (error: any) {
     console.error("Error creating lead:", error);

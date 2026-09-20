@@ -1,20 +1,18 @@
 import { NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
-import { convexQuery, api } from "@/lib/convex";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function GET() {
   const authResult = await requireAdminAuth();
   if (authResult instanceof NextResponse) return authResult;
 
   try {
-    const stats = await convexQuery<any>(api.stats.getDashboardStats, {});
-
-    if (!stats) {
+    if (!isSupabaseConfigured()) {
       return NextResponse.json({
         success: true,
         data: {
           metrics: {
-            totalProducts: 3,
+            totalProducts: 10,
             totalCollections: 3,
             totalPages: 1,
             publishedBlogs: 1,
@@ -30,22 +28,51 @@ export async function GET() {
       });
     }
 
+    const [
+      { count: totalProducts },
+      { count: totalCollections },
+      { count: totalPages },
+      { data: blogs },
+      { data: leads, count: totalLeads },
+      { data: quotations, count: totalQuotations },
+    ] = await Promise.all([
+      supabaseAdmin.from("products").select("*", { count: "exact", head: true }),
+      supabaseAdmin.from("collections").select("*", { count: "exact", head: true }),
+      supabaseAdmin.from("pages").select("*", { count: "exact", head: true }),
+      supabaseAdmin.from("blogs").select("status"),
+      supabaseAdmin.from("leads").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(5),
+      supabaseAdmin.from("quotations").select("*", { count: "exact" }).order("created_at", { ascending: false }).limit(5),
+    ]);
+
+    const publishedBlogs = (blogs || []).filter((b) => b.status === "PUBLISHED").length;
+    const draftBlogs = (blogs || []).filter((b) => b.status !== "PUBLISHED").length;
+
+    const { count: newLeadsCount } = await supabaseAdmin
+      .from("leads")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "NEW");
+
+    const { count: pendingQuotesCount } = await supabaseAdmin
+      .from("quotations")
+      .select("*", { count: "exact", head: true })
+      .eq("status", "PENDING");
+
     return NextResponse.json({
       success: true,
       data: {
         metrics: {
-          totalProducts: stats.totalProducts,
-          totalCollections: stats.totalCollections,
-          totalPages: stats.totalPages,
-          publishedBlogs: stats.publishedBlogs,
-          draftBlogs: stats.totalBlogs - stats.publishedBlogs,
-          totalLeads: stats.totalLeads,
-          newLeads: stats.newLeadsCount,
-          totalQuotations: stats.totalQuotations,
-          pendingQuotations: stats.pendingQuotesCount,
+          totalProducts: totalProducts || 0,
+          totalCollections: totalCollections || 0,
+          totalPages: totalPages || 0,
+          publishedBlogs,
+          draftBlogs,
+          totalLeads: totalLeads || 0,
+          newLeads: newLeadsCount || 0,
+          totalQuotations: totalQuotations || 0,
+          pendingQuotations: pendingQuotesCount || 0,
         },
-        recentLeads: stats.recentLeads,
-        recentQuotations: stats.recentQuotations,
+        recentLeads: leads || [],
+        recentQuotations: quotations || [],
       },
     });
   } catch (error: any) {

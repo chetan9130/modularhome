@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
-import { convexQuery, convexMutation, api } from "./convex";
+import { supabaseAdmin, isSupabaseConfigured } from "./supabase";
 
 const COOKIE_NAME = "admin_session";
 const SESSION_EXPIRY_DAYS = 7;
@@ -22,24 +22,32 @@ export interface AdminSessionUser {
   role: string;
 }
 
-// In-memory session store fallback if Convex is offline during dev/build
+// In-memory session store fallback if database is offline during dev/build
 const memorySessions = new Map<
   string,
   { user: AdminSessionUser; expiresAt: number }
 >();
 
-export async function createAdminSession(userId: string, userFallback?: AdminSessionUser): Promise<string> {
+/**
+ * Creates a secure session token and persists to Supabase (and cookie)
+ */
+export async function createAdminSession(
+  userId: string,
+  userFallback?: AdminSessionUser
+): Promise<string> {
   const sessionToken = crypto.randomBytes(32).toString("hex");
   const expiresAt = Date.now() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
 
-  try {
-    await convexMutation(api.auth.createSession, {
-      userId: userId as any,
-      sessionToken,
-      expiresAt,
-    });
-  } catch (e) {
-    console.warn("Could not persist session to Convex, falling back to memory:", e);
+  if (isSupabaseConfigured()) {
+    try {
+      await supabaseAdmin.from("sessions").insert({
+        session_token: sessionToken,
+        user_id: userId,
+        expires_at: expiresAt,
+      });
+    } catch (e) {
+      console.warn("Could not persist session to Supabase, falling back to memory:", e);
+    }
   }
 
   if (userFallback) {
@@ -58,6 +66,9 @@ export async function createAdminSession(userId: string, userFallback?: AdminSes
   return sessionToken;
 }
 
+/**
+ * Retrieves the current authenticated admin session
+ */
 export async function getAdminSession(): Promise<AdminSessionUser | null> {
   try {
     const cookieStore = await cookies();
@@ -65,7 +76,7 @@ export async function getAdminSession(): Promise<AdminSessionUser | null> {
 
     if (!token) return null;
 
-    // Check memory store first for rapid response / offline fallback
+    // 1. Check memory store first for rapid response / offline fallback
     const mem = memorySessions.get(token);
     if (mem) {
       if (Date.now() > mem.expiresAt) {
@@ -75,17 +86,45 @@ export async function getAdminSession(): Promise<AdminSessionUser | null> {
       return mem.user;
     }
 
-    const sessionData = await convexQuery<any>(api.auth.getSession, {
-      sessionToken: token,
-    });
+    // 2. Query Supabase database
+    if (isSupabaseConfigured()) {
+      const { data: sessionData, error } = await supabaseAdmin
+        .from("sessions")
+        .select(`
+          session_token,
+          expires_at,
+          user_id,
+          admin_users (
+            id,
+            email,
+            name,
+            role,
+            status
+          )
+        `)
+        .eq("session_token", token)
+        .single();
 
-    if (sessionData && sessionData.user) {
-      return {
-        id: sessionData.user.id || sessionData.user._id,
-        email: sessionData.user.email,
-        name: sessionData.user.name,
-        role: sessionData.user.role,
-      };
+      if (!error && sessionData && sessionData.admin_users) {
+        if (Number(sessionData.expires_at) < Date.now()) {
+          // Expired
+          await supabaseAdmin.from("sessions").delete().eq("session_token", token);
+          return null;
+        }
+
+        const user = Array.isArray(sessionData.admin_users)
+          ? sessionData.admin_users[0]
+          : sessionData.admin_users;
+
+        if (user && user.status === "ACTIVE") {
+          return {
+            id: user.id,
+            email: user.email,
+            name: user.name,
+            role: user.role,
+          };
+        }
+      }
     }
 
     return null;
@@ -95,6 +134,9 @@ export async function getAdminSession(): Promise<AdminSessionUser | null> {
   }
 }
 
+/**
+ * Destroys current session and removes auth cookie
+ */
 export async function destroyAdminSession(): Promise<void> {
   try {
     const cookieStore = await cookies();
@@ -102,9 +144,11 @@ export async function destroyAdminSession(): Promise<void> {
 
     if (token) {
       memorySessions.delete(token);
-      try {
-        await convexMutation(api.auth.deleteSession, { sessionToken: token });
-      } catch {}
+      if (isSupabaseConfigured()) {
+        try {
+          await supabaseAdmin.from("sessions").delete().eq("session_token", token);
+        } catch {}
+      }
     }
 
     cookieStore.set(COOKIE_NAME, "", {
@@ -119,21 +163,20 @@ export async function destroyAdminSession(): Promise<void> {
   }
 }
 
-export async function requireAdminAuth(): Promise<{ user: AdminSessionUser } | NextResponse> {
-  const user = await getAdminSession();
-
-  if (!user) {
+/**
+ * Route protection helper that validates admin session or returns 401 response
+ */
+export async function requireAdminAuth(): Promise<NextResponse | AdminSessionUser> {
+  const session = await getAdminSession();
+  if (!session) {
     return NextResponse.json(
       {
         success: false,
-        error: {
-          message: "Unauthorized. Authentication required for admin operations.",
-          code: "UNAUTHORIZED",
-        },
+        error: { message: "Unauthorized. Admin session required.", code: "UNAUTHORIZED" },
       },
       { status: 401 }
     );
   }
-
-  return { user };
+  return session;
 }
+

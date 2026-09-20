@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
-import { convexQuery, convexMutation, api } from "@/lib/convex";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function GET(request: NextRequest) {
   const authResult = await requireAdminAuth();
@@ -8,16 +8,30 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status") || undefined;
+    const status = searchParams.get("status");
 
-    const quotations =
-      (await convexQuery<any[]>(api.quotations.list, {
-        status: status && status !== "ALL" ? status : undefined,
-      })) || [];
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({
+        success: true,
+        data: [],
+      });
+    }
+
+    let query = supabaseAdmin
+      .from("quotations")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (status && status !== "ALL") {
+      query = query.eq("status", status);
+    }
+
+    const { data: quotations, error } = await query;
+    if (error) throw error;
 
     return NextResponse.json({
       success: true,
-      data: quotations,
+      data: quotations || [],
     });
   } catch (error: any) {
     console.error("Error fetching quotations:", error);
@@ -55,30 +69,44 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const quoteId = await convexMutation(api.quotations.create, {
-      customerName,
-      customerEmail: customerEmail.toLowerCase().trim(),
-      customerPhone: customerPhone || undefined,
-      customerZip: customerZip || undefined,
-      modelSlug: modelSlug || undefined,
-      modelName: modelName || undefined,
-      sqft: sqft ? Number(sqft) : undefined,
-      dimensions: dimensions || undefined,
-      options: typeof options === "object" ? JSON.stringify(options) : options || undefined,
-      pricingInputs:
-        typeof pricingInputs === "object"
-          ? JSON.stringify(pricingInputs)
-          : pricingInputs || undefined,
-      estimatedAmount: estimatedAmount ? Number(estimatedAmount) : undefined,
-      timeline: timeline || undefined,
-      requirements: requirements || undefined,
+    const quoteData = {
+      customer_name: customerName,
+      customer_email: customerEmail.toLowerCase().trim(),
+      customer_phone: customerPhone || null,
+      customer_zip: customerZip || null,
+      model_slug: modelSlug || null,
+      model_name: modelName || null,
+      sqft: sqft ? Number(sqft) : null,
+      dimensions: dimensions || null,
+      options: typeof options === "string" ? JSON.parse(options) : options || [],
+      pricing_inputs: typeof pricingInputs === "string" ? JSON.parse(pricingInputs) : pricingInputs || {},
+      estimated_amount: estimatedAmount ? Number(estimatedAmount) : null,
+      timeline: timeline || null,
+      requirements: requirements || null,
       source: source || "QUOTE_WIZARD",
-    });
+      status: "PENDING",
+    };
+
+    if (isSupabaseConfigured()) {
+      const { data, error } = await supabaseAdmin
+        .from("quotations")
+        .insert(quoteData)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return NextResponse.json({
+        success: true,
+        data,
+        message: "Quotation recorded successfully.",
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      data: { _id: quoteId, customerName, customerEmail },
-      message: "Quotation recorded successfully.",
+      data: { id: "mock-quote-id", ...quoteData },
+      message: "Quotation recorded successfully (offline fallback).",
     });
   } catch (error: any) {
     console.error("Error creating quotation:", error);

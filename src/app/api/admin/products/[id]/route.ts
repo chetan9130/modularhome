@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
-import { convexQuery, convexMutation, api } from "@/lib/convex";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function GET(
   request: NextRequest,
@@ -11,16 +11,32 @@ export async function GET(
 
   try {
     const { id } = await params;
-    const product = await convexQuery<any>(api.products.getById, { id: id as any });
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({
+        success: true,
+        data: null,
+      });
+    }
 
-    if (!product) {
+    const { data: product, error } = await supabaseAdmin
+      .from("products")
+      .select("*, product_collections(collection_id)")
+      .eq("id", id)
+      .single();
+
+    if (error || !product) {
       return NextResponse.json(
         { success: false, error: { message: "Product not found.", code: "NOT_FOUND" } },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ success: true, data: product });
+    const formatted = {
+      ...product,
+      collectionIds: product.product_collections ? product.product_collections.map((pc: any) => pc.collection_id) : [],
+    };
+
+    return NextResponse.json({ success: true, data: formatted });
   } catch (error: any) {
     console.error("Error fetching product:", error);
     return NextResponse.json(
@@ -41,77 +57,112 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    const cleanSlug = body.slug
-      ? body.slug.toLowerCase().trim().replace(/[^a-z0-9_-]+/g, "-")
-      : undefined;
+    const parseJson = (val: any) => {
+      if (typeof val === "string") {
+        try {
+          return JSON.parse(val);
+        } catch {
+          return val;
+        }
+      }
+      return val;
+    };
 
-    const updated = await convexMutation(api.products.update, {
-      id: id as any,
-      name: body.name,
-      slug: cleanSlug,
-      tagline: body.tagline,
-      description: body.description,
-      shortDescription: body.shortDescription,
-      category: body.category,
-      series: body.series,
-      architecturalStyle: body.architecturalStyle,
-      sqft: body.sqft !== undefined ? Number(body.sqft) : undefined,
-      bedrooms: body.bedrooms !== undefined ? Number(body.bedrooms) : undefined,
-      bathrooms: body.bathrooms !== undefined ? Number(body.bathrooms) : undefined,
-      stories: body.stories !== undefined ? Number(body.stories) : undefined,
-      startingPrice: body.startingPrice !== undefined ? Number(body.startingPrice) : undefined,
-      dimensions: body.dimensions,
-      frameType: body.frameType,
-      roofPitch: body.roofPitch,
-      windRating: body.windRating,
-      snowLoad: body.snowLoad,
-      warranty: body.warranty,
-      primaryImage: body.primaryImage,
-      gallery:
-        body.gallery !== undefined
-          ? typeof body.gallery === "object"
-            ? JSON.stringify(body.gallery)
-            : body.gallery
-          : undefined,
-      floorPlanImage: body.floorPlanImage,
-      videoUrl: body.videoUrl,
-      features:
-        body.features !== undefined
-          ? typeof body.features === "object"
-            ? JSON.stringify(body.features)
-            : body.features
-          : undefined,
-      specs:
-        body.specs !== undefined
-          ? typeof body.specs === "object"
-            ? JSON.stringify(body.specs)
-            : body.specs
-          : undefined,
-      customizableOptions:
-        body.customizableOptions !== undefined
-          ? typeof body.customizableOptions === "object"
-            ? JSON.stringify(body.customizableOptions)
-            : body.customizableOptions
-          : undefined,
-      isPublished: body.isPublished,
-      isFeatured: body.isFeatured,
-      displayOrder: body.displayOrder !== undefined ? Number(body.displayOrder) : undefined,
-      seoTitle: body.seoTitle,
-      metaDescription: body.metaDescription,
-      imageAltText: body.imageAltText,
-      canonicalUrl: body.canonicalUrl,
-      collectionIds: Array.isArray(body.collectionIds) ? (body.collectionIds as any) : undefined,
-    });
+    const updatePayload: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    };
+
+    if (body.name !== undefined) updatePayload.name = body.name;
+    if (body.slug !== undefined) {
+      updatePayload.slug = body.slug.toLowerCase().trim().replace(/[^a-z0-9_-]+/g, "-");
+    }
+    if (body.tagline !== undefined) updatePayload.tagline = body.tagline;
+    if (body.description !== undefined) updatePayload.description = body.description;
+    if (body.shortDescription !== undefined) updatePayload.short_description = body.shortDescription;
+    if (body.short_description !== undefined) updatePayload.short_description = body.short_description;
+    if (body.category !== undefined) updatePayload.category = body.category;
+    if (body.series !== undefined) updatePayload.series = body.series;
+    if (body.architecturalStyle !== undefined) updatePayload.architectural_style = body.architecturalStyle;
+    if (body.architectural_style !== undefined) updatePayload.architectural_style = body.architectural_style;
+    if (body.sqft !== undefined) updatePayload.sqft = Number(body.sqft);
+    if (body.bedrooms !== undefined) updatePayload.bedrooms = Number(body.bedrooms);
+    if (body.bathrooms !== undefined) updatePayload.bathrooms = Number(body.bathrooms);
+    if (body.stories !== undefined) updatePayload.stories = Number(body.stories);
+    if (body.startingPrice !== undefined) updatePayload.starting_price = Number(body.startingPrice);
+    if (body.starting_price !== undefined) updatePayload.starting_price = Number(body.starting_price);
+    if (body.dimensions !== undefined) updatePayload.dimensions = body.dimensions;
+    if (body.frameType !== undefined) updatePayload.frame_type = body.frameType;
+    if (body.frame_type !== undefined) updatePayload.frame_type = body.frame_type;
+    if (body.roofPitch !== undefined) updatePayload.roof_pitch = body.roofPitch;
+    if (body.roof_pitch !== undefined) updatePayload.roof_pitch = body.roof_pitch;
+    if (body.windRating !== undefined) updatePayload.wind_rating = body.windRating;
+    if (body.wind_rating !== undefined) updatePayload.wind_rating = body.wind_rating;
+    if (body.snowLoad !== undefined) updatePayload.snow_load = body.snowLoad;
+    if (body.snow_load !== undefined) updatePayload.snow_load = body.snow_load;
+    if (body.warranty !== undefined) updatePayload.warranty = body.warranty;
+    if (body.primaryImage !== undefined) updatePayload.primary_image = body.primaryImage;
+    if (body.primary_image !== undefined) updatePayload.primary_image = body.primary_image;
+    if (body.gallery !== undefined) updatePayload.gallery = parseJson(body.gallery);
+    if (body.floorPlanImage !== undefined) updatePayload.floor_plan_image = body.floorPlanImage;
+    if (body.floor_plan_image !== undefined) updatePayload.floor_plan_image = body.floor_plan_image;
+    if (body.videoUrl !== undefined) updatePayload.video_url = body.videoUrl;
+    if (body.video_url !== undefined) updatePayload.video_url = body.video_url;
+    if (body.features !== undefined) updatePayload.features = parseJson(body.features);
+    if (body.specs !== undefined) updatePayload.specs = parseJson(body.specs);
+    if (body.customizableOptions !== undefined) updatePayload.customizable_options = parseJson(body.customizableOptions);
+    if (body.customizable_options !== undefined) updatePayload.customizable_options = parseJson(body.customizable_options);
+    if (body.isPublished !== undefined) updatePayload.is_published = body.isPublished;
+    if (body.is_published !== undefined) updatePayload.is_published = body.is_published;
+    if (body.isFeatured !== undefined) updatePayload.is_featured = body.isFeatured;
+    if (body.is_featured !== undefined) updatePayload.is_featured = body.is_featured;
+    if (body.displayOrder !== undefined) updatePayload.display_order = Number(body.displayOrder);
+    if (body.display_order !== undefined) updatePayload.display_order = Number(body.display_order);
+    if (body.seoTitle !== undefined) updatePayload.seo_title = body.seoTitle;
+    if (body.seo_title !== undefined) updatePayload.seo_title = body.seo_title;
+    if (body.metaDescription !== undefined) updatePayload.meta_description = body.metaDescription;
+    if (body.meta_description !== undefined) updatePayload.meta_description = body.meta_description;
+    if (body.imageAltText !== undefined) updatePayload.image_alt_text = body.imageAltText;
+    if (body.image_alt_text !== undefined) updatePayload.image_alt_text = body.image_alt_text;
+    if (body.canonicalUrl !== undefined) updatePayload.canonical_url = body.canonicalUrl;
+    if (body.canonical_url !== undefined) updatePayload.canonical_url = body.canonical_url;
+
+    if (isSupabaseConfigured()) {
+      const { data: updatedProduct, error } = await supabaseAdmin
+        .from("products")
+        .update(updatePayload)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      if (Array.isArray(body.collectionIds)) {
+        await supabaseAdmin.from("product_collections").delete().eq("product_id", id);
+        if (body.collectionIds.length > 0) {
+          const mappings = body.collectionIds.map((cid: string) => ({
+            product_id: id,
+            collection_id: cid,
+          }));
+          await supabaseAdmin.from("product_collections").insert(mappings);
+        }
+      }
+
+      return NextResponse.json({
+        success: true,
+        data: updatedProduct,
+        message: "Product updated successfully.",
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      data: updated,
-      message: "Product updated successfully.",
+      data: { id, ...updatePayload },
+      message: "Product updated successfully (offline fallback).",
     });
   } catch (error: any) {
     console.error("Error updating product:", error);
     return NextResponse.json(
-      { success: false, error: { message: "Failed to update product.", code: "UPDATE_ERROR" } },
+      { success: false, error: { message: error?.message || "Failed to update product.", code: "UPDATE_ERROR" } },
       { status: 500 }
     );
   }
@@ -126,7 +177,15 @@ export async function DELETE(
 
   try {
     const { id } = await params;
-    await convexMutation(api.products.remove, { id: id as any });
+
+    if (isSupabaseConfigured()) {
+      const { error } = await supabaseAdmin
+        .from("products")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    }
 
     return NextResponse.json({
       success: true,

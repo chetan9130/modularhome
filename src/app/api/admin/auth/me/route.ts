@@ -7,6 +7,7 @@ export async function GET() {
 
   return NextResponse.json({
     success: true,
-    user: authResult.user,
+    user: authResult,
+    data: authResult,
   });
 }

@@ -9,9 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.116.0",
     "bcryptjs": "^3.0.3",
     "canvas-confetti": "^1.9.4",
-    "convex": "^1.46.0",
     "framer-motion": "^13.2.0",
     "jose": "^6.2.12",
     "lucide-react": "^1.45.0",

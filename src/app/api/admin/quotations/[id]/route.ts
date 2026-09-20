@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
-import { convexQuery, convexMutation, api } from "@/lib/convex";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function GET(
   request: NextRequest,
@@ -11,11 +11,20 @@ export async function GET(
 
   try {
     const { id } = await params;
-    const quotation = await convexQuery<any>(api.quotations.getById, {
-      id: id as any,
-    });
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({
+        success: true,
+        data: null,
+      });
+    }
 
-    if (!quotation) {
+    const { data: quotation, error } = await supabaseAdmin
+      .from("quotations")
+      .select("*")
+      .eq("id", id)
+      .single();
+
+    if (error || !quotation) {
       return NextResponse.json(
         { success: false, error: { message: "Quotation not found.", code: "NOT_FOUND" } },
         { status: 404 }
@@ -43,15 +52,35 @@ export async function PATCH(
     const { id } = await params;
     const body = await request.json();
 
-    const updated = await convexMutation(api.quotations.updateStatus, {
-      id: id as any,
-      status: body.status || "PENDING",
-    });
+    const updatePayload: Record<string, any> = {
+      updated_at: new Date().toISOString(),
+    };
+    if (body.status !== undefined) updatePayload.status = body.status;
+    if (body.estimatedAmount !== undefined) updatePayload.estimated_amount = Number(body.estimatedAmount);
+    if (body.estimated_amount !== undefined) updatePayload.estimated_amount = Number(body.estimated_amount);
+    if (body.requirements !== undefined) updatePayload.requirements = body.requirements;
+
+    if (isSupabaseConfigured()) {
+      const { data, error } = await supabaseAdmin
+        .from("quotations")
+        .update(updatePayload)
+        .eq("id", id)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return NextResponse.json({
+        success: true,
+        data,
+        message: "Quotation status updated.",
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      data: updated,
-      message: "Quotation status updated.",
+      data: { id, ...updatePayload },
+      message: "Quotation updated (offline fallback).",
     });
   } catch (error: any) {
     console.error("Error updating quotation:", error);
@@ -71,7 +100,15 @@ export async function DELETE(
 
   try {
     const { id } = await params;
-    await convexMutation(api.quotations.remove, { id: id as any });
+
+    if (isSupabaseConfigured()) {
+      const { error } = await supabaseAdmin
+        .from("quotations")
+        .delete()
+        .eq("id", id);
+
+      if (error) throw error;
+    }
 
     return NextResponse.json({
       success: true,

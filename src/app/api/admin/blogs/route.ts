@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
-import { convexQuery, convexMutation, api } from "@/lib/convex";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function GET(request: NextRequest) {
   const authResult = await requireAdminAuth();
@@ -8,16 +8,31 @@ export async function GET(request: NextRequest) {
 
   try {
     const { searchParams } = new URL(request.url);
-    const status = searchParams.get("status") || undefined;
+    const status = searchParams.get("status");
 
-    const blogs =
-      (await convexQuery<any[]>(api.blogs.list, {
-        status: status && status !== "ALL" ? status : undefined,
-      })) || [];
+    if (!isSupabaseConfigured()) {
+      return NextResponse.json({
+        success: true,
+        data: [],
+      });
+    }
+
+    let query = supabaseAdmin
+      .from("blogs")
+      .select("*")
+      .order("published_at", { ascending: false });
+
+    if (status && status !== "ALL") {
+      query = query.eq("status", status);
+    }
+
+    const { data: blogs, error } = await query;
+
+    if (error) throw error;
 
     return NextResponse.json({
       success: true,
-      data: blogs,
+      data: blogs || [],
     });
   } catch (error: any) {
     console.error("Error fetching blogs:", error);
@@ -61,35 +76,51 @@ export async function POST(request: NextRequest) {
 
     const cleanSlug = slug.toLowerCase().trim().replace(/[^a-z0-9_-]+/g, "-");
 
-    const blogId = await convexMutation(api.blogs.create, {
+    const newBlog = {
       title,
       slug: cleanSlug,
-      excerpt: excerpt || undefined,
+      excerpt: excerpt || null,
       content,
-      featuredImage:
+      featured_image:
         featuredImage ||
         "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
-      author: author || authResult.user.name || "ModularHome Editorial Team",
-      publishedAt: publishedAt ? new Date(publishedAt).getTime() : Date.now(),
+      author: author || "ModularHome Editorial Team",
+      published_at: publishedAt ? new Date(publishedAt).toISOString() : new Date().toISOString(),
       status: status || "PUBLISHED",
-      categories: typeof categories === "object" ? JSON.stringify(categories) : categories || undefined,
-      tags: typeof tags === "object" ? JSON.stringify(tags) : tags || undefined,
-      embeddedVideoUrl: embeddedVideoUrl || undefined,
-      seoTitle: seoTitle || `${title} | ModularHome.com`,
-      metaDescription: metaDescription || excerpt || undefined,
-      imageAltText: imageAltText || title,
-      canonicalUrl: canonicalUrl || undefined,
-    });
+      categories: Array.isArray(categories) ? categories : [],
+      tags: Array.isArray(tags) ? tags : [],
+      embedded_video_url: embeddedVideoUrl || null,
+      seo_title: seoTitle || `${title} | ModularHome.com`,
+      meta_description: metaDescription || excerpt || null,
+      image_alt_text: imageAltText || title,
+      canonical_url: canonicalUrl || null,
+    };
+
+    if (isSupabaseConfigured()) {
+      const { data, error } = await supabaseAdmin
+        .from("blogs")
+        .insert(newBlog)
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      return NextResponse.json({
+        success: true,
+        data,
+        message: "Blog created successfully.",
+      });
+    }
 
     return NextResponse.json({
       success: true,
-      data: { _id: blogId, title, slug: cleanSlug },
-      message: "Blog created successfully.",
+      data: { id: "mock-id", ...newBlog },
+      message: "Blog created successfully (offline fallback).",
     });
   } catch (error: any) {
     console.error("Error creating blog:", error);
     return NextResponse.json(
-      { success: false, error: { message: "Failed to create blog.", code: "CREATE_ERROR" } },
+      { success: false, error: { message: error?.message || "Failed to create blog.", code: "CREATE_ERROR" } },
       { status: 500 }
     );
   }
