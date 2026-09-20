@@ -1,5 +1,5 @@
 -- ==============================================================================
--- MODULARHOME.COM - SUPABASE POSTGRESQL SCHEMA MIGRATION
+-- MODULARHOME.COM - SUPABASE POSTGRESQL SCHEMA (PHASE 1 + PHASE 2)
 -- ==============================================================================
 
 -- Enable UUID extension
@@ -70,12 +70,14 @@ CREATE TABLE IF NOT EXISTS pages (
   seo_title TEXT,
   meta_description TEXT,
   canonical_url TEXT,
+  shopify_id TEXT UNIQUE,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_pages_slug ON pages(slug);
 CREATE INDEX IF NOT EXISTS idx_pages_status ON pages(status);
+CREATE INDEX IF NOT EXISTS idx_pages_shopify_id ON pages(shopify_id);
 
 -- 5. Page Sections Table
 CREATE TABLE IF NOT EXISTS page_sections (
@@ -130,6 +132,7 @@ CREATE TABLE IF NOT EXISTS products (
   meta_description TEXT,
   image_alt_text TEXT,
   canonical_url TEXT,
+  shopify_id TEXT UNIQUE,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -137,6 +140,7 @@ CREATE TABLE IF NOT EXISTS products (
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category);
 CREATE INDEX IF NOT EXISTS idx_products_is_published ON products(is_published);
+CREATE INDEX IF NOT EXISTS idx_products_shopify_id ON products(shopify_id);
 
 -- 7. Collections Table
 CREATE TABLE IF NOT EXISTS collections (
@@ -153,11 +157,13 @@ CREATE TABLE IF NOT EXISTS collections (
   seo_title TEXT,
   meta_description TEXT,
   image_alt_text TEXT,
+  shopify_id TEXT UNIQUE,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
 
 CREATE INDEX IF NOT EXISTS idx_collections_slug ON collections(slug);
+CREATE INDEX IF NOT EXISTS idx_collections_shopify_id ON collections(shopify_id);
 
 -- 8. Product Collections Mapping Table
 CREATE TABLE IF NOT EXISTS product_collections (
@@ -189,6 +195,7 @@ CREATE TABLE IF NOT EXISTS blogs (
   meta_description TEXT,
   image_alt_text TEXT,
   canonical_url TEXT,
+  shopify_id TEXT UNIQUE,
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
 );
@@ -196,6 +203,7 @@ CREATE TABLE IF NOT EXISTS blogs (
 CREATE INDEX IF NOT EXISTS idx_blogs_slug ON blogs(slug);
 CREATE INDEX IF NOT EXISTS idx_blogs_status ON blogs(status);
 CREATE INDEX IF NOT EXISTS idx_blogs_published ON blogs(published_at);
+CREATE INDEX IF NOT EXISTS idx_blogs_shopify_id ON blogs(shopify_id);
 
 -- 10. Leads Table
 CREATE TABLE IF NOT EXISTS leads (
@@ -206,7 +214,7 @@ CREATE TABLE IF NOT EXISTS leads (
   location TEXT,
   zip TEXT,
   enquiry_details TEXT,
-  source TEXT DEFAULT 'WEBSITE', -- 'CONTACT_FORM', 'AI_CHAT', 'QUOTE_WIZARD', 'FLOOR_PLAN_UPLOAD', 'WEBSITE'
+  source TEXT DEFAULT 'WEBSITE',
   status TEXT DEFAULT 'NEW', -- 'NEW', 'CONTACTED', 'QUALIFIED', 'QUOTE_SENT', 'FOLLOW_UP', 'WON', 'LOST'
   notes TEXT,
   created_at TIMESTAMPTZ DEFAULT now(),
@@ -233,7 +241,7 @@ CREATE TABLE IF NOT EXISTS quotations (
   estimated_amount NUMERIC,
   timeline TEXT,
   requirements TEXT,
-  status TEXT DEFAULT 'PENDING', -- 'PENDING', 'REVIEWED', 'ESTIMATE_SENT', 'ACCEPTED', 'DECLINED'
+  status TEXT DEFAULT 'PENDING',
   source TEXT DEFAULT 'QUOTE_WIZARD',
   created_at TIMESTAMPTZ DEFAULT now(),
   updated_at TIMESTAMPTZ DEFAULT now()
@@ -242,6 +250,135 @@ CREATE TABLE IF NOT EXISTS quotations (
 CREATE INDEX IF NOT EXISTS idx_quotations_email ON quotations(customer_email);
 CREATE INDEX IF NOT EXISTS idx_quotations_status ON quotations(status);
 CREATE INDEX IF NOT EXISTS idx_quotations_created ON quotations(created_at);
+
+-- ==============================================================================
+-- 12. PHASE 2 - FLOOR PLANS E-COMMERCE CATALOG
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS floor_plans (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  title TEXT NOT NULL,
+  slug TEXT UNIQUE NOT NULL,
+  tagline TEXT,
+  description TEXT,
+  price NUMERIC NOT NULL DEFAULT 499,
+  sale_price NUMERIC,
+  currency TEXT DEFAULT 'USD',
+  preview_image TEXT NOT NULL,
+  gallery JSONB DEFAULT '[]'::jsonb,
+  file_path TEXT, -- Storage path to downloadable CAD/PDF kit
+  file_format TEXT DEFAULT 'PDF + CAD (DWG)',
+  category TEXT NOT NULL DEFAULT 'Cabins', -- 'Cabins', 'ADUs', 'Barndominiums', 'Modern Residential'
+  bedrooms INTEGER DEFAULT 2,
+  bathrooms INTEGER DEFAULT 1,
+  square_feet INTEGER DEFAULT 800,
+  dimensions TEXT DEFAULT '24x36 ft',
+  stories INTEGER DEFAULT 1,
+  included_items JSONB DEFAULT '["Full Construction Blueprints", "Electrical & Plumbing Schematic", "Foundation Engineering Details", "Material Takeoff List", "Structural Framing Diagrams"]'::jsonb,
+  features JSONB DEFAULT '[]'::jsonb,
+  specs JSONB DEFAULT '[]'::jsonb,
+  status TEXT DEFAULT 'PUBLISHED', -- 'PUBLISHED', 'DRAFT', 'ARCHIVED'
+  is_featured BOOLEAN DEFAULT false,
+  display_order INTEGER DEFAULT 0,
+  seo_title TEXT,
+  meta_description TEXT,
+  shopify_id TEXT UNIQUE,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_floor_plans_slug ON floor_plans(slug);
+CREATE INDEX IF NOT EXISTS idx_floor_plans_category ON floor_plans(category);
+CREATE INDEX IF NOT EXISTS idx_floor_plans_status ON floor_plans(status);
+
+-- ==============================================================================
+-- 13. PHASE 2 - ORDERS & E-COMMERCE TRANSACTIONS
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS orders (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_number TEXT UNIQUE NOT NULL,
+  customer_name TEXT NOT NULL,
+  customer_email TEXT NOT NULL,
+  customer_phone TEXT,
+  customer_zip TEXT,
+  customer_country TEXT DEFAULT 'US',
+  total_amount NUMERIC NOT NULL,
+  currency TEXT DEFAULT 'USD',
+  payment_status TEXT DEFAULT 'PENDING', -- 'PENDING', 'PAID', 'FAILED', 'REFUNDED'
+  order_status TEXT DEFAULT 'PENDING', -- 'PENDING', 'PROCESSING', 'COMPLETED', 'CANCELLED'
+  payment_provider TEXT DEFAULT 'RAZORPAY', -- 'RAZORPAY', 'STRIPE', 'TEST'
+  payment_id TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_orders_order_number ON orders(order_number);
+CREATE INDEX IF NOT EXISTS idx_orders_customer_email ON orders(customer_email);
+CREATE INDEX IF NOT EXISTS idx_orders_payment_status ON orders(payment_status);
+CREATE INDEX IF NOT EXISTS idx_orders_created ON orders(created_at);
+
+-- 14. Order Items Table
+CREATE TABLE IF NOT EXISTS order_items (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+  floor_plan_id UUID REFERENCES floor_plans(id) ON DELETE SET NULL,
+  title TEXT NOT NULL,
+  price NUMERIC NOT NULL,
+  quantity INTEGER DEFAULT 1,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_order_items_order ON order_items(order_id);
+CREATE INDEX IF NOT EXISTS idx_order_items_plan ON order_items(floor_plan_id);
+
+-- 15. Payments Table (Transaction Logs)
+CREATE TABLE IF NOT EXISTS payments (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+  razorpay_order_id TEXT,
+  razorpay_payment_id TEXT,
+  razorpay_signature TEXT,
+  amount NUMERIC NOT NULL,
+  currency TEXT DEFAULT 'USD',
+  status TEXT DEFAULT 'PENDING', -- 'PENDING', 'CAPTURED', 'FAILED', 'REFUNDED'
+  gateway_response JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_payments_order ON payments(order_id);
+CREATE INDEX IF NOT EXISTS idx_payments_razorpay_order ON payments(razorpay_order_id);
+CREATE INDEX IF NOT EXISTS idx_payments_razorpay_payment ON payments(razorpay_payment_id);
+
+-- 16. Secure Download Access Table
+CREATE TABLE IF NOT EXISTS download_access (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  order_id UUID REFERENCES orders(id) ON DELETE CASCADE,
+  floor_plan_id UUID REFERENCES floor_plans(id) ON DELETE CASCADE,
+  customer_email TEXT NOT NULL,
+  download_token TEXT UNIQUE NOT NULL,
+  file_path TEXT,
+  expires_at TIMESTAMPTZ NOT NULL,
+  download_count INTEGER DEFAULT 0,
+  max_downloads INTEGER DEFAULT 5,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_download_token ON download_access(download_token);
+CREATE INDEX IF NOT EXISTS idx_download_customer ON download_access(customer_email);
+
+-- 17. URL 301 Redirects Table (SEO Migration)
+CREATE TABLE IF NOT EXISTS redirects (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  source_path TEXT UNIQUE NOT NULL,
+  target_path TEXT NOT NULL,
+  status_code INTEGER DEFAULT 301,
+  is_active BOOLEAN DEFAULT true,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_redirects_source ON redirects(source_path);
 
 -- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
@@ -259,8 +396,14 @@ ALTER TABLE product_collections ENABLE ROW LEVEL SECURITY;
 ALTER TABLE blogs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE leads ENABLE ROW LEVEL SECURITY;
 ALTER TABLE quotations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE floor_plans ENABLE ROW LEVEL SECURITY;
+ALTER TABLE orders ENABLE ROW LEVEL SECURITY;
+ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE download_access ENABLE ROW LEVEL SECURITY;
+ALTER TABLE redirects ENABLE ROW LEVEL SECURITY;
 
--- Public Read Policies (for storefront visitors)
+-- Public Read Policies
 CREATE POLICY "Public can read published products" ON products FOR SELECT USING (is_published = true);
 CREATE POLICY "Public can read published collections" ON collections FOR SELECT USING (status = 'PUBLISHED');
 CREATE POLICY "Public can read product collections" ON product_collections FOR SELECT USING (true);
@@ -268,12 +411,17 @@ CREATE POLICY "Public can read published pages" ON pages FOR SELECT USING (statu
 CREATE POLICY "Public can read visible page sections" ON page_sections FOR SELECT USING (is_visible = true);
 CREATE POLICY "Public can read published blogs" ON blogs FOR SELECT USING (status = 'PUBLISHED');
 CREATE POLICY "Public can read global settings" ON global_settings FOR SELECT USING (true);
+CREATE POLICY "Public can read published floor plans" ON floor_plans FOR SELECT USING (status = 'PUBLISHED');
+CREATE POLICY "Public can read active redirects" ON redirects FOR SELECT USING (is_active = true);
 
--- Public Insert Policies (for customer inquiries & quotes)
+-- Public Insert Policies
 CREATE POLICY "Public can submit leads" ON leads FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public can submit quotations" ON quotations FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public can create orders" ON orders FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public can create order items" ON order_items FOR INSERT WITH CHECK (true);
+CREATE POLICY "Public can view own download token" ON download_access FOR SELECT USING (true);
 
--- Service Role / Admin Bypass (Allows full access for authenticated API backend operations)
+-- Service Role / Admin Bypass
 CREATE POLICY "Service role full access on admin_users" ON admin_users FOR ALL USING (auth.jwt() IS NULL OR true);
 CREATE POLICY "Service role full access on sessions" ON sessions FOR ALL USING (auth.jwt() IS NULL OR true);
 CREATE POLICY "Service role full access on global_settings" ON global_settings FOR ALL USING (auth.jwt() IS NULL OR true);
@@ -285,3 +433,9 @@ CREATE POLICY "Service role full access on product_collections" ON product_colle
 CREATE POLICY "Service role full access on blogs" ON blogs FOR ALL USING (auth.jwt() IS NULL OR true);
 CREATE POLICY "Service role full access on leads" ON leads FOR ALL USING (auth.jwt() IS NULL OR true);
 CREATE POLICY "Service role full access on quotations" ON quotations FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on floor_plans" ON floor_plans FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on orders" ON orders FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on order_items" ON order_items FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on payments" ON payments FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on download_access" ON download_access FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on redirects" ON redirects FOR ALL USING (auth.jwt() IS NULL OR true);

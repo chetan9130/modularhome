@@ -15,6 +15,9 @@ import {
   Video,
   Users,
   FileSpreadsheet,
+  ShoppingBag,
+  RefreshCw,
+  Download,
   LogOut,
   Menu,
   X,
@@ -80,18 +83,28 @@ export default function AdminLayout({
       ],
     },
     {
-      group: "Website CMS",
+      group: "Website CMS & Sync",
       items: [
         { label: "Global Settings", href: "/admin/settings", icon: Globe },
         { label: "Pages", href: "/admin/pages", icon: FileText },
         { label: "Page Sections", href: "/admin/sections", icon: Layers },
+        { label: "Shopify Migration", href: "/admin/shopify", icon: RefreshCw },
       ],
     },
     {
-      group: "Catalogue",
+      group: "Catalogue & E-Commerce",
       items: [
         { label: "Models & Products", href: "/admin/products", icon: Home },
         { label: "Collections", href: "/admin/collections", icon: FolderOpen },
+        { label: "Floor Plans (Digital)", href: "/admin/floor-plans", icon: Download },
+      ],
+    },
+    {
+      group: "Transactions & CRM",
+      items: [
+        { label: "Blueprint Orders", href: "/admin/orders", icon: ShoppingBag },
+        { label: "Leads & Prospects", href: "/admin/leads", icon: Users },
+        { label: "Quotations", href: "/admin/quotations", icon: FileSpreadsheet },
       ],
     },
     {
@@ -99,13 +112,6 @@ export default function AdminLayout({
       items: [
         { label: "Blogs & Articles", href: "/admin/blogs", icon: BookOpen },
         { label: "YouTube Manager", href: "/admin/videos", icon: Video },
-      ],
-    },
-    {
-      group: "Inquiries & CRM",
-      items: [
-        { label: "Leads & Prospects", href: "/admin/leads", icon: Users },
-        { label: "Quotations", href: "/admin/quotations", icon: FileSpreadsheet },
       ],
     },
   ];
@@ -168,7 +174,7 @@ export default function AdminLayout({
                       onClick={() => setSidebarOpen(false)}
                       className={`flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                         isActive
-                          ? "bg-[#fcb907] text-white shadow-md shadow-red-950/40"
+                          ? "bg-orange-600 text-white shadow-md shadow-orange-950/40"
                           : "text-gray-300 hover:text-white hover:bg-white/5"
                       }`}
                     >

@@ -33,6 +33,7 @@ interface CategoryNavOption {
 
 const PRIMARY_MENU_OPTIONS: CategoryNavOption[] = [
   { label: "Modular Homes", href: "/buildings?category=Modular+Homes", categoryQuery: "Modular Homes" },
+  { label: "Floor Plans", href: "/floor-plans", categoryQuery: "Floor Plans", badge: "NEW" },
   { label: "Prefab Homes", href: "/buildings?category=Prefab+Homes", categoryQuery: "Prefab Homes" },
   { label: "Barndominiums", href: "/buildings?category=Barndominiums", categoryQuery: "Barndominiums" },
   { label: "House Kits", href: "/buildings?category=House+Kits", categoryQuery: "House Kits" },
@@ -45,6 +46,12 @@ const PRIMARY_MENU_OPTIONS: CategoryNavOption[] = [
 ];
 
 const MORE_DROPDOWN_OPTIONS = [
+  { 
+    label: "Floor Plan Store", 
+    href: "/floor-plans", 
+    desc: "Browse & download construction blueprints",
+    icon: Layers 
+  },
   { 
     label: "Custom Homes", 
     href: "/buildings?category=Custom+Homes", 

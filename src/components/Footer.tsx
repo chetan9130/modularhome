@@ -117,9 +117,10 @@ export default function Footer() {
             </h4>
             <div className="space-y-2 text-sm text-[#555d69] font-medium">
               <div><Link href="/" className="hover:text-[#d97706] transition-colors">Home</Link></div>
-              <div><Link href="/buildings" className="hover:text-[#d97706] transition-colors">Homes</Link></div>
-              <div><Link href="/upload-floor-plan" className="hover:text-[#d97706] transition-colors">Floor Plans</Link></div>
-              <div><Link href="/videos" className="hover:text-[#d97706] transition-colors">Gallery</Link></div>
+              <div><Link href="/buildings" className="hover:text-[#d97706] transition-colors">Homes & Models</Link></div>
+              <div><Link href="/floor-plans" className="hover:text-[#d97706] transition-colors">Floor Plan Store</Link></div>
+              <div><Link href="/upload-floor-plan" className="hover:text-[#d97706] transition-colors">Custom Upload</Link></div>
+              <div><Link href="/videos" className="hover:text-[#d97706] transition-colors">Video Gallery</Link></div>
               <div><Link href="/about" className="hover:text-[#d97706] transition-colors">About Us</Link></div>
               <div><Link href="/contact" className="hover:text-[#d97706] transition-colors">Contact</Link></div>
             </div>
@@ -131,13 +132,12 @@ export default function Footer() {
               Home Types & Resources
             </h4>
             <div className="space-y-2 text-sm text-[#555d69] font-medium">
+              <div><Link href="/floor-plans?category=Cabins" className="hover:text-[#d97706] transition-colors">Cabins & A-Frames</Link></div>
+              <div><Link href="/floor-plans?category=Barndominiums" className="hover:text-[#d97706] transition-colors">Barndominium Plans</Link></div>
+              <div><Link href="/floor-plans?category=ADUs" className="hover:text-[#d97706] transition-colors">ADU Kits</Link></div>
               <div><Link href="/buildings?category=Modular+Homes" className="hover:text-[#d97706] transition-colors">Modular Homes</Link></div>
-              <div><Link href="/buildings?category=Prefab+Homes" className="hover:text-[#d97706] transition-colors">Prefab Homes</Link></div>
-              <div><Link href="/buildings?category=Barndominiums" className="hover:text-[#d97706] transition-colors">Barndominiums</Link></div>
-              <div><Link href="/buildings?category=Tiny+Homes" className="hover:text-[#d97706] transition-colors">Tiny Homes</Link></div>
-              <div><Link href="/buildings?category=ADUs+%26+Granny+Pods" className="hover:text-[#d97706] transition-colors">ADUs</Link></div>
               <div><Link href="/resources" className="hover:text-[#d97706] transition-colors">Buying Guide</Link></div>
-              <div><Link href="#financing" className="hover:text-[#d97706] transition-colors">Financing</Link></div>
+              <div><Link href="/admin" className="hover:text-[#d97706] transition-colors">Admin CMS</Link></div>
             </div>
           </div>
 
