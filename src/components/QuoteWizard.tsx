@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import confetti from "canvas-confetti";
@@ -28,9 +28,26 @@ const AVAILABLE_OPTIONS = [
 export default function QuoteWizard() {
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState<string>("Cabins");
+  const [allModels, setAllModels] = useState<BuildingModel[]>(BUILDING_MODELS);
   const [selectedModel, setSelectedModel] = useState<BuildingModel>(BUILDING_MODELS[0]);
   const [sqft, setSqft] = useState<number>(1200);
   const [selectedOptions, setSelectedOptions] = useState<string[]>(["opt-insul", "opt-porch"]);
+
+  useEffect(() => {
+    async function loadDynamicModels() {
+      try {
+        const res = await fetch("/api/products");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setAllModels(json.data);
+            setSelectedModel(json.data[0]);
+          }
+        }
+      } catch (e) {}
+    }
+    loadDynamicModels();
+  }, []);
 
   // Contact Info
   const [formData, setFormData] = useState({
@@ -46,9 +63,9 @@ export default function QuoteWizard() {
 
   // Available models filtered by chosen category
   const filteredModels = useMemo(() => {
-    const matched = BUILDING_MODELS.filter((m) => m.category === category);
-    return matched.length > 0 ? matched : BUILDING_MODELS;
-  }, [category]);
+    const matched = allModels.filter((m) => m.category === category);
+    return matched.length > 0 ? matched : allModels;
+  }, [category, allModels]);
 
   // Price Calculation Engine
   const calculation = useMemo(() => {

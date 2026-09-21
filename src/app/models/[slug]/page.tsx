@@ -20,12 +20,9 @@ import {
 import { BUILDING_MODELS, BuildingModel } from "@/data/models";
 import BuildingCard from "@/components/BuildingCard";
 import ModelDetailClient from "./ModelDetailClient";
+import { getPublicProductBySlug, getPublicProducts } from "@/lib/publicData";
 
-export function generateStaticParams() {
-  return BUILDING_MODELS.map((m) => ({
-    slug: m.slug,
-  }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({
   params,
@@ -33,7 +30,7 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const model = BUILDING_MODELS.find((m) => m.slug === slug);
+  const model = await getPublicProductBySlug(slug);
   if (!model) return { title: "Model Not Found | ModularHome.com" };
 
   return {
@@ -48,15 +45,18 @@ export default async function ModelDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const model = BUILDING_MODELS.find((m) => m.slug === slug);
+  const model = await getPublicProductBySlug(slug);
 
   if (!model) {
     notFound();
   }
 
-  const relatedModels = BUILDING_MODELS.filter(
-    (m) => m.id !== model.id && (m.category === model.category || m.series === model.series)
-  ).slice(0, 3);
+  const allProducts = await getPublicProducts();
+  const relatedModels = allProducts
+    .filter(
+      (m) => m.id !== model.id && (m.category === model.category || m.series === model.series)
+    )
+    .slice(0, 3);
 
   return <ModelDetailClient model={model} relatedModels={relatedModels} />;
 }

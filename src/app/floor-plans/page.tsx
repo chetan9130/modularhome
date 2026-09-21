@@ -26,7 +26,7 @@ export default function FloorPlansPage() {
   useEffect(() => {
     async function loadFloorPlans() {
       try {
-        const res = await fetch("/api/admin/floor-plans");
+        const res = await fetch("/api/floor-plans");
         if (res.ok) {
           const json = await res.json();
           if (json.success && Array.isArray(json.data) && json.data.length > 0) {

@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, BookOpen, Clock } from "lucide-react";
@@ -7,7 +8,24 @@ import SectionHeading from "@/components/SectionHeading";
 import { RESOURCE_ARTICLES } from "@/data/resources";
 
 export default function ResourcesSection() {
-  const featuredArticles = RESOURCE_ARTICLES.slice(0, 4);
+  const [articles, setArticles] = useState(RESOURCE_ARTICLES);
+
+  useEffect(() => {
+    async function loadDynamicBlogs() {
+      try {
+        const res = await fetch("/api/blogs");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setArticles(json.data);
+          }
+        }
+      } catch (e) {}
+    }
+    loadDynamicBlogs();
+  }, []);
+
+  const featuredArticles = articles.slice(0, 4);
 
   return (
     <section id="resources" className="py-20 bg-white border-b border-[var(--line)] text-[var(--ink)]">
@@ -24,7 +42,7 @@ export default function ResourcesSection() {
             href="/resources"
             className="inline-flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[var(--r)] hover:text-[var(--r-dark)] transition-colors shrink-0"
           >
-            <span>View All Guides ({RESOURCE_ARTICLES.length})</span>
+            <span>View All Guides ({articles.length})</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>

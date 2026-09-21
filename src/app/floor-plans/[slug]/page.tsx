@@ -42,7 +42,7 @@ export default function FloorPlanDetailPage() {
 
       // 2. Fetch from DB if available
       try {
-        const res = await fetch(`/api/admin/floor-plans/${slug}`);
+        const res = await fetch(`/api/floor-plans/${slug}`);
         if (res.ok) {
           const json = await res.json();
           if (json.success && json.data) {

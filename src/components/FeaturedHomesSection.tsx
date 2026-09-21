@@ -1,10 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import BuildingCard from "@/components/BuildingCard";
 import SectionHeading from "@/components/SectionHeading";
-import { BUILDING_MODELS } from "@/data/models";
+import { BUILDING_MODELS, BuildingModel } from "@/data/models";
 
 const FEATURED_TABS = [
   "All",
@@ -19,8 +19,24 @@ const FEATURED_TABS = [
 
 export default function FeaturedHomesSection() {
   const [activeTab, setActiveTab] = useState<string>("All");
+  const [homes, setHomes] = useState<BuildingModel[]>(BUILDING_MODELS);
 
-  const filteredHomes = BUILDING_MODELS.filter((home) => {
+  useEffect(() => {
+    async function loadDynamicHomes() {
+      try {
+        const res = await fetch("/api/products");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setHomes(json.data);
+          }
+        }
+      } catch (e) {}
+    }
+    loadDynamicHomes();
+  }, []);
+
+  const filteredHomes = homes.filter((home) => {
     if (activeTab === "All") return true;
     return home.category === activeTab;
   });

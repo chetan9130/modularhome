@@ -9,7 +9,7 @@ import {
   Building2, 
 } from "lucide-react";
 import BuildingCard from "@/components/BuildingCard";
-import { BUILDING_MODELS } from "@/data/models";
+import { BUILDING_MODELS, BuildingModel } from "@/data/models";
 
 const CATEGORY_TABS = [
   "All",
@@ -43,6 +43,7 @@ export default function ModelsCatalog() {
   const initialCategory = searchParams.get("category") || "All";
   const initialSearch = searchParams.get("search") || "";
 
+  const [models, setModels] = useState<BuildingModel[]>(BUILDING_MODELS);
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
   const [selectedStyle, setSelectedStyle] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState(initialSearch);
@@ -51,6 +52,23 @@ export default function ModelsCatalog() {
   const [storiesFilter, setStoriesFilter] = useState<string>("all");
   const [maxPrice, setMaxPrice] = useState<number>(350000);
   const [minSqft, setMinSqft] = useState<number>(0);
+
+  useEffect(() => {
+    async function loadDynamicProducts() {
+      try {
+        const res = await fetch("/api/products");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+            setModels(json.data);
+          }
+        }
+      } catch (e) {
+        // Fall back to INITIAL BUILDING_MODELS
+      }
+    }
+    loadDynamicProducts();
+  }, []);
 
   useEffect(() => {
     const cat = searchParams.get("category");
@@ -65,7 +83,7 @@ export default function ModelsCatalog() {
 
   // Filtering Logic
   const filteredModels = useMemo(() => {
-    return BUILDING_MODELS.filter((model) => {
+    return models.filter((model) => {
       // Category Filter
       if (selectedCategory !== "All" && model.category !== selectedCategory) {
         return false;

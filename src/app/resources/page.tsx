@@ -2,13 +2,18 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Clock } from "lucide-react";
 import { RESOURCE_ARTICLES } from "@/data/resources";
+import { getPublicBlogs } from "@/lib/publicData";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Modular Home Educational Resources & Guides | ModularHome.com",
   description: "Comprehensive educational guides on modular home construction, pricing, financing, land preparation, delivery, and custom floor plans.",
 };
 
-export default function ResourcesPage() {
+export default async function ResourcesPage() {
+  const articles = await getPublicBlogs();
+
   return (
     <div className="min-h-screen bg-white pt-24 pb-20 text-[#101114]">
       <div className="wrap">
@@ -28,7 +33,7 @@ export default function ResourcesPage() {
 
         {/* Article Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 mt-10">
-          {RESOURCE_ARTICLES.map((article) => (
+          {articles.map((article: any) => (
             <div
               key={article.id}
               className="card overflow-hidden flex flex-col justify-between hover:-translate-y-1 transition-all group bg-white"
@@ -64,11 +69,17 @@ export default function ResourcesPage() {
                   </p>
 
                   <div className="space-y-2 pt-2 border-t border-[#e7e9ee]">
-                    {article.content.map((paragraph, idx) => (
-                      <p key={idx} className="text-xs text-[#101114] leading-relaxed font-medium">
-                        {paragraph}
+                    {Array.isArray(article.content) ? (
+                      article.content.map((paragraph: string, idx: number) => (
+                        <p key={idx} className="text-xs text-[#101114] leading-relaxed font-medium">
+                          {paragraph}
+                        </p>
+                      ))
+                    ) : (
+                      <p className="text-xs text-[#101114] leading-relaxed font-medium">
+                        {article.content}
                       </p>
-                    ))}
+                    )}
                   </div>
                 </div>
               </div>

@@ -1,5 +1,22 @@
 [
   {
+    "id": "vid-4ie-LR2JDPE",
+    "youtubeVideoId": "4ie-LR2JDPE",
+    "title": "Custom YouTube Video (4ie-LR2JDPE)",
+    "category": "Building Tours",
+    "duration": "4:30",
+    "description": "Imported YouTube video walkthrough. Add your YOUTUBE_API_KEY in .env.local for automatic metadata extraction.",
+    "thumbnail": "https://img.youtube.com/vi/4ie-LR2JDPE/hqdefault.jpg",
+    "views": "1.2K views",
+    "date": "Just now",
+    "publishedAt": "2026-09-21T15:37:55.043Z",
+    "youtubeUrl": "https://www.youtube.com/watch?v=4ie-LR2JDPE",
+    "embedUrl": "https://www.youtube.com/embed/4ie-LR2JDPE",
+    "isPublished": true,
+    "createdAt": "2026-09-21T15:38:04.081Z",
+    "updatedAt": "2026-09-21T15:38:04.081Z"
+  },
+  {
     "id": "vid-L_LUpnjgPso",
     "youtubeVideoId": "L_LUpnjgPso",
     "title": "Heavy-Duty Barndominium Frame Erection & Tour",
