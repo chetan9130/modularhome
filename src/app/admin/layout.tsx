@@ -166,8 +166,8 @@ export default function AdminLayout({
 
       {/* Sidebar Navigation */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#0b0d11] text-white flex flex-col transition-all duration-300 ease-in-out border-r border-white/10 lg:static lg:translate-x-0 ${
-          sidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full"
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#0b0d11] text-white flex flex-col transition-all duration-300 ease-in-out border-r border-white/10 lg:sticky lg:top-0 lg:h-screen lg:shrink-0 ${
+          sidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Brand Header */}

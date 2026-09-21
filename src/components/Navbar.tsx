@@ -112,6 +112,10 @@ function NavbarContent() {
     setMoreDropdownOpen(false);
   }, [pathname, searchParams]);
 
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
+
   // Handle outside click for "More" dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -580,6 +584,11 @@ function NavbarContent() {
 }
 
 export default function Navbar() {
+  const pathname = usePathname();
+  if (pathname?.startsWith("/admin")) {
+    return null;
+  }
+
   return (
     <Suspense fallback={
       <header className="sticky top-0 z-50 bg-white/98 backdrop-blur-md border-b border-[#e7e9ee] h-[110px]" />
