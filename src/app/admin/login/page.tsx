@@ -47,7 +47,7 @@ function LoginForm() {
 
   const handleFillDemo = () => {
     setEmail("admin@modularhome.com");
-    setPassword("Admin@ModularHome2026!");
+    setPassword("admin@26");
   };
 
   return (

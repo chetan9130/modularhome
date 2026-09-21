@@ -43,7 +43,7 @@ INSERT INTO global_settings (
   '#quote'
 ) ON CONFLICT (key) DO NOTHING;
 
--- 2. Default Admin Superuser (Password: Admin@ModularHome2026!)
+-- 2. Default Admin Superuser (Password: admin@26)
 INSERT INTO admin_users (
   email,
   password_hash,
@@ -52,7 +52,7 @@ INSERT INTO admin_users (
   status
 ) VALUES (
   'admin@modularhome.com',
-  '$2a$10$R9w7e0kM2xS5yP0xV7hO8.9j1h7bQ7fN2n8X5yK4l3m2p1q0r9s8t', -- bcrypt hash for Admin@ModularHome2026!
+  '$2b$10$XzZfqINWLflYA4ufWbMVmeYc2jbhgxuhh21P2kUJBjas.RXynzjdm', -- bcrypt hash for admin@26
   'Admin Superuser',
   'ADMIN',
   'ACTIVE'

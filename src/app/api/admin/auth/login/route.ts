@@ -34,9 +34,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Default master admin fallback if db not seeded yet
+    const validDefaultPassword = process.env.ADMIN_DEFAULT_PASSWORD || "admin@26";
+    const defaultEmail = (process.env.ADMIN_DEFAULT_EMAIL || "admin@modularhome.com").toLowerCase().trim();
     const isDefaultAdmin =
-      normalizedEmail === "admin@modularhome.com" &&
-      (password === "Admin@ModularHome2026!" || password === "admin123");
+      normalizedEmail === defaultEmail &&
+      (password === validDefaultPassword || password === "admin@26" || password === "Admin@ModularHome2026!" || password === "admin123");
 
     if (!user && isDefaultAdmin) {
       if (isSupabaseConfigured()) {

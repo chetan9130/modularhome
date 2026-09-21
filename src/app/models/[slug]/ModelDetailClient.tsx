@@ -26,20 +26,28 @@ interface ModelDetailClientProps {
   relatedModels: BuildingModel[];
 }
 
-export default function ModelDetailClient({ model, relatedModels }: ModelDetailClientProps) {
-  const [activeImage, setActiveImage] = useState<string>(model.primaryImage);
+export default function ModelDetailClient({ model, relatedModels = [] }: ModelDetailClientProps) {
+  const primaryImg = model?.primaryImage || model?.image || (model?.gallery && model.gallery[0]) || "/finallogo.avif";
+  const [activeImage, setActiveImage] = useState<string>(primaryImg);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
   const [floorPlanExpanded, setFloorPlanExpanded] = useState(false);
   const [activeVideo, setActiveVideo] = useState<VideoItem | null>(null);
 
-  const formattedBasePrice = formatPrice(model.startingPrice);
+  const galleryList = Array.isArray(model?.gallery) && model.gallery.length > 0 ? model.gallery : [primaryImg];
+  const featuresList = Array.isArray(model?.features) ? model.features : [];
+  const specsList = Array.isArray(model?.specs) ? model.specs : [];
+  const optionsList = Array.isArray(model?.customizableOptions) ? model.customizableOptions : [];
+  const floorPlanImg = model?.floorPlanImage || model?.floorPlan || primaryImg;
+  const startingPrice = Number(model?.startingPrice) || 89000;
+
+  const formattedBasePrice = formatPrice(startingPrice);
 
   const optionsTotal = selectedOptions.reduce((acc, optId) => {
-    const opt = model.customizableOptions.find((o) => o.id === optId);
+    const opt = optionsList.find((o) => o.id === optId);
     return acc + (opt ? opt.price : 0);
   }, 0);
 
-  const totalCalculatedPrice = model.startingPrice + optionsTotal;
+  const totalCalculatedPrice = startingPrice + optionsTotal;
 
   const toggleOption = (id: string) => {
     setSelectedOptions((prev) =>
@@ -49,12 +57,12 @@ export default function ModelDetailClient({ model, relatedModels }: ModelDetailC
 
   const handleOpenVideo = () => {
     setActiveVideo({
-      id: `vid-${model.id}`,
-      title: model.videoTitle || `${model.name} Architectural Walkthrough`,
+      id: `vid-${model?.id || "preview"}`,
+      title: model?.videoTitle || `${model?.name || "Model"} Architectural Walkthrough`,
       category: "Building Tours",
-      duration: model.videoDuration || "4:30 min",
-      description: `Official walkthrough of the ${model.name}. Discover the rigid frame engineering, high vaulted ceilings, and custom interior finishes.`,
-      thumbnail: model.primaryImage,
+      duration: model?.videoDuration || "4:30 min",
+      description: `Official walkthrough of the ${model?.name || "Model"}. Discover the rigid frame engineering, high vaulted ceilings, and custom interior finishes.`,
+      thumbnail: primaryImg,
       views: "142K views",
       date: "Recent Tour",
       videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
@@ -70,7 +78,7 @@ export default function ModelDetailClient({ model, relatedModels }: ModelDetailC
           <span>/</span>
           <Link href="/buildings" className="hover:text-[#101114] transition-colors">Buildings</Link>
           <span>/</span>
-          <span className="text-[#d97706] font-bold uppercase">{model.name}</span>
+          <span className="text-[#d97706] font-bold uppercase">{model?.name}</span>
         </div>
       </div>
 
@@ -82,8 +90,8 @@ export default function ModelDetailClient({ model, relatedModels }: ModelDetailC
             {/* Main Stage Image */}
             <div className="relative aspect-[16/10] w-full rounded-[14px] overflow-hidden bg-[#f6f7f9] border border-[#e7e9ee] shadow-sm">
               <Image
-                src={activeImage}
-                alt={model.name}
+                src={activeImage || primaryImg}
+                alt={model?.name || "Building Model"}
                 fill
                 priority
                 sizes="(max-width: 1024px) 100vw, 60vw"
@@ -97,13 +105,13 @@ export default function ModelDetailClient({ model, relatedModels }: ModelDetailC
                 className="absolute bottom-4 left-4 inline-flex items-center gap-2 px-3.5 py-2 rounded-[9px] bg-[#0f1218]/90 hover:bg-[#fcb907] text-white hover:text-[#101114] border border-[#fcb907]/30 text-xs font-black uppercase tracking-wider backdrop-blur-md transition-all shadow-md cursor-pointer"
               >
                 <Play className="w-3.5 h-3.5 fill-[#fcb907] group-hover:fill-[#101114]" />
-                <span>Watch Video Tour ({model.videoDuration || "Tour"})</span>
+                <span>Watch Video Tour ({model?.videoDuration || "Tour"})</span>
               </button>
             </div>
 
             {/* Thumbnail Navigation Bar */}
             <div className="grid grid-cols-4 gap-3">
-              {model.gallery.map((img, idx) => (
+              {galleryList.map((img, idx) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImage(img)}
@@ -115,7 +123,7 @@ export default function ModelDetailClient({ model, relatedModels }: ModelDetailC
                 >
                   <Image
                     src={img}
-                    alt={`${model.name} angle ${idx + 1}`}
+                    alt={`${model?.name || "Model"} angle ${idx + 1}`}
                     fill
                     sizes="20vw"
                     className="object-cover"
@@ -256,15 +264,15 @@ export default function ModelDetailClient({ model, relatedModels }: ModelDetailC
                 className="cursor-pointer relative aspect-[16/9] w-full rounded-[14px] overflow-hidden bg-[#f6f7f9] border border-[#e7e9ee] group shadow-sm"
               >
                 <Image
-                  src={model.floorPlanImage}
-                  alt={`${model.name} Floor Plan Schematic`}
+                  src={floorPlanImg}
+                  alt={`${model?.name || "Model"} Floor Plan Schematic`}
                   fill
                   sizes="(max-width: 1024px) 100vw, 65vw"
                   className="object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-80" />
                 <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between text-xs text-white">
-                  <span className="font-semibold">{model.dimensions} Standard Footprint</span>
+                  <span className="font-semibold">{model?.dimensions || "Standard Footprint"}</span>
                   <span className="text-[#f6f7f9] font-bold">Click to view full layout →</span>
                 </div>
               </div>
@@ -285,30 +293,30 @@ export default function ModelDetailClient({ model, relatedModels }: ModelDetailC
                 <div className="divide-y divide-[#e7e9ee]">
                   <div className="grid grid-cols-2 p-3.5 text-xs">
                     <span className="text-[#6b7280] uppercase font-bold">Framing System</span>
-                    <span className="text-[#101114] font-semibold">{model.frameType}</span>
+                    <span className="text-[#101114] font-semibold">{model?.frameType || "Light Gauge Steel"}</span>
                   </div>
                   <div className="grid grid-cols-2 p-3.5 text-xs bg-[#f6f7f9]">
                     <span className="text-[#6b7280] uppercase font-bold">Standard Dimensions</span>
-                    <span className="text-[#101114] font-semibold">{model.dimensions}</span>
+                    <span className="text-[#101114] font-semibold">{model?.dimensions || "24' x 36'"}</span>
                   </div>
                   <div className="grid grid-cols-2 p-3.5 text-xs">
                     <span className="text-[#6b7280] uppercase font-bold">Roof Pitch & Profile</span>
-                    <span className="text-[#101114] font-semibold">{model.roofPitch}</span>
+                    <span className="text-[#101114] font-semibold">{model?.roofPitch || "4:12 Standing Seam"}</span>
                   </div>
                   <div className="grid grid-cols-2 p-3.5 text-xs bg-[#f6f7f9]">
                     <span className="text-[#6b7280] uppercase font-bold">Wind Speed Rating</span>
-                    <span className="text-[#101114] font-semibold">{model.windRating}</span>
+                    <span className="text-[#101114] font-semibold">{model?.windRating || "150 MPH Rated"}</span>
                   </div>
                   <div className="grid grid-cols-2 p-3.5 text-xs">
                     <span className="text-[#6b7280] uppercase font-bold">Ground Snow Load</span>
-                    <span className="text-[#101114] font-semibold">{model.snowLoad}</span>
+                    <span className="text-[#101114] font-semibold">{model?.snowLoad || "50 PSF Rated"}</span>
                   </div>
                   <div className="grid grid-cols-2 p-3.5 text-xs bg-[#f6f7f9]">
                     <span className="text-[#6b7280] uppercase font-bold">Structural Warranty</span>
-                    <span className="text-[#d97706] font-bold">{model.warranty}</span>
+                    <span className="text-[#d97706] font-bold">{model?.warranty || "50-Year Structural"}</span>
                   </div>
 
-                  {model.specs.map((spec, idx) => (
+                  {specsList.map((spec, idx) => (
                     <div key={idx} className={`grid grid-cols-2 p-3.5 text-xs ${idx % 2 === 1 ? "bg-[#f6f7f9]" : ""}`}>
                       <span className="text-[#6b7280] uppercase font-bold">{spec.label}</span>
                       <span className="text-[#101114] font-semibold">{spec.value}</span>
@@ -330,7 +338,7 @@ export default function ModelDetailClient({ model, relatedModels }: ModelDetailC
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {model.features.map((feature, idx) => (
+                {featuresList.map((feature, idx) => (
                   <div
                     key={idx}
                     className="p-3.5 rounded-[11px] bg-[#f6f7f9] border border-[#e7e9ee] flex items-start gap-2.5"
@@ -359,7 +367,7 @@ export default function ModelDetailClient({ model, relatedModels }: ModelDetailC
               </div>
 
               <div className="space-y-2.5">
-                {model.customizableOptions.map((option) => {
+                {optionsList.map((option) => {
                   const isChecked = selectedOptions.includes(option.id);
                   return (
                     <div
@@ -468,7 +476,7 @@ export default function ModelDetailClient({ model, relatedModels }: ModelDetailC
           <div className="relative max-w-5xl w-full bg-white border border-[#e7e9ee] rounded-[18px] p-6 shadow-2xl">
             <div className="flex items-center justify-between pb-4 border-b border-[#e7e9ee]">
               <h3 className="text-base sm:text-lg font-black text-[#101114]">
-                {model.name} — Detailed Floor Plan ({model.dimensions})
+                {model?.name} — Detailed Floor Plan ({model?.dimensions})
               </h3>
               <button
                 onClick={() => setFloorPlanExpanded(false)}
@@ -480,8 +488,8 @@ export default function ModelDetailClient({ model, relatedModels }: ModelDetailC
 
             <div className="relative aspect-[16/10] w-full mt-4 bg-[#f6f7f9] rounded-[11px] overflow-hidden">
               <Image
-                src={model.floorPlanImage}
-                alt={`${model.name} Full Blueprint`}
+                src={floorPlanImg}
+                alt={`${model?.name || "Model"} Full Blueprint`}
                 fill
                 className="object-contain"
               />
