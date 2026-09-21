@@ -170,10 +170,11 @@ export async function destroyAdminSession(): Promise<void> {
 export async function requireAdminAuth(): Promise<NextResponse | AdminSessionUser> {
   const session = await getAdminSession();
   if (!session) {
+    await destroyAdminSession();
     return NextResponse.json(
       {
         success: false,
-        error: { message: "Unauthorized. Admin session required.", code: "UNAUTHORIZED" },
+        error: { message: "Unauthorized. Admin session expired or invalid. Logged out.", code: "UNAUTHORIZED" },
       },
       { status: 401 }
     );

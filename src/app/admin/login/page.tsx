@@ -10,6 +10,7 @@ function LoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get("redirect") || "/admin";
+  const reason = searchParams.get("reason");
 
   const [email, setEmail] = useState("admin@modularhome.com");
   const [password, setPassword] = useState("");
@@ -51,6 +52,20 @@ function LoginForm() {
 
   return (
     <div className="bg-white py-8 px-6 sm:px-10 shadow-[0_20px_50px_rgba(16,24,40,0.08)] rounded-[24px] border border-[#e7e9ee] space-y-6 backdrop-blur-md">
+      {reason === "session_expired" && !error && (
+        <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 flex items-start gap-3 text-amber-800 text-xs animate-in fade-in font-medium">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-600" />
+          <span>Your 1-hour admin session has expired. You have been automatically logged out. Please log in again.</span>
+        </div>
+      )}
+
+      {reason === "unauthorized" && !error && (
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3 text-red-800 text-xs animate-in fade-in font-medium">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+          <span>Unauthorized access detected. Session cleared. Please log in with authorized credentials.</span>
+        </div>
+      )}
+
       {error && (
         <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3 text-red-800 text-xs animate-in fade-in font-medium">
           <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />

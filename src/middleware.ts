@@ -46,11 +46,34 @@ export function middleware(request: NextRequest) {
     if (!sessionCookie || !sessionCookie.value) {
       const loginUrl = new URL("/admin/login", request.url);
       loginUrl.searchParams.set("redirect", pathname);
-      return NextResponse.redirect(loginUrl);
+      loginUrl.searchParams.set("reason", "unauthorized");
+      const response = NextResponse.redirect(loginUrl);
+      response.cookies.delete("admin_session");
+      return response;
     }
   }
 
-  // 4. Redirect /admin/login to /admin if already authenticated
+  // 4. Protect /api/admin API routes (except login and logout)
+  if (
+    pathname.startsWith("/api/admin") &&
+    !pathname.startsWith("/api/admin/auth/login") &&
+    !pathname.startsWith("/api/admin/auth/logout")
+  ) {
+    const sessionCookie = request.cookies.get("admin_session");
+    if (!sessionCookie || !sessionCookie.value) {
+      const response = NextResponse.json(
+        {
+          success: false,
+          error: { message: "Unauthorized. Admin session expired or missing.", code: "UNAUTHORIZED" },
+        },
+        { status: 401 }
+      );
+      response.cookies.delete("admin_session");
+      return response;
+    }
+  }
+
+  // 5. Redirect /admin/login to /admin if already authenticated
   if (pathname === "/admin/login") {
     const sessionCookie = request.cookies.get("admin_session");
     if (sessionCookie && sessionCookie.value) {
@@ -64,6 +87,7 @@ export function middleware(request: NextRequest) {
 export const config = {
   matcher: [
     "/admin/:path*",
+    "/api/admin/:path*",
     "/products/:path*",
     "/blogs/news/:path*",
     "/collections/:path*",
