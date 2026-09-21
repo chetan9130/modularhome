@@ -155,7 +155,7 @@ export default function AdminLayout({
   ];
 
   return (
-    <div className="min-h-screen bg-[#f8f9fa] flex text-[#101114] font-sans selection:bg-[#fcb907] selection:text-[#101114]">
+    <div className="fixed inset-0 w-screen h-screen bg-[#f8f9fa] flex text-[#101114] font-sans selection:bg-[#fcb907] selection:text-[#101114] overflow-hidden z-10">
       {/* Mobile Sidebar Backdrop */}
       {sidebarOpen && (
         <div
@@ -166,12 +166,12 @@ export default function AdminLayout({
 
       {/* Sidebar Navigation */}
       <aside
-        className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#0b0d11] text-white flex flex-col transition-all duration-300 ease-in-out border-r border-white/10 lg:sticky lg:top-0 lg:h-screen lg:shrink-0 ${
+        className={`fixed inset-y-0 left-0 z-50 w-72 bg-[#0b0d11] text-white flex flex-col transition-transform duration-300 ease-in-out border-r border-white/10 lg:static lg:h-full lg:shrink-0 ${
           sidebarOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"
         }`}
       >
         {/* Brand Header */}
-        <div className="h-20 flex items-center justify-between px-6 border-b border-white/10 bg-[#08090d]">
+        <div className="h-20 flex items-center justify-between px-6 border-b border-white/10 bg-[#08090d] shrink-0">
           <Link href="/admin" className="flex items-center gap-3 group">
             <div className="bg-white/95 p-2 rounded-xl border border-white/20 shadow-xs group-hover:scale-102 transition-transform">
               <Image
@@ -236,7 +236,7 @@ export default function AdminLayout({
         </div>
 
         {/* Footer Admin User Card */}
-        <div className="p-4 border-t border-white/10 bg-[#08090d]">
+        <div className="p-4 border-t border-white/10 bg-[#08090d] shrink-0">
           <div className="flex items-center justify-between p-3 rounded-2xl bg-white/5 border border-white/10">
             <div className="flex items-center gap-3 min-w-0 pr-2">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[#fcb907] to-[#d97706] text-[#101114] flex items-center justify-center font-black text-xs shrink-0 shadow-xs">
@@ -266,9 +266,9 @@ export default function AdminLayout({
       </aside>
 
       {/* Main Content Viewport */}
-      <div className="flex-1 flex flex-col min-w-0">
-        {/* Top Sticky App Header */}
-        <header className="h-20 bg-white border-b border-[#e7e9ee] sticky top-0 z-30 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-[0_2px_16px_rgba(16,24,40,0.03)]">
+      <div className="flex-1 flex flex-col h-full min-w-0 overflow-hidden">
+        {/* Top Fixed App Header */}
+        <header className="h-20 bg-white border-b border-[#e7e9ee] shrink-0 flex items-center justify-between px-4 sm:px-6 lg:px-8 shadow-[0_2px_16px_rgba(16,24,40,0.03)] z-20">
           <div className="flex items-center gap-4 min-w-0">
             {/* Mobile Hamburger */}
             <button
@@ -325,8 +325,10 @@ export default function AdminLayout({
         </header>
 
         {/* Page Content Viewport */}
-        <main className="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto">
-          {children}
+        <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8">
+          <div className="max-w-7xl mx-auto w-full pb-16">
+            {children}
+          </div>
         </main>
       </div>
     </div>
