@@ -11,7 +11,11 @@ import {
   AlertCircle,
   Loader2,
   X,
+  Search,
+  RefreshCw,
+  Layers,
 } from "lucide-react";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 export default function AdminCollectionsPage() {
   const [collections, setCollections] = useState<any[]>([]);
@@ -106,12 +110,12 @@ export default function AdminCollectionsPage() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6 animate-in fade-in duration-300 pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e7e9ee] pb-5">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#101114] font-serif">
-            Collection Management
+            Collection & Series Management
           </h1>
           <p className="text-xs sm:text-sm text-[#6b7280] mt-1 font-medium">
             Organize steel modular models into curated architectural series, themes, and promotional lines.
@@ -120,7 +124,7 @@ export default function AdminCollectionsPage() {
 
         <button
           onClick={() => setCreateModalOpen(true)}
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] text-xs font-bold uppercase tracking-wider shadow-sm transition-all cursor-pointer"
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] text-xs font-black uppercase tracking-wider shadow-sm transition-all cursor-pointer self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>New Collection</span>
@@ -130,11 +134,11 @@ export default function AdminCollectionsPage() {
       {/* Collections Grid */}
       {isLoading ? (
         <div className="py-24 text-center text-[#6b7280] text-xs flex flex-col items-center gap-2 font-medium">
-          <Loader2 className="w-6 h-6 animate-spin text-[#d97706]" />
+          <Loader2 className="w-6 h-6 animate-spin text-[#fcb907]" />
           <span>Loading collections...</span>
         </div>
       ) : collections.length === 0 ? (
-        <div className="bg-white rounded-[18px] p-12 text-center text-[#6b7280] text-xs border border-[#e7e9ee] font-medium shadow-[0_12px_35px_rgba(16,24,40,0.04)]">
+        <div className="bg-white rounded-[20px] p-12 text-center text-[#6b7280] text-xs border border-[#e7e9ee] font-medium shadow-[0_12px_35px_rgba(16,24,40,0.04)]">
           No collections found. Click &quot;New Collection&quot; to create your first architectural series.
         </div>
       ) : (
@@ -144,10 +148,10 @@ export default function AdminCollectionsPage() {
             return (
               <div
                 key={collId}
-                className="bg-white rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] overflow-hidden flex flex-col group hover:shadow-[0_16px_40px_rgba(16,24,40,0.08)] hover:border-[#d5d9e0] transition-all"
+                className="bg-white rounded-[20px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] overflow-hidden flex flex-col group hover:shadow-[0_18px_45px_rgba(16,24,40,0.08)] hover:border-[#fcb907] transition-all duration-200"
               >
                 {/* Image Banner */}
-                <div className="relative aspect-[16/9] w-full bg-[#f6f7f9] overflow-hidden">
+                <div className="relative aspect-[16/10] w-full bg-[#f8f9fa] overflow-hidden">
                   {coll.image ? (
                     <Image
                       src={coll.image}
@@ -161,7 +165,7 @@ export default function AdminCollectionsPage() {
                     </div>
                   )}
                   <div className="absolute top-3 right-3 flex gap-1.5">
-                    <span className="px-2.5 py-1 rounded-md bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold">
+                    <span className="px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold font-mono">
                       {coll.productCount || coll._count?.products || 0} Models
                     </span>
                   </div>
@@ -175,7 +179,7 @@ export default function AdminCollectionsPage() {
                       <span
                         className={`text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full ${
                           coll.status === "PUBLISHED"
-                            ? "bg-emerald-50 text-emerald-700 border border-emerald-200"
+                            ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
                             : "bg-gray-100 text-gray-600 border border-gray-200"
                         }`}
                       >
@@ -192,7 +196,7 @@ export default function AdminCollectionsPage() {
                   <div className="pt-4 border-t border-[#e7e9ee] flex items-center justify-between">
                     <Link
                       href={`/admin/collections/${collId}`}
-                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#d97706] hover:underline"
+                      className="inline-flex items-center gap-1.5 text-xs font-bold text-[#b45309] hover:underline"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                       <span>Edit & Assign Models</span>
@@ -216,22 +220,22 @@ export default function AdminCollectionsPage() {
       {/* Create Modal */}
       {createModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-[18px] max-w-lg w-full p-6 shadow-2xl border border-[#e7e9ee] animate-in zoom-in-95 space-y-4">
+          <div className="bg-white rounded-[22px] max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-[#e7e9ee] animate-in zoom-in-95 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#e7e9ee] pb-3">
               <h3 className="text-base font-bold text-[#101114] font-serif">
                 Create New Collection
               </h3>
               <button
                 onClick={() => setCreateModalOpen(false)}
-                className="p-1.5 rounded-lg text-[#6b7280] hover:text-[#101114] hover:bg-[#f6f7f9] cursor-pointer"
+                className="p-1.5 rounded-lg text-[#6b7280] hover:text-[#101114] hover:bg-[#f8f9fa] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {createError && (
-              <div className="p-3.5 rounded-xl bg-red-50 text-red-700 text-xs font-semibold flex items-center gap-2 border border-red-200">
-                <AlertCircle className="w-4 h-4 shrink-0 text-[#d97706]" />
+              <div className="p-3.5 rounded-xl bg-red-50 text-red-800 text-xs font-semibold flex items-center gap-2 border border-red-200">
+                <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
                 <span>{createError}</span>
               </div>
             )}
@@ -249,7 +253,7 @@ export default function AdminCollectionsPage() {
                     setCreateForm({ ...createForm, name, slug });
                   }}
                   placeholder="e.g. Modern Minimalist Series"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
                 />
               </div>
 
@@ -261,7 +265,7 @@ export default function AdminCollectionsPage() {
                   value={createForm.slug}
                   onChange={(e) => setCreateForm({ ...createForm, slug: e.target.value })}
                   placeholder="modern-minimalist"
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] font-mono text-[11px] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] font-mono text-[11px] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
                 />
               </div>
 
@@ -272,7 +276,7 @@ export default function AdminCollectionsPage() {
                   value={createForm.tagline}
                   onChange={(e) => setCreateForm({ ...createForm, tagline: e.target.value })}
                   placeholder="e.g. Clean architectural lines with panoramic glass walls."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
                 />
               </div>
 
@@ -283,7 +287,7 @@ export default function AdminCollectionsPage() {
                   value={createForm.image}
                   onChange={(e) => setCreateForm({ ...createForm, image: e.target.value })}
                   placeholder="https://images.unsplash.com/..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
                 />
               </div>
 
@@ -291,14 +295,14 @@ export default function AdminCollectionsPage() {
                 <button
                   type="button"
                   onClick={() => setCreateModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-[#101114] font-bold hover:bg-[#f6f7f9] border border-transparent cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-[#101114] font-bold hover:bg-[#f8f9fa] border border-[#d5d9e0] cursor-pointer"
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={isCreating}
-                  className="px-5 py-2.5 rounded-xl bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] font-bold disabled:opacity-50 flex items-center gap-1.5 cursor-pointer"
+                  className="px-5 py-2.5 rounded-xl bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] font-bold disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shadow-xs"
                 >
                   {isCreating && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Create Collection</span>

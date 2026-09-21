@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Loader2, Image as ImageIcon, FileText } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Image as ImageIcon, FileText, CheckCircle2, AlertCircle } from "lucide-react";
 import ImageUpload, { GalleryUpload } from "@/components/admin/ImageUpload";
 
 export default function AdminFloorPlanEditPage() {
@@ -39,6 +39,7 @@ export default function AdminFloorPlanEditPage() {
   const [loading, setLoading] = useState(!isNew);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
 
   useEffect(() => {
     if (!isNew && id) {
@@ -83,6 +84,7 @@ export default function AdminFloorPlanEditPage() {
     e.preventDefault();
     setSaving(true);
     setError("");
+    setSuccessMsg("");
 
     try {
       const url = isNew ? "/api/admin/floor-plans" : `/api/admin/floor-plans/${id}`;
@@ -107,225 +109,302 @@ export default function AdminFloorPlanEditPage() {
         throw new Error(json.error?.message || "Failed to save floor plan");
       }
 
-      router.push("/admin/floor-plans");
+      setSuccessMsg("Floor plan blueprint saved successfully!");
+      if (isNew) {
+        router.push("/admin/floor-plans");
+      }
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || "An unexpected error occurred.");
+    } finally {
       setSaving(false);
     }
   };
 
   if (loading) {
     return (
-      <div className="p-12 text-center text-xs text-stone-500">
-        <div className="w-6 h-6 border-2 border-orange-600 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
-        Loading floor plan details...
+      <div className="py-24 text-center text-xs text-[#6b7280] flex flex-col items-center gap-2 font-medium">
+        <Loader2 className="w-8 h-8 animate-spin text-[#fcb907]" />
+        <span>Loading floor plan details...</span>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div className="flex items-center justify-between">
-        <Link
-          href="/admin/floor-plans"
-          className="inline-flex items-center gap-1.5 text-xs font-semibold text-stone-500 hover:text-stone-900 transition-colors"
+    <div className="max-w-5xl mx-auto space-y-6 animate-in fade-in pb-12">
+      {/* Top Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e7e9ee] pb-5">
+        <div className="flex items-center gap-3">
+          <Link
+            href="/admin/floor-plans"
+            className="p-2.5 rounded-xl border border-[#d5d9e0] bg-white text-[#101114] hover:bg-[#f8f9fa] transition-all shadow-2xs"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#101114] font-serif">
+              {isNew ? "New Floor Plan Kit" : `Edit Blueprint: ${form.title}`}
+            </h1>
+            <p className="text-xs text-[#6b7280] font-mono mt-0.5">
+              Slug: /{form.slug || "new-plan"}
+            </p>
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleSubmit}
+          disabled={saving}
+          className="inline-flex items-center gap-2 px-6 py-3 bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] rounded-xl text-xs font-black uppercase tracking-wider shadow-sm transition-all cursor-pointer disabled:opacity-50"
         >
-          <ArrowLeft className="w-4 h-4" />
-          Back to Floor Plans
-        </Link>
-        <h1 className="text-xl font-bold text-stone-900">
-          {isNew ? "New Floor Plan Kit" : `Edit: ${form.title}`}
-        </h1>
+          {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+          <span>Save Blueprint</span>
+        </button>
       </div>
 
-      <form onSubmit={handleSubmit} className="bg-white p-6 sm:p-8 rounded-2xl border border-stone-200/80 shadow-sm space-y-6">
-        {error && (
-          <div className="p-3 bg-red-50 border border-red-200 text-red-700 rounded-xl text-xs">
-            {error}
-          </div>
-        )}
-
-        {/* Basic Info */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-bold text-stone-700 mb-1">Title *</label>
-            <input
-              type="text"
-              required
-              value={form.title}
-              onChange={(e) => setForm({ ...form, title: e.target.value })}
-              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:ring-1 focus:ring-orange-600 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-stone-700 mb-1">Slug *</label>
-            <input
-              type="text"
-              required
-              value={form.slug}
-              onChange={(e) => setForm({ ...form, slug: e.target.value })}
-              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:ring-1 focus:ring-orange-600 focus:outline-none font-mono"
-            />
-          </div>
+      {error && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-2xl text-xs font-semibold flex items-center gap-2">
+          <AlertCircle className="w-4 h-4 shrink-0 text-red-600" />
+          <span>{error}</span>
         </div>
+      )}
 
-        {/* Tagline & Category */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="sm:col-span-2">
-            <label className="block text-xs font-bold text-stone-700 mb-1">Tagline</label>
-            <input
-              type="text"
-              value={form.tagline}
-              onChange={(e) => setForm({ ...form, tagline: e.target.value })}
-              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:ring-1 focus:ring-orange-600 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-stone-700 mb-1">Category</label>
-            <select
-              value={form.category}
-              onChange={(e) => setForm({ ...form, category: e.target.value })}
-              className="w-full px-3 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:ring-1 focus:ring-orange-600 focus:outline-none"
-            >
-              <option value="Cabins">Cabins</option>
-              <option value="ADUs">ADUs</option>
-              <option value="Barndominiums">Barndominiums</option>
-              <option value="Modern Residential">Modern Residential</option>
-              <option value="Duplex & Multi-Family">Duplex & Multi-Family</option>
-            </select>
-          </div>
+      {successMsg && (
+        <div className="p-4 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded-2xl text-xs font-semibold flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-600" />
+          <span>{successMsg}</span>
         </div>
+      )}
 
-        {/* Description */}
-        <div>
-          <label className="block text-xs font-bold text-stone-700 mb-1">Description</label>
-          <textarea
-            rows={4}
-            value={form.description}
-            onChange={(e) => setForm({ ...form, description: e.target.value })}
-            className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:ring-1 focus:ring-orange-600 focus:outline-none"
-          />
-        </div>
+      <form onSubmit={handleSubmit} className="space-y-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left 2 Cols */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* Basic Info */}
+            <div className="bg-white p-6 rounded-[20px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-4">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3 font-mono">
+                Blueprint Identity & Categorization
+              </h2>
 
-        {/* Specs & Pricing */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <div>
-            <label className="block text-xs font-bold text-stone-700 mb-1">Price ($) *</label>
-            <input
-              type="number"
-              required
-              value={form.price}
-              onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
-              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:ring-1 focus:ring-orange-600 focus:outline-none"
-            />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#101114] mb-1.5">Title *</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.title}
+                    onChange={(e) => {
+                      const title = e.target.value;
+                      const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+                      setForm({ ...form, title, slug: form.slug || slug });
+                    }}
+                    placeholder="e.g. Modern Barnhouse 1200"
+                    className="w-full px-3.5 py-2.5 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-xs text-[#101114] font-medium focus:bg-white focus:ring-2 focus:ring-[#fcb907] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#101114] mb-1.5">Slug / URL Path *</label>
+                  <input
+                    type="text"
+                    required
+                    value={form.slug}
+                    onChange={(e) => setForm({ ...form, slug: e.target.value })}
+                    placeholder="modern-barnhouse-1200"
+                    className="w-full px-3.5 py-2.5 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-xs text-[#101114] font-mono focus:bg-white focus:ring-2 focus:ring-[#fcb907] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2">
+                  <label className="block text-xs font-bold text-[#101114] mb-1.5">Tagline</label>
+                  <input
+                    type="text"
+                    value={form.tagline}
+                    onChange={(e) => setForm({ ...form, tagline: e.target.value })}
+                    placeholder="e.g. Compact 2-Bedroom Minimalist Cabin with Vaulted Ceilings"
+                    className="w-full px-3.5 py-2.5 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-xs text-[#101114] font-medium focus:bg-white focus:ring-2 focus:ring-[#fcb907] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#101114] mb-1.5">Category</label>
+                  <select
+                    value={form.category}
+                    onChange={(e) => setForm({ ...form, category: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-xs text-[#101114] font-bold focus:bg-white focus:ring-2 focus:ring-[#fcb907] focus:outline-none"
+                  >
+                    <option value="Cabins">Cabins</option>
+                    <option value="ADUs">ADUs</option>
+                    <option value="Barndominiums">Barndominiums</option>
+                    <option value="Modern Residential">Modern Residential</option>
+                    <option value="Duplex & Multi-Family">Duplex & Multi-Family</option>
+                  </select>
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-[#101114] mb-1.5">Description</label>
+                <textarea
+                  rows={4}
+                  value={form.description}
+                  onChange={(e) => setForm({ ...form, description: e.target.value })}
+                  placeholder="Architectural overview, inclusions, CAD file deliverables..."
+                  className="w-full px-3.5 py-2.5 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-xs text-[#101114] font-medium focus:bg-white focus:ring-2 focus:ring-[#fcb907] focus:outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Specs & Dimensions */}
+            <div className="bg-white p-6 rounded-[20px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-4">
+              <h2 className="text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3 font-mono">
+                Architectural Dimensions & Specifications
+              </h2>
+
+              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#101114] mb-1.5">Regular Price ($) *</label>
+                  <input
+                    type="number"
+                    required
+                    value={form.price}
+                    onChange={(e) => setForm({ ...form, price: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-xs text-[#101114] font-serif font-bold focus:bg-white focus:ring-2 focus:ring-[#fcb907] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#101114] mb-1.5">Sale Price ($)</label>
+                  <input
+                    type="number"
+                    value={form.salePrice}
+                    onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
+                    className="w-full px-3.5 py-2.5 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-xs text-[#101114] font-serif font-bold focus:bg-white focus:ring-2 focus:ring-[#fcb907] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#101114] mb-1.5">Square Feet</label>
+                  <input
+                    type="number"
+                    value={form.squareFeet}
+                    onChange={(e) => setForm({ ...form, squareFeet: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-xs text-[#101114] font-medium focus:bg-white focus:ring-2 focus:ring-[#fcb907] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#101114] mb-1.5">Dimensions</label>
+                  <input
+                    type="text"
+                    value={form.dimensions}
+                    onChange={(e) => setForm({ ...form, dimensions: e.target.value })}
+                    placeholder="24x36 ft"
+                    className="w-full px-3.5 py-2.5 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-xs text-[#101114] font-medium focus:bg-white focus:ring-2 focus:ring-[#fcb907] focus:outline-none"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-[#101114] mb-1.5">Bedrooms</label>
+                  <input
+                    type="number"
+                    value={form.bedrooms}
+                    onChange={(e) => setForm({ ...form, bedrooms: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-xs text-[#101114] font-medium focus:bg-white focus:ring-2 focus:ring-[#fcb907] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#101114] mb-1.5">Bathrooms</label>
+                  <input
+                    type="number"
+                    value={form.bathrooms}
+                    onChange={(e) => setForm({ ...form, bathrooms: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-xs text-[#101114] font-medium focus:bg-white focus:ring-2 focus:ring-[#fcb907] focus:outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-[#101114] mb-1.5">Stories</label>
+                  <input
+                    type="number"
+                    value={form.stories}
+                    onChange={(e) => setForm({ ...form, stories: Number(e.target.value) })}
+                    className="w-full px-3.5 py-2.5 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-xs text-[#101114] font-medium focus:bg-white focus:ring-2 focus:ring-[#fcb907] focus:outline-none"
+                  />
+                </div>
+              </div>
+            </div>
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-stone-700 mb-1">Sale Price ($)</label>
-            <input
-              type="number"
-              value={form.salePrice}
-              onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
-              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:ring-1 focus:ring-orange-600 focus:outline-none"
-            />
+          {/* Right 1 Col: Visuals & Package Upload */}
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-[20px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-5">
+              <h3 className="text-xs font-bold text-[#101114] uppercase tracking-wider border-b border-[#e7e9ee] pb-3 font-mono">
+                Visual Assets & Blueprints
+              </h3>
+
+              <ImageUpload
+                label="Primary Blueprint Cover Image *"
+                value={form.previewImage}
+                onChange={(url) => setForm({ ...form, previewImage: url })}
+                folder="floor-plans"
+                aspectRatio="16/10"
+                helperText="Featured exterior 3D render or blueprint cover."
+              />
+
+              <ImageUpload
+                label="Downloadable Blueprint Kit (PDF / ZIP)"
+                value={form.filePath}
+                onChange={(url) => setForm({ ...form, filePath: url })}
+                folder="floor-plans/packages"
+                accept=".pdf,.zip,.dwg,application/pdf,application/zip"
+                aspectRatio="16/10"
+                placeholder="e.g. downloads/blueprints/plan-kit.zip or upload"
+                helperText="Delivered automatically to customer upon Stripe purchase."
+              />
+
+              <GalleryUpload
+                label="Floor Plan Drawing Gallery"
+                values={form.gallery || []}
+                onChange={(urls) => setForm({ ...form, gallery: urls })}
+                folder="floor-plans/gallery"
+                helperText="Upload electrical diagrams, dimension sheets, and room elevations."
+              />
+            </div>
+
+            {/* Status & Featured */}
+            <div className="bg-white p-6 rounded-[20px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-4">
+              <h3 className="text-xs font-bold text-[#101114] uppercase tracking-wider border-b border-[#e7e9ee] pb-3 font-mono">
+                Publish Status
+              </h3>
+
+              <div>
+                <label className="block text-xs font-bold text-[#101114] mb-1.5">Visibility</label>
+                <select
+                  value={form.status}
+                  onChange={(e) => setForm({ ...form, status: e.target.value })}
+                  className="w-full px-3.5 py-2.5 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-xs text-[#101114] font-bold focus:bg-white focus:ring-2 focus:ring-[#fcb907]"
+                >
+                  <option value="PUBLISHED">Published (Live in Blueprint Store)</option>
+                  <option value="DRAFT">Draft</option>
+                  <option value="ARCHIVED">Archived</option>
+                </select>
+              </div>
+
+              <label className="flex items-center gap-2.5 cursor-pointer pt-2">
+                <input
+                  type="checkbox"
+                  checked={form.isFeatured}
+                  onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })}
+                  className="w-4 h-4 text-[#d97706] rounded-sm focus:ring-[#fcb907]"
+                />
+                <span className="text-xs font-bold text-[#101114]">Feature in Homepage Carousel</span>
+              </label>
+            </div>
           </div>
-
-          <div>
-            <label className="block text-xs font-bold text-stone-700 mb-1">Square Feet</label>
-            <input
-              type="number"
-              value={form.squareFeet}
-              onChange={(e) => setForm({ ...form, squareFeet: Number(e.target.value) })}
-              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:ring-1 focus:ring-orange-600 focus:outline-none"
-            />
-          </div>
-
-          <div>
-            <label className="block text-xs font-bold text-stone-700 mb-1">Dimensions</label>
-            <input
-              type="text"
-              value={form.dimensions}
-              onChange={(e) => setForm({ ...form, dimensions: e.target.value })}
-              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:ring-1 focus:ring-orange-600 focus:outline-none"
-            />
-          </div>
-        </div>
-
-        {/* Media & Blueprints Visual Assets */}
-        <div className="p-6 bg-white border border-stone-200 rounded-2xl shadow-xs space-y-6">
-          <h3 className="text-xs font-bold text-stone-900 uppercase tracking-wider border-b border-stone-100 pb-2">
-            Architectural Drawings & Visual Media
-          </h3>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <ImageUpload
-              label="Primary Blueprint Cover Image *"
-              value={form.previewImage}
-              onChange={(url) => setForm({ ...form, previewImage: url })}
-              folder="floor-plans"
-              aspectRatio="16/10"
-              helperText="Featured exterior rendering or architectural 3D layout."
-            />
-
-            <ImageUpload
-              label="Downloadable Blueprint Kit (PDF / ZIP)"
-              value={form.filePath}
-              onChange={(url) => setForm({ ...form, filePath: url })}
-              folder="floor-plans/packages"
-              accept=".pdf,.zip,.dwg,application/pdf,application/zip"
-              aspectRatio="16/10"
-              placeholder="e.g. downloads/blueprints/plan-kit.zip or upload file"
-              helperText="The secure architectural package delivered to customer upon purchase."
-            />
-          </div>
-
-          <GalleryUpload
-            label="Floor Plan Image Gallery"
-            values={form.gallery || []}
-            onChange={(urls) => setForm({ ...form, gallery: urls })}
-            folder="floor-plans/gallery"
-            helperText="Upload floor layouts, elevations, electrical riser schematics, and dimension sheets."
-          />
-        </div>
-
-        {/* Status & Featured */}
-        <div className="flex items-center gap-6 pt-4 border-t border-stone-100">
-          <div>
-            <label className="block text-xs font-bold text-stone-700 mb-1">Publish Status</label>
-            <select
-              value={form.status}
-              onChange={(e) => setForm({ ...form, status: e.target.value })}
-              className="px-3 py-1.5 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:ring-1 focus:ring-orange-600"
-            >
-              <option value="PUBLISHED">PUBLISHED</option>
-              <option value="DRAFT">DRAFT</option>
-              <option value="ARCHIVED">ARCHIVED</option>
-            </select>
-          </div>
-
-          <label className="flex items-center gap-2 cursor-pointer mt-5">
-            <input
-              type="checkbox"
-              checked={form.isFeatured}
-              onChange={(e) => setForm({ ...form, isFeatured: e.target.checked })}
-              className="w-4 h-4 text-orange-600 rounded border-stone-300 focus:ring-orange-500"
-            />
-            <span className="text-xs font-semibold text-stone-700">Feature on Homepage</span>
-          </label>
-        </div>
-
-        {/* Submit */}
-        <div className="pt-6 border-t border-stone-100 flex justify-end">
-          <button
-            type="submit"
-            disabled={saving}
-            className="px-6 py-2.5 bg-orange-600 hover:bg-orange-700 text-white rounded-xl text-xs font-bold shadow-md shadow-orange-600/30 transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50"
-          >
-            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
-            Save Floor Plan Blueprint
-          </button>
         </div>
       </form>
     </div>

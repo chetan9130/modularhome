@@ -365,7 +365,7 @@ export default function AdminVideoManager() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse">
+            <table className="w-full text-left text-xs border-collapse min-w-[750px]">
               <thead>
                 <tr className="bg-[#f6f7f9] border-b border-[#e7e9ee] text-[#6b7280] uppercase text-[10px] font-bold tracking-wider">
                   <th className="py-3.5 px-4">Video</th>

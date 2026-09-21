@@ -262,14 +262,14 @@ function SectionsManager() {
   };
 
   return (
-    <div className="space-y-6 animate-in fade-in">
+    <div className="space-y-6 animate-in fade-in duration-300 pb-12">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e7e9ee] pb-5">
         <div>
-          <h1 className="text-2xl font-serif font-bold text-[#101114] tracking-tight">
-            Page Section Manager
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#101114] font-serif">
+            Page Section & Block Manager
           </h1>
-          <p className="text-xs text-[#6b7280] mt-1">
+          <p className="text-xs sm:text-sm text-[#6b7280] mt-1 font-medium">
             Reorder, toggle visibility, and configure dynamic content modules on your pages.
           </p>
         </div>
@@ -277,7 +277,7 @@ function SectionsManager() {
         <button
           onClick={() => setAddModalOpen(true)}
           disabled={!selectedPageId}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] text-xs font-bold uppercase tracking-wider shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] text-xs font-black uppercase tracking-wider shadow-sm transition-all disabled:opacity-50 cursor-pointer self-start sm:self-auto"
         >
           <Plus className="w-4 h-4" />
           <span>Add Section</span>
@@ -285,13 +285,13 @@ function SectionsManager() {
       </div>
 
       {/* Page Selector Bar */}
-      <div className="bg-white p-5 rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] flex flex-col sm:flex-row items-center justify-between gap-4">
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <span className="text-xs font-bold text-[#101114] uppercase tracking-wider">Select Page:</span>
+      <div className="bg-white p-4 sm:p-5 rounded-[20px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <span className="text-xs font-bold text-[#101114] uppercase tracking-wider font-mono">Select Page:</span>
           <select
             value={selectedPageId}
             onChange={(e) => setSelectedPageId(e.target.value)}
-            className="px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] cursor-pointer"
+            className="px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] cursor-pointer"
           >
             {pages.map((p) => (
               <option key={p.id || p._id} value={p.id || p._id}>
@@ -302,19 +302,19 @@ function SectionsManager() {
         </div>
 
         <div className="text-xs text-[#6b7280] font-medium">
-          Showing <span className="font-bold text-[#101114]">{sections.length}</span> configured sections
+          Configured: <span className="font-bold text-[#101114]">{sections.length} sections</span>
         </div>
       </div>
 
       {/* Sections List */}
-      <div className="bg-white rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] overflow-hidden">
+      <div className="bg-white rounded-[20px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] overflow-hidden">
         {isLoading ? (
-          <div className="py-16 text-center text-[#6b7280] text-xs flex flex-col items-center gap-2">
-            <Loader2 className="w-6 h-6 animate-spin text-[#d97706]" />
+          <div className="py-20 text-center text-[#6b7280] text-xs flex flex-col items-center gap-2 font-medium">
+            <Loader2 className="w-6 h-6 animate-spin text-[#fcb907]" />
             <span>Loading sections...</span>
           </div>
         ) : sections.length === 0 ? (
-          <div className="py-16 text-center text-[#6b7280] text-xs">
+          <div className="py-20 text-center text-[#6b7280] text-xs font-medium">
             No sections configured for this page yet. Click &quot;Add Section&quot; above to create one.
           </div>
         ) : (
@@ -323,7 +323,7 @@ function SectionsManager() {
               <div
                 key={sec.id || sec._id}
                 className={`p-4 sm:p-5 flex items-center justify-between gap-4 transition-colors ${
-                  sec.isVisible ? "hover:bg-[#f6f7f9]/60" : "bg-[#f6f7f9]/40 opacity-60"
+                  sec.isVisible ? "hover:bg-[#f8f9fa]/70" : "bg-[#f8f9fa]/40 opacity-60"
                 }`}
               >
                 {/* Left: Reorder arrows + Order badge + Title */}
@@ -347,7 +347,7 @@ function SectionsManager() {
                     </button>
                   </div>
 
-                  <div className="w-8 h-8 rounded-xl bg-[#f6f7f9] border border-[#d5d9e0] font-mono text-xs font-bold flex items-center justify-center text-[#101114] shrink-0">
+                  <div className="w-8 h-8 rounded-xl bg-[#f8f9fa] border border-[#d5d9e0] font-mono text-xs font-bold flex items-center justify-center text-[#101114] shrink-0">
                     {sec.order}
                   </div>
 
@@ -386,7 +386,7 @@ function SectionsManager() {
                         content: typeof sec.content === "string" ? sec.content : JSON.stringify(sec.content, null, 2),
                       });
                     }}
-                    className="p-2 rounded-xl text-[#6b7280] hover:text-[#101114] hover:bg-[#e7e9ee] transition-colors cursor-pointer"
+                    className="p-2 rounded-xl text-[#6b7280] hover:text-[#101114] hover:bg-[#f8f9fa] border border-transparent hover:border-[#d5d9e0] transition-colors cursor-pointer"
                     title="Edit Section"
                   >
                     <Edit2 className="w-4 h-4" />
@@ -397,7 +397,7 @@ function SectionsManager() {
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
                       sec.isVisible
                         ? "bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100"
-                        : "bg-[#f6f7f9] text-[#6b7280] border border-[#d5d9e0] hover:bg-[#e7e9ee]"
+                        : "bg-[#f8f9fa] text-[#6b7280] border border-[#d5d9e0] hover:bg-[#e7e9ee]"
                     }`}
                   >
                     {sec.isVisible ? <Eye className="w-3.5 h-3.5 text-emerald-600" /> : <EyeOff className="w-3.5 h-3.5 text-[#6b7280]" />}
@@ -406,7 +406,7 @@ function SectionsManager() {
 
                   <button
                     onClick={() => handleDelete(sec.id || sec._id)}
-                    className="p-2 rounded-xl text-[#6b7280] hover:text-[#d97706] hover:bg-red-50 transition-colors cursor-pointer"
+                    className="p-2 rounded-xl text-[#6b7280] hover:text-[#d97706] hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors cursor-pointer"
                     title="Delete Section"
                   >
                     <Trash2 className="w-4 h-4" />
@@ -428,7 +428,7 @@ function SectionsManager() {
               </h3>
               <button
                 onClick={() => setAddModalOpen(false)}
-                className="p-1.5 rounded-xl text-[#6b7280] hover:text-[#101114] hover:bg-[#f6f7f9] cursor-pointer"
+                className="p-1.5 rounded-xl text-[#6b7280] hover:text-[#101114] hover:bg-[#f8f9fa] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -440,7 +440,7 @@ function SectionsManager() {
                 <select
                   value={newSection.type}
                   onChange={(e) => setNewSection({ ...newSection, type: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-[#101114] font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] cursor-pointer"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-[#101114] font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] cursor-pointer"
                 >
                   {SECTION_TYPES.map((t) => (
                     <option key={t.value} value={t.value}>
@@ -456,8 +456,8 @@ function SectionsManager() {
                   type="text"
                   value={newSection.title}
                   onChange={(e) => setNewSection({ ...newSection, title: e.target.value })}
-                  placeholder="e.g. Modern. Affordable. Built For Life."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  placeholder="e.g. Precision Engineered for Unmatched Strength"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
                 />
               </div>
 
@@ -467,14 +467,13 @@ function SectionsManager() {
                   type="text"
                   value={newSection.subtitle}
                   onChange={(e) => setNewSection({ ...newSection, subtitle: e.target.value })}
-                  placeholder="e.g. Explore factory-built homes with premium finishes."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  placeholder="e.g. Factory-built architectural excellence delivered nationwide."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
                 />
               </div>
 
-              {/* Section Image Upload */}
               <ImageUpload
-                label="Section Visual Asset / Background Image"
+                label="Section Visual Asset / Banner Image"
                 value={newSection.image}
                 onChange={(url) => setNewSection({ ...newSection, image: url })}
                 folder="sections"
@@ -483,21 +482,21 @@ function SectionsManager() {
               />
 
               <div>
-                <label className="block font-bold text-[#101114] mb-1.5">Config Content (Optional JSON / Text)</label>
+                <label className="block font-bold text-[#101114] mb-1.5">Config Content (JSON / Text)</label>
                 <textarea
                   rows={3}
                   value={newSection.content}
                   onChange={(e) => setNewSection({ ...newSection, content: e.target.value })}
-                  placeholder="Enter JSON config or additional rich text payload..."
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] font-mono text-[11px] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  placeholder="Enter JSON config payload or additional body copy..."
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] font-mono text-[11px] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
                 />
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-[#e7e9ee]">
+              <div className="pt-3 flex justify-end gap-2.5 border-t border-[#e7e9ee]">
                 <button
                   type="button"
                   onClick={() => setAddModalOpen(false)}
-                  className="px-4 py-2.5 rounded-xl text-[#101114] font-bold hover:bg-[#f6f7f9] border border-[#d5d9e0] cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-[#101114] font-bold hover:bg-[#f8f9fa] border border-[#d5d9e0] cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -525,7 +524,7 @@ function SectionsManager() {
               </h3>
               <button
                 onClick={() => setEditingSection(null)}
-                className="p-1.5 rounded-xl text-[#6b7280] hover:text-[#101114] hover:bg-[#f6f7f9] cursor-pointer"
+                className="p-1.5 rounded-xl text-[#6b7280] hover:text-[#101114] hover:bg-[#f8f9fa] cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -537,7 +536,7 @@ function SectionsManager() {
                 <select
                   value={editingSection.type}
                   onChange={(e) => setEditingSection({ ...editingSection, type: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-[#101114] font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] cursor-pointer"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-[#101114] font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] cursor-pointer"
                 >
                   {SECTION_TYPES.map((t) => (
                     <option key={t.value} value={t.value}>
@@ -553,7 +552,7 @@ function SectionsManager() {
                   type="text"
                   value={editingSection.title || ""}
                   onChange={(e) => setEditingSection({ ...editingSection, title: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
                 />
               </div>
 
@@ -563,13 +562,12 @@ function SectionsManager() {
                   type="text"
                   value={editingSection.subtitle || ""}
                   onChange={(e) => setEditingSection({ ...editingSection, subtitle: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
                 />
               </div>
 
-              {/* Section Image Upload */}
               <ImageUpload
-                label="Section Visual Asset / Background Image"
+                label="Section Visual Asset / Banner Image"
                 value={editingSection.image || ""}
                 onChange={(url) => setEditingSection({ ...editingSection, image: url })}
                 folder="sections"
@@ -583,15 +581,15 @@ function SectionsManager() {
                   rows={4}
                   value={editingSection.content || ""}
                   onChange={(e) => setEditingSection({ ...editingSection, content: e.target.value })}
-                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] font-mono text-[11px] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] font-mono text-[11px] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
                 />
               </div>
 
-              <div className="pt-3 flex justify-end gap-2 border-t border-[#e7e9ee]">
+              <div className="pt-3 flex justify-end gap-2.5 border-t border-[#e7e9ee]">
                 <button
                   type="button"
                   onClick={() => setEditingSection(null)}
-                  className="px-4 py-2.5 rounded-xl text-[#101114] font-bold hover:bg-[#f6f7f9] border border-[#d5d9e0] cursor-pointer"
+                  className="px-4 py-2.5 rounded-xl text-[#101114] font-bold hover:bg-[#f8f9fa] border border-[#d5d9e0] cursor-pointer"
                 >
                   Cancel
                 </button>
@@ -614,7 +612,7 @@ function SectionsManager() {
 
 export default function AdminSectionsPage() {
   return (
-    <Suspense fallback={<div className="py-16 text-center text-[#6b7280] text-xs">Loading sections manager...</div>}>
+    <Suspense fallback={<div className="py-20 text-center text-[#6b7280] text-xs">Loading sections manager...</div>}>
       <SectionsManager />
     </Suspense>
   );

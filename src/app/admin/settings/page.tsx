@@ -13,6 +13,7 @@ import {
   Search,
   Sparkles,
   Link as LinkIcon,
+  ShieldCheck,
 } from "lucide-react";
 import ImageUpload from "@/components/admin/ImageUpload";
 
@@ -93,15 +94,17 @@ export default function AdminSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-[#6b7280] space-y-3">
-        <Loader2 className="w-8 h-8 animate-spin text-[#d97706]" />
-        <span className="text-xs font-bold uppercase tracking-wider">Loading Global Settings...</span>
+      <div className="flex flex-col items-center justify-center py-28 text-[#6b7280] space-y-3">
+        <Loader2 className="w-8 h-8 animate-spin text-[#fcb907]" />
+        <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#101114]">
+          Loading Global Configuration...
+        </span>
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSave} className="space-y-8 animate-in fade-in pb-12">
+    <form onSubmit={handleSave} className="space-y-8 animate-in fade-in duration-300 pb-16">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#e7e9ee] pb-5">
         <div>
@@ -116,7 +119,7 @@ export default function AdminSettingsPage() {
         <button
           type="submit"
           disabled={isSaving}
-          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] text-xs font-bold uppercase tracking-wider shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+          className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] text-xs font-black uppercase tracking-wider shadow-sm transition-all disabled:opacity-50 cursor-pointer self-start sm:self-auto"
         >
           {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
           <span>Save Settings</span>
@@ -125,7 +128,7 @@ export default function AdminSettingsPage() {
 
       {message && (
         <div
-          className={`p-4 rounded-xl flex items-center gap-3 text-xs font-semibold ${
+          className={`p-4 rounded-2xl flex items-center gap-3 text-xs font-semibold animate-in fade-in ${
             message.type === "success"
               ? "bg-emerald-50 text-emerald-800 border border-emerald-200"
               : "bg-red-50 text-red-800 border border-red-200"
@@ -142,8 +145,8 @@ export default function AdminSettingsPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
         {/* 1. Branding Section */}
-        <div className="bg-white p-6 rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-4">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3">
+        <div className="bg-white p-6 sm:p-7 rounded-[22px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-5">
+          <div className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3 font-mono">
             <Globe className="w-4 h-4 text-[#d97706]" />
             <span>Company Branding</span>
           </div>
@@ -154,7 +157,7 @@ export default function AdminSettingsPage() {
               type="text"
               value={settings.companyName || ""}
               onChange={(e) => setSettings({ ...settings, companyName: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
             />
           </div>
 
@@ -179,8 +182,8 @@ export default function AdminSettingsPage() {
         </div>
 
         {/* 2. Contact Information */}
-        <div className="bg-white p-6 rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-4">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3">
+        <div className="bg-white p-6 sm:p-7 rounded-[22px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-5">
+          <div className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3 font-mono">
             <Phone className="w-4 h-4 text-[#d97706]" />
             <span>Direct Contact Information</span>
           </div>
@@ -191,7 +194,8 @@ export default function AdminSettingsPage() {
               type="text"
               value={settings.phone || ""}
               onChange={(e) => setSettings({ ...settings, phone: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
+              placeholder="e.g. +1 (800) 555-0199"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
             />
           </div>
 
@@ -201,7 +205,8 @@ export default function AdminSettingsPage() {
               type="email"
               value={settings.email || ""}
               onChange={(e) => setSettings({ ...settings, email: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
+              placeholder="info@modularhome.com"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
             />
           </div>
 
@@ -211,15 +216,16 @@ export default function AdminSettingsPage() {
               type="text"
               value={settings.address || ""}
               onChange={(e) => setSettings({ ...settings, address: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
+              placeholder="e.g. 100 Modular Way, Austin, TX 78701"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
             />
           </div>
         </div>
 
         {/* 3. Top Announcement Banner */}
-        <div className="bg-white p-6 rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-4">
+        <div className="bg-white p-6 sm:p-7 rounded-[22px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-5">
           <div className="flex items-center justify-between border-b border-[#e7e9ee] pb-3">
-            <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#101114]">
+            <div className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-[#101114] font-mono">
               <Megaphone className="w-4 h-4 text-[#d97706]" />
               <span>Announcement Top Bar</span>
             </div>
@@ -241,7 +247,7 @@ export default function AdminSettingsPage() {
               value={settings.announcementText || ""}
               onChange={(e) => setSettings({ ...settings, announcementText: e.target.value })}
               placeholder="Direct Factory Modular & Prefab Home Builder • 2026 Models Released"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
             />
           </div>
 
@@ -251,15 +257,15 @@ export default function AdminSettingsPage() {
               type="text"
               value={settings.announcementLink || ""}
               onChange={(e) => setSettings({ ...settings, announcementLink: e.target.value })}
-              placeholder="/buildings"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
+              placeholder="/models"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
             />
           </div>
         </div>
 
         {/* 4. Social Media Links */}
-        <div className="bg-white p-6 rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-4">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3">
+        <div className="bg-white p-6 sm:p-7 rounded-[22px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-5">
+          <div className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3 font-mono">
             <LinkIcon className="w-4 h-4 text-[#d97706]" />
             <span>Social Media Channels</span>
           </div>
@@ -276,7 +282,7 @@ export default function AdminSettingsPage() {
                 })
               }
               placeholder="https://facebook.com/modularhome"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
             />
           </div>
 
@@ -292,7 +298,7 @@ export default function AdminSettingsPage() {
                 })
               }
               placeholder="https://instagram.com/modularhome"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
             />
           </div>
 
@@ -308,14 +314,14 @@ export default function AdminSettingsPage() {
                 })
               }
               placeholder="https://youtube.com/@modularhome"
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
+              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
             />
           </div>
         </div>
 
         {/* 5. Default SEO Meta */}
-        <div className="bg-white p-6 rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-4 lg:col-span-2">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3">
+        <div className="bg-white p-6 sm:p-7 rounded-[22px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-5 lg:col-span-2">
+          <div className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3 font-mono">
             <Search className="w-4 h-4 text-[#d97706]" />
             <span>Default Global SEO Metadata</span>
           </div>
@@ -329,7 +335,7 @@ export default function AdminSettingsPage() {
                 type="text"
                 value={settings.defaultSeoTitle || ""}
                 onChange={(e) => setSettings({ ...settings, defaultSeoTitle: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
               />
             </div>
 
@@ -341,15 +347,15 @@ export default function AdminSettingsPage() {
                 rows={3}
                 value={settings.defaultMetaDescription || ""}
                 onChange={(e) => setSettings({ ...settings, defaultMetaDescription: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
               />
             </div>
           </div>
         </div>
 
         {/* 6. Main CTA Button */}
-        <div className="bg-white p-6 rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-4 lg:col-span-2">
-          <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3">
+        <div className="bg-white p-6 sm:p-7 rounded-[22px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-5 lg:col-span-2">
+          <div className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3 font-mono">
             <Sparkles className="w-4 h-4 text-[#d97706]" />
             <span>Primary Global CTA Configuration</span>
           </div>
@@ -362,7 +368,7 @@ export default function AdminSettingsPage() {
                 value={settings.ctaLabel || ""}
                 onChange={(e) => setSettings({ ...settings, ctaLabel: e.target.value })}
                 placeholder="Get Your Free Quote"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
               />
             </div>
 
@@ -373,7 +379,7 @@ export default function AdminSettingsPage() {
                 value={settings.ctaLink || ""}
                 onChange={(e) => setSettings({ ...settings, ctaLink: e.target.value })}
                 placeholder="/quote"
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
+                className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
               />
             </div>
           </div>

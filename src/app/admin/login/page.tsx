@@ -4,7 +4,7 @@ import { useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, Loader2 } from "lucide-react";
+import { Lock, Mail, ArrowRight, ShieldCheck, AlertCircle, Loader2, Sparkles, KeyRound } from "lucide-react";
 
 function LoginForm() {
   const router = useRouter();
@@ -31,7 +31,7 @@ function LoginForm() {
       const data = await res.json();
 
       if (!res.ok || !data.success) {
-        setError(data.error?.message || "Invalid email or password.");
+        setError(data.error?.message || "Invalid administrator credentials.");
         setIsLoading(false);
         return;
       }
@@ -39,26 +39,31 @@ function LoginForm() {
       router.push(redirectPath);
       router.refresh();
     } catch (err: any) {
-      setError(err.message || "Network error. Please try again.");
+      setError(err.message || "Network error. Please verify your connection.");
       setIsLoading(false);
     }
   };
 
+  const handleFillDemo = () => {
+    setEmail("admin@modularhome.com");
+    setPassword("Admin@ModularHome2026!");
+  };
+
   return (
-    <div className="bg-white py-8 px-6 sm:px-10 shadow-[0_12px_35px_rgba(16,24,40,0.08)] rounded-[18px] border border-[#e7e9ee]">
+    <div className="bg-white py-8 px-6 sm:px-10 shadow-[0_20px_50px_rgba(16,24,40,0.08)] rounded-[24px] border border-[#e7e9ee] space-y-6 backdrop-blur-md">
       {error && (
-        <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3 text-[#d97706] text-xs animate-in fade-in font-medium">
-          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+        <div className="p-4 rounded-xl bg-red-50 border border-red-200 flex items-start gap-3 text-red-800 text-xs animate-in fade-in font-medium">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
           <span>{error}</span>
         </div>
       )}
 
       <form className="space-y-5" onSubmit={handleSubmit}>
         <div>
-          <label className="block text-xs font-bold text-[#101114] uppercase tracking-wider mb-2">
+          <label className="block text-xs font-bold text-[#101114] uppercase tracking-wider mb-2 font-mono">
             Administrator Email
           </label>
-          <div className="relative rounded-xl shadow-xs">
+          <div className="relative rounded-xl shadow-2xs">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#6b7280]">
               <Mail className="h-4 w-4" />
             </div>
@@ -68,18 +73,19 @@ function LoginForm() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="admin@modularhome.com"
-              className="block w-full pl-10 pr-4 py-3 bg-[#f6f7f9] border border-[#d5d9e0] rounded-xl text-[#101114] text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fcb907] focus:bg-white transition-all font-medium"
+              className="block w-full pl-10 pr-4 py-3 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-[#101114] text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fcb907] focus:bg-white transition-all font-medium"
             />
           </div>
         </div>
 
         <div>
           <div className="flex items-center justify-between mb-2">
-            <label className="block text-xs font-bold text-[#101114] uppercase tracking-wider">
-              Password
+            <label className="block text-xs font-bold text-[#101114] uppercase tracking-wider font-mono">
+              Master Password
             </label>
+            <span className="text-[11px] text-[#6b7280]">1-Hour Secure Session</span>
           </div>
-          <div className="relative rounded-xl shadow-xs">
+          <div className="relative rounded-xl shadow-2xs">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#6b7280]">
               <Lock className="h-4 w-4" />
             </div>
@@ -89,7 +95,7 @@ function LoginForm() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="••••••••••••"
-              className="block w-full pl-10 pr-4 py-3 bg-[#f6f7f9] border border-[#d5d9e0] rounded-xl text-[#101114] text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fcb907] focus:bg-white transition-all font-medium"
+              className="block w-full pl-10 pr-4 py-3 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-[#101114] text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fcb907] focus:bg-white transition-all font-medium"
             />
           </div>
         </div>
@@ -98,16 +104,16 @@ function LoginForm() {
           <button
             type="submit"
             disabled={isLoading}
-            className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl shadow-sm text-sm font-black text-[#101114] bg-[#fcb907] hover:bg-[#e5a706] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#fcb907] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+            className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl shadow-md text-sm font-black text-[#101114] bg-[#fcb907] hover:bg-[#e5a706] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#fcb907] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
           >
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Authenticating...</span>
+                <span>Authenticating Secure Token...</span>
               </>
             ) : (
               <>
-                <span>Sign In to Admin</span>
+                <span>Sign In to Management Console</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -115,13 +121,19 @@ function LoginForm() {
         </div>
       </form>
 
-      <div className="mt-6 pt-6 border-t border-[#e7e9ee] text-center">
-        <p className="text-xs text-[#6b7280]">
-          Development Credentials:
-        </p>
-        <p className="text-xs text-[#101114] font-mono mt-1.5 bg-[#f6f7f9] py-1.5 px-3 rounded-lg inline-block border border-[#e7e9ee] font-bold">
-          admin@modularhome.com / Admin@ModularHome2026!
-        </p>
+      {/* Developer Demo Quick Fill */}
+      <div className="pt-5 border-t border-[#e7e9ee] flex items-center justify-between gap-2">
+        <div className="text-[11px] text-[#6b7280] font-mono truncate">
+          admin@modularhome.com
+        </div>
+        <button
+          type="button"
+          onClick={handleFillDemo}
+          className="inline-flex items-center gap-1 text-[11px] font-bold text-[#b45309] hover:underline cursor-pointer shrink-0"
+        >
+          <KeyRound className="w-3.5 h-3.5" />
+          <span>Auto-fill Demo</span>
+        </button>
       </div>
     </div>
   );
@@ -129,13 +141,17 @@ function LoginForm() {
 
 export default function AdminLoginPage() {
   return (
-    <div className="min-h-screen bg-[#f6f7f9] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden selection:bg-[#fcb907] selection:text-[#101114]">
-      {/* Decorative top pattern */}
-      <div className="absolute top-0 left-0 right-0 h-2 bg-gradient-to-r from-[#d97706] via-[#fcb907] to-[#b45309]" />
+    <div className="min-h-screen bg-[#0b0d11] flex flex-col justify-center py-12 sm:px-6 lg:px-8 relative overflow-hidden selection:bg-[#fcb907] selection:text-[#101114]">
+      {/* Background Architectural Blueprint Pattern and Glowing Gradients */}
+      <div className="absolute inset-0 drawing-bg opacity-5 pointer-events-none" />
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-br from-[#fcb907]/10 via-[#d97706]/5 to-transparent rounded-full blur-[140px] pointer-events-none" />
 
-      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center">
-        <Link href="/" className="inline-block mb-4 hover:opacity-90 transition-opacity">
-          <div className="bg-white border border-[#e7e9ee] p-2.5 rounded-2xl inline-flex items-center gap-3 shadow-[0_12px_35px_rgba(16,24,40,0.06)]">
+      {/* Top Accent Stripe */}
+      <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-[#fcb907] via-[#d97706] to-[#fcb907]" />
+
+      <div className="sm:mx-auto sm:w-full sm:max-w-md relative z-10 text-center space-y-3">
+        <Link href="/" className="inline-block hover:opacity-90 transition-opacity">
+          <div className="bg-white/95 border border-white/20 p-3 rounded-2xl inline-flex items-center gap-3 shadow-2xl backdrop-blur-xs">
             <Image
               src="/finallogo.avif"
               alt="ModularHome Logo"
@@ -146,20 +162,30 @@ export default function AdminLoginPage() {
             />
           </div>
         </Link>
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-50 border border-amber-200 text-[#d97706] text-xs font-bold uppercase tracking-wider mb-2">
-          <ShieldCheck className="w-3.5 h-3.5" />
-          <span>Secure Admin Portal</span>
+
+        <div className="flex items-center justify-center gap-2 pt-1">
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/10 border border-white/15 text-[#fcb907] text-[11px] font-mono font-bold uppercase tracking-widest backdrop-blur-xs">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#fcb907]" />
+            <span>Master Control Portal</span>
+          </span>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-[#101114] font-serif">
-          Sign In to Management
+
+        <h2 className="text-2xl sm:text-3xl font-bold tracking-tight text-white font-serif">
+          Executive Authentication
         </h2>
-        <p className="mt-1.5 text-xs sm:text-sm text-[#6b7280]">
-          ModularHome CMS & Production Backend Control
+        <p className="text-xs text-gray-400 font-medium">
+          Precision Steel Modular Systems CMS & Engineering Database
         </p>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md relative z-10">
-        <Suspense fallback={<div className="text-[#101114] text-center py-8 font-medium">Loading login...</div>}>
+      <div className="mt-7 sm:mx-auto sm:w-full sm:max-w-md relative z-10 px-4 sm:px-0">
+        <Suspense
+          fallback={
+            <div className="bg-white p-8 rounded-2xl text-[#101114] text-center font-medium">
+              Loading security portal...
+            </div>
+          }
+        >
           <LoginForm />
         </Suspense>
       </div>
