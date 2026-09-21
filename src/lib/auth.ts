@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 import { supabaseAdmin, isSupabaseConfigured } from "./supabase";
 
 const COOKIE_NAME = "admin_session";
-const SESSION_EXPIRY_DAYS = 7;
+const SESSION_EXPIRY_HOURS = 1; // Admin session is valid for exactly 1 hour
 
 export async function hashPassword(plainText: string): Promise<string> {
   return bcrypt.hash(plainText, 10);
@@ -36,7 +36,7 @@ export async function createAdminSession(
   userFallback?: AdminSessionUser
 ): Promise<string> {
   const sessionToken = crypto.randomBytes(32).toString("hex");
-  const expiresAt = Date.now() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+  const expiresAt = Date.now() + SESSION_EXPIRY_HOURS * 60 * 60 * 1000;
 
   if (isSupabaseConfigured()) {
     try {
@@ -61,6 +61,7 @@ export async function createAdminSession(
     sameSite: "lax",
     path: "/",
     expires: new Date(expiresAt),
+    maxAge: SESSION_EXPIRY_HOURS * 60 * 60, // 3600 seconds (1 hour)
   });
 
   return sessionToken;
