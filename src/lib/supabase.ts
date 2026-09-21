@@ -10,10 +10,13 @@ const supabaseAnonKey =
   process.env.SUPABASE_ANON_KEY ||
   "placeholder-anon-key";
 
+const rawServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const isPostgresUrl = rawServiceKey?.startsWith("postgresql://") || rawServiceKey?.startsWith("postgres://");
+
 const supabaseServiceRoleKey =
-  process.env.SUPABASE_SERVICE_ROLE_KEY ||
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-  supabaseAnonKey;
+  rawServiceKey && !isPostgresUrl
+    ? rawServiceKey
+    : process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || supabaseAnonKey;
 
 /**
  * Public Supabase Client (Used in Browser and Public Server Queries)

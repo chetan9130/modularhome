@@ -14,6 +14,7 @@ import {
   Home,
   Check,
 } from "lucide-react";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 export default function AdminEditCollectionPage() {
   const params = useParams();
@@ -284,35 +285,28 @@ export default function AdminEditCollectionPage() {
 
         {/* Right 1 Column */}
         <div className="space-y-6">
-          <div className="bg-white p-6 rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-4">
+          <div className="bg-white p-6 rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-5">
             <h3 className="text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3">
               Media & Images
             </h3>
 
-            <div>
-              <label className="block text-xs font-bold text-[#101114] mb-1.5">Cover Image URL</label>
-              <input
-                type="text"
-                value={collection.image || ""}
-                onChange={(e) => setCollection({ ...collection, image: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
-              />
-              {collection.image && (
-                <div className="mt-2.5 relative aspect-[16/10] w-full rounded-xl overflow-hidden border border-[#e7e9ee]">
-                  <Image src={collection.image} alt="Preview" fill className="object-cover" />
-                </div>
-              )}
-            </div>
+            <ImageUpload
+              label="Collection Cover Thumbnail *"
+              value={collection.image || ""}
+              onChange={(url) => setCollection({ ...collection, image: url })}
+              folder="collections"
+              aspectRatio="16/10"
+              helperText="Square or 16:10 card image displayed in category grids."
+            />
 
-            <div>
-              <label className="block text-xs font-bold text-[#101114] mb-1.5">Banner Image URL</label>
-              <input
-                type="text"
-                value={collection.bannerImage || ""}
-                onChange={(e) => setCollection({ ...collection, bannerImage: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
-              />
-            </div>
+            <ImageUpload
+              label="Wide Banner Header Image"
+              value={collection.bannerImage || ""}
+              onChange={(url) => setCollection({ ...collection, bannerImage: url })}
+              folder="collections/banners"
+              aspectRatio="banner"
+              helperText="Panoramic hero banner shown on top of the collection landing page."
+            />
           </div>
 
           <div className="bg-white p-6 rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-3">

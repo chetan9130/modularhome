@@ -14,6 +14,7 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 export default function AdminEditPage() {
   const params = useParams();
@@ -270,16 +271,14 @@ export default function AdminEditPage() {
               </select>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[#101114] mb-1.5">Featured Image URL</label>
-              <input
-                type="text"
-                value={page.featuredImage || ""}
-                onChange={(e) => setPage({ ...page, featuredImage: e.target.value })}
-                placeholder="https://images.unsplash.com/..."
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
-              />
-            </div>
+            <ImageUpload
+              label="Featured Hero Image"
+              value={page.featuredImage || ""}
+              onChange={(url) => setPage({ ...page, featuredImage: url })}
+              folder="pages"
+              aspectRatio="16/10"
+              helperText="Banner image for custom page hero header."
+            />
 
             <div className="pt-3 border-t border-[#e7e9ee] text-[11px] text-[#6b7280] space-y-1">
               <div>Created: {page.createdAt ? new Date(page.createdAt).toLocaleString() : "N/A"}</div>

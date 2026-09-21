@@ -14,6 +14,7 @@ import {
   Sparkles,
   Link as LinkIcon,
 } from "lucide-react";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 export default function AdminSettingsPage() {
   const [settings, setSettings] = useState<any>({
@@ -157,36 +158,24 @@ export default function AdminSettingsPage() {
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-[#101114] mb-1.5">Logo Image URL</label>
-            <input
-              type="text"
-              value={settings.logoUrl || ""}
-              onChange={(e) => setSettings({ ...settings, logoUrl: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
-            />
-            {settings.logoUrl && (
-              <div className="mt-2.5 p-3 bg-[#101114] rounded-xl inline-block border border-[#e7e9ee]">
-                <Image
-                  src={settings.logoUrl}
-                  alt="Logo Preview"
-                  width={140}
-                  height={32}
-                  className="h-6 w-auto object-contain"
-                />
-              </div>
-            )}
-          </div>
+          <ImageUpload
+            label="Company Logo Image"
+            value={settings.logoUrl || ""}
+            onChange={(url) => setSettings({ ...settings, logoUrl: url })}
+            folder="branding"
+            aspectRatio="logo"
+            helperText="Vector SVG, PNG, or WebP logo displayed in header and footer."
+          />
 
-          <div>
-            <label className="block text-xs font-bold text-[#101114] mb-1.5">Favicon URL</label>
-            <input
-              type="text"
-              value={settings.faviconUrl || ""}
-              onChange={(e) => setSettings({ ...settings, faviconUrl: e.target.value })}
-              className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-medium"
-            />
-          </div>
+          <ImageUpload
+            label="Browser Favicon Icon"
+            value={settings.faviconUrl || ""}
+            onChange={(url) => setSettings({ ...settings, faviconUrl: url })}
+            folder="branding"
+            aspectRatio="1/1"
+            accept=".ico,.png,.svg,image/x-icon,image/png,image/svg+xml"
+            helperText="32x32 or 64x64 icon displayed in browser tab and bookmarks."
+          />
         </div>
 
         {/* 2. Contact Information */}

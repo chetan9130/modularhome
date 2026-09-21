@@ -128,7 +128,7 @@ export default function AdminFloorPlansPage() {
                       <div className="flex items-center gap-3">
                         <div className="relative w-12 h-12 rounded-xl bg-stone-100 overflow-hidden shrink-0 border border-stone-200">
                           <Image
-                            src={plan.preview_image || plan.previewImage}
+                            src={plan.preview_image || plan.previewImage || "https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=600&auto=format&fit=crop"}
                             alt={plan.title}
                             fill
                             className="object-cover"

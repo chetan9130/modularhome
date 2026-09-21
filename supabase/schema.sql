@@ -441,3 +441,13 @@ CREATE POLICY "Service role full access on order_items" ON order_items FOR ALL U
 CREATE POLICY "Service role full access on payments" ON payments FOR ALL USING (auth.jwt() IS NULL OR true);
 CREATE POLICY "Service role full access on download_access" ON download_access FOR ALL USING (auth.jwt() IS NULL OR true);
 CREATE POLICY "Service role full access on redirects" ON redirects FOR ALL USING (auth.jwt() IS NULL OR true);
+
+-- Schema and Table Permissions for PostgREST & Supabase Client Roles
+GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL TABLES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA public TO anon, authenticated, service_role;
+GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
+ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO anon, authenticated, service_role;

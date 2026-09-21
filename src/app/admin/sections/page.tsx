@@ -17,7 +17,9 @@ import {
   Loader2,
   X,
   FileText,
+  ImageIcon,
 } from "lucide-react";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 function SectionsManager() {
   const searchParams = useSearchParams();
@@ -29,14 +31,16 @@ function SectionsManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  // Add Modal State
+  // Add / Edit Modal State
   const [addModalOpen, setAddModalOpen] = useState(false);
+  const [editingSection, setEditingSection] = useState<any | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [newSection, setNewSection] = useState({
     type: "HERO",
     title: "",
     subtitle: "",
     content: "",
+    image: "",
     isVisible: true,
   });
 
@@ -167,12 +171,27 @@ function SectionsManager() {
     setIsAdding(true);
 
     try {
+      let finalContent = newSection.content;
+      if (newSection.image) {
+        try {
+          const parsed = newSection.content ? JSON.parse(newSection.content) : {};
+          parsed.image = newSection.image;
+          finalContent = JSON.stringify(parsed);
+        } catch {
+          finalContent = JSON.stringify({ image: newSection.image, rawText: newSection.content });
+        }
+      }
+
       const res = await fetch("/api/admin/sections", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           pageId: selectedPageId,
-          ...newSection,
+          type: newSection.type,
+          title: newSection.title,
+          subtitle: newSection.subtitle,
+          content: finalContent,
+          isVisible: newSection.isVisible,
         }),
       });
       const json = await res.json();
@@ -184,11 +203,56 @@ function SectionsManager() {
           title: "",
           subtitle: "",
           content: "",
+          image: "",
           isVisible: true,
         });
         await fetchSections(selectedPageId);
       } else {
         alert(json.error?.message || "Failed to add section.");
+      }
+    } catch (e: any) {
+      alert(e.message || "Network error.");
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const handleSaveEditSection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingSection) return;
+    setIsAdding(true);
+
+    try {
+      let finalContent = editingSection.content;
+      if (editingSection.image) {
+        try {
+          const parsed = editingSection.content ? JSON.parse(editingSection.content) : {};
+          parsed.image = editingSection.image;
+          finalContent = JSON.stringify(parsed);
+        } catch {
+          finalContent = JSON.stringify({ image: editingSection.image, rawText: editingSection.content });
+        }
+      }
+
+      const secId = editingSection.id || editingSection._id;
+      const res = await fetch(`/api/admin/sections/${secId}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: editingSection.type,
+          title: editingSection.title,
+          subtitle: editingSection.subtitle,
+          content: finalContent,
+          isVisible: editingSection.isVisible ?? editingSection.is_visible,
+        }),
+      });
+      const json = await res.json();
+
+      if (json.success) {
+        setEditingSection(null);
+        await fetchSections(selectedPageId);
+      } else {
+        alert(json.error?.message || "Failed to update section.");
       }
     } catch (e: any) {
       alert(e.message || "Network error.");
@@ -307,6 +371,28 @@ function SectionsManager() {
                 {/* Right: Actions */}
                 <div className="flex items-center gap-2 shrink-0">
                   <button
+                    onClick={() => {
+                      let img = "";
+                      try {
+                        const parsed = typeof sec.content === "string" ? JSON.parse(sec.content) : sec.content;
+                        img = parsed?.image || "";
+                      } catch {}
+                      setEditingSection({
+                        ...sec,
+                        image: img,
+                        type: sec.type,
+                        title: sec.title || "",
+                        subtitle: sec.subtitle || "",
+                        content: typeof sec.content === "string" ? sec.content : JSON.stringify(sec.content, null, 2),
+                      });
+                    }}
+                    className="p-2 rounded-xl text-[#6b7280] hover:text-[#101114] hover:bg-[#e7e9ee] transition-colors cursor-pointer"
+                    title="Edit Section"
+                  >
+                    <Edit2 className="w-4 h-4" />
+                  </button>
+
+                  <button
                     onClick={() => handleToggleVisibility(sec.id || sec._id, sec.isVisible)}
                     className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-bold transition-colors cursor-pointer ${
                       sec.isVisible
@@ -335,7 +421,7 @@ function SectionsManager() {
       {/* Add Section Modal */}
       {addModalOpen && (
         <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-[22px] max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-[#e7e9ee] animate-in zoom-in-95 space-y-4">
+          <div className="bg-white rounded-[22px] max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-[#e7e9ee] animate-in zoom-in-95 space-y-4 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between border-b border-[#e7e9ee] pb-3">
               <h3 className="text-base font-serif font-bold text-[#101114]">
                 Add Section to Page
@@ -386,10 +472,20 @@ function SectionsManager() {
                 />
               </div>
 
+              {/* Section Image Upload */}
+              <ImageUpload
+                label="Section Visual Asset / Background Image"
+                value={newSection.image}
+                onChange={(url) => setNewSection({ ...newSection, image: url })}
+                folder="sections"
+                aspectRatio="16/10"
+                helperText="Upload background banner or feature image for this section."
+              />
+
               <div>
                 <label className="block font-bold text-[#101114] mb-1.5">Config Content (Optional JSON / Text)</label>
                 <textarea
-                  rows={4}
+                  rows={3}
                   value={newSection.content}
                   onChange={(e) => setNewSection({ ...newSection, content: e.target.value })}
                   placeholder="Enter JSON config or additional rich text payload..."
@@ -412,6 +508,100 @@ function SectionsManager() {
                 >
                   {isAdding && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
                   <span>Add Section</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Section Modal */}
+      {editingSection && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-[22px] max-w-lg w-full p-6 sm:p-7 shadow-2xl border border-[#e7e9ee] animate-in zoom-in-95 space-y-4 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between border-b border-[#e7e9ee] pb-3">
+              <h3 className="text-base font-serif font-bold text-[#101114]">
+                Edit Section: {editingSection.title || editingSection.type}
+              </h3>
+              <button
+                onClick={() => setEditingSection(null)}
+                className="p-1.5 rounded-xl text-[#6b7280] hover:text-[#101114] hover:bg-[#f6f7f9] cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveEditSection} className="space-y-4 text-xs">
+              <div>
+                <label className="block font-bold text-[#101114] mb-1.5">Section Type *</label>
+                <select
+                  value={editingSection.type}
+                  onChange={(e) => setEditingSection({ ...editingSection, type: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-[#101114] font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] cursor-pointer"
+                >
+                  {SECTION_TYPES.map((t) => (
+                    <option key={t.value} value={t.value}>
+                      {t.label} ({t.value})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#101114] mb-1.5">Heading / Title</label>
+                <input
+                  type="text"
+                  value={editingSection.title || ""}
+                  onChange={(e) => setEditingSection({ ...editingSection, title: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                />
+              </div>
+
+              <div>
+                <label className="block font-bold text-[#101114] mb-1.5">Subtitle</label>
+                <input
+                  type="text"
+                  value={editingSection.subtitle || ""}
+                  onChange={(e) => setEditingSection({ ...editingSection, subtitle: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                />
+              </div>
+
+              {/* Section Image Upload */}
+              <ImageUpload
+                label="Section Visual Asset / Background Image"
+                value={editingSection.image || ""}
+                onChange={(url) => setEditingSection({ ...editingSection, image: url })}
+                folder="sections"
+                aspectRatio="16/10"
+                helperText="Upload background banner or feature image for this section."
+              />
+
+              <div>
+                <label className="block font-bold text-[#101114] mb-1.5">Config Content (JSON / Text)</label>
+                <textarea
+                  rows={4}
+                  value={editingSection.content || ""}
+                  onChange={(e) => setEditingSection({ ...editingSection, content: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] font-mono text-[11px] text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                />
+              </div>
+
+              <div className="pt-3 flex justify-end gap-2 border-t border-[#e7e9ee]">
+                <button
+                  type="button"
+                  onClick={() => setEditingSection(null)}
+                  className="px-4 py-2.5 rounded-xl text-[#101114] font-bold hover:bg-[#f6f7f9] border border-[#d5d9e0] cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isAdding}
+                  className="px-5 py-2.5 rounded-xl bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] font-bold disabled:opacity-50 flex items-center gap-1.5 cursor-pointer shadow-xs"
+                >
+                  {isAdding && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <span>Save Changes</span>
                 </button>
               </div>
             </form>

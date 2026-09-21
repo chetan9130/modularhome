@@ -14,6 +14,7 @@ import {
   Image as ImageIcon,
   Video,
 } from "lucide-react";
+import ImageUpload from "@/components/admin/ImageUpload";
 
 export default function AdminNewBlogPage() {
   const router = useRouter();
@@ -262,24 +263,25 @@ export default function AdminNewBlogPage() {
             </div>
           </div>
 
-          <div className="bg-white p-6 rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-4">
+          <div className="bg-white p-6 rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-5">
             <h3 className="text-sm font-serif font-bold text-[#101114] border-b border-[#e7e9ee] pb-3">
               Media & Video
             </h3>
 
-            <div>
-              <label className="block text-xs font-bold text-[#101114] mb-1.5">Featured Image URL</label>
-              <input
-                type="text"
-                value={form.featuredImage}
-                onChange={(e) => setForm({ ...form, featuredImage: e.target.value })}
-                placeholder="https://images.unsplash.com/..."
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
-              />
-            </div>
+            <ImageUpload
+              label="Featured Article Header Image *"
+              value={form.featuredImage}
+              onChange={(url) => setForm({ ...form, featuredImage: url })}
+              folder="blogs"
+              aspectRatio="16/10"
+              helperText="Main editorial cover image displayed on blog listings and article hero."
+            />
 
             <div>
-              <label className="block text-xs font-bold text-[#101114] mb-1.5">Embedded YouTube Video URL</label>
+              <label className="block text-xs font-bold text-[#101114] mb-1.5 flex items-center gap-1.5">
+                <Video className="w-3.5 h-3.5 text-[#d97706]" />
+                <span>Embedded YouTube Video URL</span>
+              </label>
               <input
                 type="text"
                 value={form.embeddedVideoUrl}

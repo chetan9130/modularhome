@@ -12,7 +12,9 @@ import {
   Search,
   ImageIcon,
   FolderOpen,
+  Video,
 } from "lucide-react";
+import ImageUpload, { GalleryUpload } from "@/components/admin/ImageUpload";
 
 export default function AdminEditProductPage() {
   const params = useParams();
@@ -351,38 +353,47 @@ export default function AdminEditProductPage() {
 
         {/* Right 1 Column */}
         <div className="space-y-6">
-          {/* Media Links */}
-          <div className="bg-white p-6 rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-4">
+          {/* Media Links & Uploads */}
+          <div className="bg-white p-6 rounded-[18px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-5">
             <div className="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3">
               <ImageIcon className="w-4 h-4 text-[#d97706]" />
               <span>Media & Visual Assets</span>
             </div>
 
-            <div>
-              <label className="block text-xs font-bold text-[#101114] mb-1.5">Primary Image URL *</label>
-              <input
-                type="text"
-                required
-                value={product.primaryImage || ""}
-                onChange={(e) => setProduct({ ...product, primaryImage: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
-              />
-            </div>
+            <ImageUpload
+              label="Primary Exterior Image *"
+              value={product.primaryImage || ""}
+              onChange={(url) => setProduct({ ...product, primaryImage: url })}
+              folder="products"
+              aspectRatio="16/10"
+              helperText="High-resolution hero photo for catalog cards and detail pages."
+            />
+
+            <ImageUpload
+              label="Floor Plan Architecture Preview"
+              value={product.floorPlanImage || ""}
+              onChange={(url) => setProduct({ ...product, floorPlanImage: url })}
+              folder="products/floor-plans"
+              aspectRatio="4/3"
+              helperText="Blueprint layout preview image displayed in specs tab."
+            />
+
+            <GalleryUpload
+              label="Model Photo Gallery"
+              values={product.gallery || []}
+              onChange={(urls) => setProduct({ ...product, gallery: urls })}
+              folder="products/gallery"
+              helperText="Upload additional angles, interior renders, and walkthrough stills."
+            />
 
             <div>
-              <label className="block text-xs font-bold text-[#101114] mb-1.5">Floor Plan Preview URL</label>
+              <label className="block text-xs font-bold text-[#101114] mb-1.5 flex items-center gap-1.5">
+                <Video className="w-3.5 h-3.5 text-[#d97706]" />
+                <span>YouTube Walkthrough URL</span>
+              </label>
               <input
                 type="text"
-                value={product.floorPlanImage || ""}
-                onChange={(e) => setProduct({ ...product, floorPlanImage: e.target.value })}
-                className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
-              />
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-[#101114] mb-1.5">YouTube Walkthrough URL</label>
-              <input
-                type="text"
+                placeholder="https://www.youtube.com/watch?v=..."
                 value={product.videoUrl || ""}
                 onChange={(e) => setProduct({ ...product, videoUrl: e.target.value })}
                 className="w-full px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f6f7f9] text-xs text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"

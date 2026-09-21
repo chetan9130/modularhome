@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, Save, Loader2, Image as ImageIcon } from "lucide-react";
+import { ArrowLeft, Save, Loader2, Image as ImageIcon, FileText } from "lucide-react";
+import ImageUpload, { GalleryUpload } from "@/components/admin/ImageUpload";
 
 export default function AdminFloorPlanEditPage() {
   const params = useParams();
@@ -26,6 +27,7 @@ export default function AdminFloorPlanEditPage() {
     stories: 1,
     previewImage:
       "https://images.unsplash.com/photo-1510798831971-661eb04b3739?q=80&w=1200&auto=format&fit=crop",
+    gallery: [] as string[],
     filePath: "downloads/blueprints/plan-complete-kit.zip",
     fileFormat: "PDF + CAD (DWG)",
     status: "PUBLISHED",
@@ -45,6 +47,10 @@ export default function AdminFloorPlanEditPage() {
         .then((json) => {
           if (json.success && json.data) {
             const p = json.data;
+            let galleryUrls: string[] = [];
+            try {
+              galleryUrls = typeof p.gallery === "string" ? JSON.parse(p.gallery) : p.gallery || [];
+            } catch {}
             setForm({
               title: p.title || "",
               slug: p.slug || "",
@@ -59,6 +65,7 @@ export default function AdminFloorPlanEditPage() {
               dimensions: p.dimensions || "24x36 ft",
               stories: Number(p.stories) || 1,
               previewImage: p.preview_image || p.previewImage || "",
+              gallery: galleryUrls,
               filePath: p.file_path || p.filePath || "",
               fileFormat: p.file_format || p.fileFormat || "PDF + CAD (DWG)",
               status: p.status || "PUBLISHED",
@@ -246,27 +253,41 @@ export default function AdminFloorPlanEditPage() {
           </div>
         </div>
 
-        {/* Media & Storage File */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div>
-            <label className="block text-xs font-bold text-stone-700 mb-1">Preview Image URL</label>
-            <input
-              type="url"
+        {/* Media & Blueprints Visual Assets */}
+        <div className="p-6 bg-white border border-stone-200 rounded-2xl shadow-xs space-y-6">
+          <h3 className="text-xs font-bold text-stone-900 uppercase tracking-wider border-b border-stone-100 pb-2">
+            Architectural Drawings & Visual Media
+          </h3>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <ImageUpload
+              label="Primary Blueprint Cover Image *"
               value={form.previewImage}
-              onChange={(e) => setForm({ ...form, previewImage: e.target.value })}
-              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:ring-1 focus:ring-orange-600 focus:outline-none"
+              onChange={(url) => setForm({ ...form, previewImage: url })}
+              folder="floor-plans"
+              aspectRatio="16/10"
+              helperText="Featured exterior rendering or architectural 3D layout."
+            />
+
+            <ImageUpload
+              label="Downloadable Blueprint Kit (PDF / ZIP)"
+              value={form.filePath}
+              onChange={(url) => setForm({ ...form, filePath: url })}
+              folder="floor-plans/packages"
+              accept=".pdf,.zip,.dwg,application/pdf,application/zip"
+              aspectRatio="16/10"
+              placeholder="e.g. downloads/blueprints/plan-kit.zip or upload file"
+              helperText="The secure architectural package delivered to customer upon purchase."
             />
           </div>
 
-          <div>
-            <label className="block text-xs font-bold text-stone-700 mb-1">Protected Download Path</label>
-            <input
-              type="text"
-              value={form.filePath}
-              onChange={(e) => setForm({ ...form, filePath: e.target.value })}
-              className="w-full px-3.5 py-2 bg-stone-50 border border-stone-200 rounded-xl text-xs text-stone-900 focus:ring-1 focus:ring-orange-600 focus:outline-none font-mono"
-            />
-          </div>
+          <GalleryUpload
+            label="Floor Plan Image Gallery"
+            values={form.gallery || []}
+            onChange={(urls) => setForm({ ...form, gallery: urls })}
+            folder="floor-plans/gallery"
+            helperText="Upload floor layouts, elevations, electrical riser schematics, and dimension sheets."
+          />
         </div>
 
         {/* Status & Featured */}
