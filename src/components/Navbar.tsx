@@ -116,10 +116,12 @@ function NavbarContent({ initialSettings, customPages = [] }: NavbarContentProps
 
   const currentCategory = searchParams ? searchParams.get("category") : null;
 
-  // Published custom pages (excluding home)
-  const publishedPages = (customPages || []).filter(
-    (p) => p.status === "PUBLISHED" && p.slug !== "home" && !p.slug.startsWith("/")
-  );
+  // Published custom pages (excluding home and blank/invalid slugs)
+  const publishedPages = (customPages || []).filter((p) => {
+    if (!p || p.status !== "PUBLISHED") return false;
+    const cleanSlug = (p.slug || "").toLowerCase().trim().replace(/^\/+|\/+$/g, "");
+    return cleanSlug !== "" && cleanSlug !== "home" && cleanSlug !== "index";
+  });
 
   const phone = initialSettings?.phone || "+1 (812) 595-4033";
   const email = initialSettings?.email || "support@modularhome.com";

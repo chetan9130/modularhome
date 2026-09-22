@@ -593,10 +593,10 @@ export async function getPublicPageBySlug(slugParam: string): Promise<CmsPage | 
  */
 export async function getPublicPages(): Promise<CmsPage[]> {
   try {
-    const localPages = readPagesFromStore();
+    const localPages = readPagesFromStore().filter((p) => p.status === "PUBLISHED");
 
     if (!isSupabaseConfigured()) {
-      return localPages.length > 0 ? localPages : FALLBACK_PAGES;
+      return localPages;
     }
 
     const { data: dbPages, error } = await supabaseAdmin
@@ -609,27 +609,21 @@ export async function getPublicPages(): Promise<CmsPage[]> {
       ? dbPages.map((p) => formatCmsPage(p))
       : [];
 
-    // Merge DB pages with local pages and fallbacks
-    const existingSlugs = new Set(formattedDb.map((p) => p.slug));
+    // Merge DB pages with local published pages
+    const existingSlugs = new Set(formattedDb.map((p) => p.slug.toLowerCase()));
     const merged = [...formattedDb];
 
     for (const lp of localPages) {
-      if (!existingSlugs.has(lp.slug)) {
+      if (!existingSlugs.has(lp.slug.toLowerCase())) {
         merged.push(lp);
-        existingSlugs.add(lp.slug);
-      }
-    }
-
-    for (const f of FALLBACK_PAGES) {
-      if (!existingSlugs.has(f.slug)) {
-        merged.push(f);
+        existingSlugs.add(lp.slug.toLowerCase());
       }
     }
 
     return merged;
   } catch (error) {
     console.error("Error fetching public pages:", error);
-    const localPages = readPagesFromStore();
-    return localPages.length > 0 ? localPages : FALLBACK_PAGES;
+    const localPages = readPagesFromStore().filter((p) => p.status === "PUBLISHED");
+    return localPages;
   }
 }

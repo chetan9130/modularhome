@@ -17,28 +17,13 @@
     "pageId": "page-new-home"
   },
   {
-    "id": "sec-trust-1",
-    "type": "TRUST",
-    "title": "Built For Generations",
+    "id": "sec_1790103554824_boq1m",
+    "pageId": "30d9acca-7988-4d36-871f-c53e03a29b53",
+    "type": "PRODUCT_GRID",
+    "title": "My new Page",
+    "subtitle": "Testing",
+    "content": "{\"image\":\"https://wcraqtzhvpeaoqofrwpo.supabase.co/storage/v1/object/public/media/sections/spider-man-marvel-superheroes-marvel-comics-3840x2-1790103543061.jpg\"}",
     "displayOrder": 1,
-    "isVisible": true,
-    "pageId": "page-warranty"
-  },
-  {
-    "id": "sec-how-1",
-    "type": "HOW_IT_WORKS",
-    "title": "Our Precision Build Quality",
-    "displayOrder": 2,
-    "isVisible": true,
-    "pageId": "page-warranty"
-  },
-  {
-    "id": "sec-cta-1",
-    "type": "CTA",
-    "title": "Ready to Build Your Certified Modular Home?",
-    "subtitle": "Speak with an architectural housing advisor today or get an instant engineering estimate.",
-    "displayOrder": 3,
-    "isVisible": true,
-    "pageId": "page-warranty"
+    "isVisible": true
   }
 ]

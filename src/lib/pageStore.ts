@@ -155,19 +155,19 @@ export function readPagesFromStore(): CmsPage[] {
   try {
     ensureDataDirectory();
     if (!fs.existsSync(PAGES_FILE)) {
-      fs.writeFileSync(PAGES_FILE, JSON.stringify(SEED_PAGES, null, 2), "utf-8");
-      return SEED_PAGES;
+      fs.writeFileSync(PAGES_FILE, JSON.stringify([], null, 2), "utf-8");
+      return [];
     }
     const data = fs.readFileSync(PAGES_FILE, "utf-8");
     const parsed = JSON.parse(data);
     if (!Array.isArray(parsed)) {
-      fs.writeFileSync(PAGES_FILE, JSON.stringify(SEED_PAGES, null, 2), "utf-8");
-      return SEED_PAGES;
+      fs.writeFileSync(PAGES_FILE, JSON.stringify([], null, 2), "utf-8");
+      return [];
     }
     return parsed;
   } catch (error) {
     console.error("Error reading custom_pages.json:", error);
-    return SEED_PAGES;
+    return [];
   }
 }
 
@@ -215,16 +215,24 @@ export function saveCustomPage(page: Partial<CmsPage> & { title: string; slug: s
 }
 
 export function deleteCustomPage(idOrSlug: string): boolean {
+  if (!idOrSlug) return false;
+  const clean = idOrSlug.toLowerCase().trim().replace(/^\/+|\/+$/g, "");
   const pages = readPagesFromStore();
-  const filtered = pages.filter((p) => p.id !== idOrSlug && p.slug !== idOrSlug);
+  const filtered = pages.filter((p) => {
+    const pId = (p.id || "").toLowerCase().trim();
+    const pSlug = (p.slug || "").toLowerCase().trim().replace(/^\/+|\/+$/g, "");
+    return pId !== clean && pSlug !== clean && p.id !== idOrSlug && p.slug !== idOrSlug;
+  });
+
   if (filtered.length !== pages.length) {
     writePagesToStore(filtered);
     
     // Also delete associated sections
     const sections = readSectionsFromStore();
-    const remainingSections = sections.filter(
-      (s) => s.pageId !== idOrSlug && s.pageId !== `page-${idOrSlug}`
-    );
+    const remainingSections = sections.filter((s) => {
+      const sPageId = (s.pageId || "").toLowerCase().trim();
+      return sPageId !== clean && sPageId !== `page-${clean}` && s.pageId !== idOrSlug;
+    });
     if (remainingSections.length !== sections.length) {
       writeSectionsToStore(remainingSections);
     }

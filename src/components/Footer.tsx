@@ -30,9 +30,11 @@ export default function Footer({ initialSettings, customPages = [] }: FooterProp
   const socialLinks = initialSettings?.socialLinks || {};
 
   // Filter published custom pages
-  const publishedPages = (customPages || []).filter(
-    (p) => p.status === "PUBLISHED" && p.slug !== "home" && !p.slug.startsWith("/")
-  );
+  const publishedPages = (customPages || []).filter((p) => {
+    if (!p || p.status !== "PUBLISHED") return false;
+    const cleanSlug = (p.slug || "").toLowerCase().trim().replace(/^\/+|\/+$/g, "");
+    return cleanSlug !== "" && cleanSlug !== "home" && cleanSlug !== "index";
+  });
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
