@@ -143,7 +143,7 @@ export default function AdminSettingsPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
         {/* 1. Branding Section */}
         <div className="bg-white p-6 sm:p-7 rounded-[22px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] space-y-5">
           <div className="flex items-center gap-2.5 text-xs font-bold uppercase tracking-wider text-[#101114] border-b border-[#e7e9ee] pb-3 font-mono">
@@ -161,24 +161,26 @@ export default function AdminSettingsPage() {
             />
           </div>
 
-          <ImageUpload
-            label="Company Logo Image"
-            value={settings.logoUrl || ""}
-            onChange={(url) => setSettings({ ...settings, logoUrl: url })}
-            folder="branding"
-            aspectRatio="logo"
-            helperText="Vector SVG, PNG, or WebP logo displayed in header and footer."
-          />
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+            <ImageUpload
+              label="Company Logo"
+              value={settings.logoUrl || ""}
+              onChange={(url) => setSettings({ ...settings, logoUrl: url })}
+              folder="branding"
+              aspectRatio="logo"
+              helperText="SVG, PNG, or WebP logo for navbar & footer."
+            />
 
-          <ImageUpload
-            label="Browser Favicon Icon"
-            value={settings.faviconUrl || ""}
-            onChange={(url) => setSettings({ ...settings, faviconUrl: url })}
-            folder="branding"
-            aspectRatio="1/1"
-            accept=".ico,.png,.svg,image/x-icon,image/png,image/svg+xml"
-            helperText="32x32 or 64x64 icon displayed in browser tab and bookmarks."
-          />
+            <ImageUpload
+              label="Browser Favicon"
+              value={settings.faviconUrl || ""}
+              onChange={(url) => setSettings({ ...settings, faviconUrl: url })}
+              folder="branding"
+              aspectRatio="1/1"
+              accept=".ico,.png,.svg,image/x-icon,image/png,image/svg+xml"
+              helperText="32x32 or 64x64 icon for tab & bookmarks."
+            />
+          </div>
         </div>
 
         {/* 2. Contact Information */}

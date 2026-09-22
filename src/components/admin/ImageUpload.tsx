@@ -25,6 +25,7 @@ interface ImageUploadProps {
   accept?: string;
   placeholder?: string;
   className?: string;
+  compact?: boolean;
 }
 
 export default function ImageUpload({
@@ -37,6 +38,7 @@ export default function ImageUpload({
   accept = "image/jpeg,image/png,image/webp,image/avif,image/gif,image/svg+xml",
   placeholder = "Upload image or enter URL...",
   className = "",
+  compact = false,
 }: ImageUploadProps) {
   const [isUploading, setIsUploading] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
@@ -45,15 +47,41 @@ export default function ImageUpload({
   const [manualUrl, setManualUrl] = useState(value);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const aspectClasses = {
-    "16/9": "aspect-video",
-    "16/10": "aspect-[16/10]",
-    "4/3": "aspect-[4/3]",
-    "1/1": "aspect-square",
-    banner: "aspect-[21/9]",
-    logo: "aspect-[3/1] max-h-24",
-    auto: "min-h-[140px]",
-  }[aspectRatio] || "aspect-[16/10]";
+  const isCompact = compact || aspectRatio === "logo" || aspectRatio === "1/1";
+
+  // Aspect ratio and styling for preview container (when image is uploaded)
+  const getPreviewContainerClasses = () => {
+    switch (aspectRatio) {
+      case "logo":
+        return "h-24 sm:h-28 w-full bg-[#f8f9fa] border border-[#e7e9ee]";
+      case "1/1":
+        return "h-28 w-28 sm:h-32 sm:w-32 mx-auto aspect-square bg-[#f8f9fa] border border-[#e7e9ee]";
+      case "banner":
+        return "aspect-[21/9] w-full bg-stone-900 border border-[#d5d9e0]";
+      case "4/3":
+        return "aspect-[4/3] w-full bg-stone-900 border border-[#d5d9e0]";
+      case "16/9":
+        return "aspect-video w-full bg-stone-900 border border-[#d5d9e0]";
+      case "auto":
+        return "min-h-[140px] max-h-[260px] w-full bg-stone-900 border border-[#d5d9e0]";
+      case "16/10":
+      default:
+        return "aspect-[16/10] w-full bg-stone-900 border border-[#d5d9e0]";
+    }
+  };
+
+  const getImageClasses = () => {
+    if (aspectRatio === "logo") {
+      return "object-contain p-3";
+    }
+    if (aspectRatio === "1/1") {
+      return "object-contain p-2";
+    }
+    if (aspectRatio === "auto") {
+      return "object-contain p-2";
+    }
+    return "object-cover transition-transform duration-500 group-hover:scale-105";
+  };
 
   const handleFileUpload = async (file: File) => {
     if (!file) return;
@@ -119,14 +147,14 @@ export default function ImageUpload({
   const isPdfOrZip = value?.toLowerCase().endsWith(".pdf") || value?.toLowerCase().endsWith(".zip");
 
   return (
-    <div className={`space-y-2 ${className}`}>
+    <div className={`space-y-1.5 ${className}`}>
       {label && (
-        <div className="flex items-center justify-between">
-          <label className="block text-xs font-bold text-[#101114]">{label}</label>
+        <div className="flex items-center justify-between gap-2">
+          <label className="block text-xs font-bold text-[#101114] truncate">{label}</label>
           <button
             type="button"
             onClick={() => setShowUrlInput(!showUrlInput)}
-            className="text-[11px] font-semibold text-[#d97706] hover:text-[#b45309] hover:underline transition-colors"
+            className="text-[11px] font-semibold text-[#d97706] hover:text-[#b45309] hover:underline transition-colors shrink-0"
           >
             {showUrlInput ? "Hide URL Field" : "Paste Direct URL"}
           </button>
@@ -146,7 +174,7 @@ export default function ImageUpload({
           <button
             type="button"
             onClick={handleManualApply}
-            className="px-3 py-1.5 bg-[#101114] hover:bg-[#23252a] text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1 shrink-0"
+            className="px-3 py-1.5 bg-[#101114] hover:bg-[#23252a] text-white text-xs font-bold rounded-lg transition-colors flex items-center gap-1 shrink-0 cursor-pointer"
           >
             <Check className="w-3.5 h-3.5" />
             <span>Apply</span>
@@ -162,14 +190,14 @@ export default function ImageUpload({
           <button
             type="button"
             onClick={() => setErrorMessage("")}
-            className="text-red-500 hover:text-red-800"
+            className="text-red-500 hover:text-red-800 cursor-pointer"
           >
             <X className="w-3.5 h-3.5" />
           </button>
         </div>
       )}
 
-      {/* Image Preview & Upload Container */}
+      {/* Hidden File Input */}
       <input
         type="file"
         ref={fileInputRef}
@@ -179,10 +207,11 @@ export default function ImageUpload({
       />
 
       {value ? (
-        <div className={`relative w-full rounded-2xl overflow-hidden border border-[#d5d9e0] bg-[#101114] group shadow-2xs ${aspectClasses}`}>
+        /* Image Preview Container */
+        <div className={`relative rounded-2xl overflow-hidden group shadow-2xs ${getPreviewContainerClasses()}`}>
           {isPdfOrZip ? (
             <div className="w-full h-full flex flex-col items-center justify-center p-4 bg-stone-900 text-stone-300 gap-2">
-              <FileText className="w-10 h-10 text-[#fcb907]" />
+              <FileText className="w-8 h-8 text-[#fcb907]" />
               <span className="text-xs font-bold truncate max-w-full px-4">{value.split("/").pop()}</span>
               <a
                 href={value}
@@ -197,10 +226,10 @@ export default function ImageUpload({
           ) : (
             <Image
               src={value}
-              alt="Uploaded visual asset"
+              alt="Uploaded asset preview"
               fill
               unoptimized
-              className="object-cover transition-transform duration-500 group-hover:scale-105"
+              className={getImageClasses()}
             />
           )}
 
@@ -210,19 +239,19 @@ export default function ImageUpload({
               type="button"
               disabled={isUploading}
               onClick={() => fileInputRef.current?.click()}
-              className="px-3.5 py-2 bg-white/95 hover:bg-white text-[#101114] rounded-xl text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 hover:scale-105"
+              className="px-3 py-1.5 bg-white/95 hover:bg-white text-[#101114] rounded-xl text-xs font-bold shadow-lg transition-all flex items-center gap-1.5 hover:scale-105 cursor-pointer"
             >
               {isUploading ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin text-[#d97706]" />
               ) : (
                 <RefreshCw className="w-3.5 h-3.5 text-[#d97706]" />
               )}
-              <span>Change Photo</span>
+              <span>Change</span>
             </button>
             <button
               type="button"
               onClick={handleClear}
-              className="p-2 bg-red-600/90 hover:bg-red-600 text-white rounded-xl shadow-lg transition-all hover:scale-105"
+              className="p-1.5 bg-red-600/90 hover:bg-red-600 text-white rounded-xl shadow-lg transition-all hover:scale-105 cursor-pointer"
               title="Remove image"
             >
               <X className="w-4 h-4" />
@@ -232,8 +261,8 @@ export default function ImageUpload({
           {/* Active Upload Indicator */}
           {isUploading && (
             <div className="absolute inset-0 bg-black/75 flex flex-col items-center justify-center gap-2 text-white">
-              <Loader2 className="w-8 h-8 animate-spin text-[#fcb907]" />
-              <span className="text-xs font-bold tracking-wide">Uploading to Cloud Storage...</span>
+              <Loader2 className="w-7 h-7 animate-spin text-[#fcb907]" />
+              <span className="text-xs font-bold tracking-wide">Uploading...</span>
             </div>
           )}
         </div>
@@ -244,22 +273,37 @@ export default function ImageUpload({
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onClick={() => !isUploading && fileInputRef.current?.click()}
-          className={`relative border-2 border-dashed rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 ${
+          className={`relative border-2 border-dashed rounded-2xl flex flex-col items-center justify-center text-center cursor-pointer transition-all duration-200 overflow-hidden ${
+            isCompact ? "p-3.5 min-h-[105px]" : "p-5 min-h-[125px]"
+          } ${
             isDragging
               ? "border-[#fcb907] bg-amber-50/50 scale-[1.01]"
               : "border-[#d5d9e0] hover:border-[#fcb907] bg-[#f9fafb] hover:bg-white"
-          } ${aspectClasses}`}
+          }`}
         >
           {isUploading ? (
-            <div className="flex flex-col items-center gap-2.5 text-[#6b7280]">
-              <Loader2 className="w-8 h-8 animate-spin text-[#d97706]" />
+            <div className="flex flex-col items-center gap-2 text-[#6b7280]">
+              <Loader2 className="w-6 h-6 animate-spin text-[#d97706]" />
               <div className="text-xs font-bold text-[#101114]">Uploading file...</div>
-              <div className="text-[11px] text-[#6b7280]">Optimizing and saving to CDN storage</div>
+              <div className="text-[10px] text-[#6b7280]">Optimizing and saving to CDN storage</div>
+            </div>
+          ) : isCompact ? (
+            <div className="flex flex-col items-center gap-1 text-[#6b7280]">
+              <div className="w-8 h-8 rounded-xl bg-white border border-[#e7e9ee] shadow-2xs flex items-center justify-center text-[#d97706] group-hover:scale-110 transition-transform">
+                <Upload className="w-4 h-4" />
+              </div>
+              <div className="text-[11px] font-bold text-[#101114]">
+                <span className="hover:underline">Click to upload</span>
+                <span className="text-[#6b7280] font-normal"> or drag</span>
+              </div>
+              <p className="text-[10px] text-[#9ca3af] font-medium truncate max-w-full">
+                SVG, PNG, JPG, WebP
+              </p>
             </div>
           ) : (
-            <div className="flex flex-col items-center gap-2 text-[#6b7280]">
-              <div className="w-12 h-12 rounded-2xl bg-white border border-[#e7e9ee] shadow-2xs flex items-center justify-center text-[#d97706] group-hover:scale-110 transition-transform">
-                <Upload className="w-6 h-6" />
+            <div className="flex flex-col items-center gap-1.5 text-[#6b7280]">
+              <div className="w-10 h-10 rounded-xl bg-white border border-[#e7e9ee] shadow-2xs flex items-center justify-center text-[#d97706] group-hover:scale-110 transition-transform">
+                <Upload className="w-5 h-5" />
               </div>
               <div>
                 <span className="text-xs font-bold text-[#101114] hover:underline">
@@ -267,7 +311,7 @@ export default function ImageUpload({
                 </span>
                 <span className="text-xs text-[#6b7280]"> or drag and drop</span>
               </div>
-              <p className="text-[10px] text-[#9ca3af] font-medium max-w-[220px]">
+              <p className="text-[10px] text-[#9ca3af] font-medium max-w-[240px]">
                 PNG, JPG, WebP, AVIF, SVG or PDF (up to 30MB)
               </p>
             </div>
@@ -275,7 +319,7 @@ export default function ImageUpload({
         </div>
       )}
 
-      {helperText && <p className="text-[11px] text-[#6b7280] font-medium">{helperText}</p>}
+      {helperText && <p className="text-[11px] text-[#6b7280] font-medium leading-tight">{helperText}</p>}
     </div>
   );
 }
