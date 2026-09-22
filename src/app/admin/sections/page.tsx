@@ -181,15 +181,9 @@ function SectionsManager() {
     setIsAdding(true);
 
     try {
-      let finalContent = newSection.content;
+      let finalContent = newSection.content || "";
       if (newSection.image) {
-        try {
-          const parsed = newSection.content ? JSON.parse(newSection.content) : {};
-          parsed.image = newSection.image;
-          finalContent = JSON.stringify(parsed);
-        } catch {
-          finalContent = JSON.stringify({ image: newSection.image, rawText: newSection.content });
-        }
+        finalContent = JSON.stringify({ image: newSection.image, rawText: newSection.content || "" });
       }
 
       const res = await fetch("/api/admin/sections", {
@@ -233,15 +227,9 @@ function SectionsManager() {
     setIsAdding(true);
 
     try {
-      let finalContent = editingSection.content;
+      let finalContent = editingSection.content || "";
       if (editingSection.image) {
-        try {
-          const parsed = editingSection.content ? JSON.parse(editingSection.content) : {};
-          parsed.image = editingSection.image;
-          finalContent = JSON.stringify(parsed);
-        } catch {
-          finalContent = JSON.stringify({ image: editingSection.image, rawText: editingSection.content });
-        }
+        finalContent = JSON.stringify({ image: editingSection.image, rawText: editingSection.content || "" });
       }
 
       const secId = editingSection.id || editingSection._id;
@@ -400,17 +388,21 @@ function SectionsManager() {
                   <button
                     onClick={() => {
                       let img = "";
+                      let rawText = "";
                       try {
                         const parsed = typeof sec.content === "string" ? JSON.parse(sec.content) : sec.content;
-                        img = parsed?.image || "";
-                      } catch {}
+                        img = parsed?.image || parsed?.imageUrl || "";
+                        rawText = parsed?.rawText || parsed?.text || (typeof parsed === "string" ? parsed : "");
+                      } catch {
+                        rawText = typeof sec.content === "string" ? sec.content : "";
+                      }
                       setEditingSection({
                         ...sec,
                         image: img,
                         type: sec.type,
                         title: sec.title || "",
                         subtitle: sec.subtitle || "",
-                        content: typeof sec.content === "string" ? sec.content : JSON.stringify(sec.content, null, 2),
+                        content: rawText,
                       });
                     }}
                     className="p-2 rounded-xl text-[#6b7280] hover:text-[#101114] hover:bg-[#f8f9fa] border border-transparent hover:border-[#d5d9e0] transition-colors cursor-pointer"

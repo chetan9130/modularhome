@@ -16,7 +16,9 @@ import {
   ArrowRight,
   Sparkles,
   Layers,
-  PhoneCall
+  PhoneCall,
+  Building,
+  ImageIcon
 } from "lucide-react";
 import { CmsPage, PageSection } from "@/lib/publicData";
 import TrustBar from "@/components/TrustBar";
@@ -29,6 +31,40 @@ import CTASection from "@/components/CTASection";
 
 interface DynamicPageRendererProps {
   page: CmsPage;
+}
+
+interface ParsedContent {
+  text: string;
+  image?: string;
+  gallery?: string[];
+  items?: any[];
+}
+
+function parseContentData(rawContent?: string): ParsedContent {
+  if (!rawContent || !rawContent.trim()) {
+    return { text: "" };
+  }
+  const trimmed = rawContent.trim();
+  if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+    try {
+      const parsed = JSON.parse(trimmed);
+      if (typeof parsed === "string") {
+        return { text: parsed };
+      }
+      if (Array.isArray(parsed)) {
+        return { text: "", items: parsed };
+      }
+      return {
+        text: parsed.rawText || parsed.text || parsed.content || parsed.description || parsed.html || "",
+        image: parsed.image || parsed.imageUrl || parsed.featuredImage || parsed.src || undefined,
+        gallery: Array.isArray(parsed.gallery) ? parsed.gallery : (Array.isArray(parsed.images) ? parsed.images : undefined),
+        items: Array.isArray(parsed.items) ? parsed.items : undefined,
+      };
+    } catch {
+      return { text: rawContent };
+    }
+  }
+  return { text: rawContent };
 }
 
 export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) {
@@ -112,16 +148,11 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
 
   // Render individual modular section block
   const renderSectionBlock = (section: PageSection, index: number) => {
+    const data = parseContentData(section.content);
+
     switch (section.type) {
       case "HERO": {
-        let heroData: any = {};
-        try {
-          heroData = section.content ? JSON.parse(section.content) : {};
-        } catch {
-          heroData = { rawText: section.content };
-        }
-
-        const bgImg = heroData.image || heroData.backgroundImage || page.featuredImage || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1900&q=85";
+        const bgImg = data.image || page.featuredImage || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1900&q=85";
 
         return (
           <section
@@ -142,9 +173,9 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
                 <h2 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
                   {section.title || page.title}
                 </h2>
-                {heroData.rawText && (
+                {data.text && (
                   <p className="text-sm sm:text-base text-white/90 leading-relaxed font-normal">
-                    {heroData.rawText}
+                    {data.text}
                   </p>
                 )}
                 <div className="pt-3 flex flex-wrap gap-3">
@@ -225,6 +256,106 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
           </div>
         );
 
+      case "GALLERY": {
+        const galleryImgs = data.gallery && data.gallery.length > 0 
+          ? data.gallery 
+          : (data.image ? [data.image] : []);
+
+        return (
+          <section key={section.id || index} className="py-12 sm:py-16 bg-[#f8f9fa] border-y border-[#e7e9ee]">
+            <div className="wrap">
+              {section.title && (
+                <div className="text-center max-w-2xl mx-auto mb-8">
+                  {section.subtitle && (
+                    <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#d97706]">
+                      {section.subtitle}
+                    </span>
+                  )}
+                  <h2 className="text-2xl sm:text-3xl font-black text-[#101114] mt-1">
+                    {section.title}
+                  </h2>
+                </div>
+              )}
+
+              {galleryImgs.length > 0 ? (
+                <div className={`grid gap-4 ${
+                  galleryImgs.length === 1 
+                    ? "max-w-3xl mx-auto" 
+                    : galleryImgs.length === 2 
+                    ? "grid-cols-1 sm:grid-cols-2 max-w-4xl mx-auto" 
+                    : "grid-cols-1 sm:grid-cols-2 md:grid-cols-3"
+                }`}>
+                  {galleryImgs.map((imgUrl, gIdx) => (
+                    <div
+                      key={gIdx}
+                      className="relative aspect-[16/10] rounded-2xl overflow-hidden border border-[#e7e9ee] shadow-sm group bg-gray-100"
+                    >
+                      <Image
+                        src={imgUrl}
+                        alt={`${section.title || "Gallery"} ${gIdx + 1}`}
+                        fill
+                        className="object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="p-8 text-center text-gray-400 text-sm">No images in gallery</div>
+              )}
+
+              {data.text && (
+                <p className="text-center text-sm text-[#6b7280] mt-6 max-w-2xl mx-auto font-medium">
+                  {data.text}
+                </p>
+              )}
+            </div>
+          </section>
+        );
+      }
+
+      case "PRODUCT_GRID": {
+        return (
+          <section key={section.id || index} className="py-12 sm:py-16 bg-white border-y border-[#e7e9ee]">
+            <div className="wrap space-y-8">
+              {(section.title || section.subtitle) && (
+                <div className="text-center max-w-2xl mx-auto">
+                  {section.subtitle && (
+                    <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#d97706]">
+                      {section.subtitle}
+                    </span>
+                  )}
+                  {section.title && (
+                    <h2 className="text-2xl sm:text-4xl font-black tracking-tight text-[#101114] mt-1">
+                      {section.title}
+                    </h2>
+                  )}
+                </div>
+              )}
+
+              {data.image && (
+                <div className="relative aspect-[16/9] sm:aspect-[21/9] max-w-4xl mx-auto rounded-2xl overflow-hidden border border-[#e7e9ee] shadow-md bg-gray-50">
+                  <Image
+                    src={data.image}
+                    alt={section.title || "Featured Visual"}
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              )}
+
+              {data.text && (
+                <div
+                  className="prose prose-lg max-w-3xl mx-auto text-[#374151] leading-relaxed text-center"
+                  dangerouslySetInnerHTML={{ __html: data.text }}
+                />
+              )}
+
+              <CategoryGrid />
+            </div>
+          </section>
+        );
+      }
+
       case "FAQ": {
         const faqList = parseFaqItems(section.content);
         return (
@@ -284,31 +415,59 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
 
       case "RICH_CONTENT":
       default: {
-        let textContent = section.content || "";
-        try {
-          const parsed = JSON.parse(section.content || "{}");
-          if (parsed.rawText) textContent = parsed.rawText;
-        } catch {}
-
         return (
-          <section key={section.id || index} className="py-12 bg-white">
-            <div className="wrap max-w-4xl">
+          <section key={section.id || index} className="py-12 sm:py-16 bg-white">
+            <div className="wrap max-w-4xl space-y-6">
               {section.title && (
-                <div className="mb-6">
+                <div>
                   <h2 className="text-2xl sm:text-3xl font-black text-[#101114] font-serif">{section.title}</h2>
-                  {section.subtitle && <p className="text-sm text-[#6b7280] mt-1">{section.subtitle}</p>}
+                  {section.subtitle && <p className="text-sm text-[#6b7280] mt-1 font-medium">{section.subtitle}</p>}
                 </div>
               )}
-              <div
-                className="prose prose-lg max-w-none text-[#374151] leading-relaxed prose-headings:font-black prose-headings:text-[#101114] prose-a:text-[#d97706] prose-a:underline hover:prose-a:text-[#b45309]"
-                dangerouslySetInnerHTML={{ __html: textContent }}
-              />
+
+              {/* Render Section Image if provided */}
+              {data.image && (
+                <div className="relative aspect-[16/9] sm:aspect-[21/9] rounded-2xl overflow-hidden border border-[#e7e9ee] shadow-md bg-gray-50">
+                  <Image
+                    src={data.image}
+                    alt={section.title || page.title || "Section Media"}
+                    fill
+                    className="object-cover hover:scale-102 transition-transform duration-500"
+                  />
+                </div>
+              )}
+
+              {/* Render Section Gallery if multiple images */}
+              {data.gallery && data.gallery.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-2">
+                  {data.gallery.map((imgUrl, gIdx) => (
+                    <div key={gIdx} className="relative aspect-[4/3] rounded-xl overflow-hidden border border-[#e7e9ee] shadow-xs">
+                      <Image
+                        src={imgUrl}
+                        alt={`${section.title || "Gallery"} ${gIdx + 1}`}
+                        fill
+                        className="object-cover hover:scale-105 transition-transform duration-300"
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Render Rich Text Content if present */}
+              {data.text && (
+                <div
+                  className="prose prose-lg max-w-none text-[#374151] leading-relaxed prose-headings:font-black prose-headings:text-[#101114] prose-a:text-[#d97706] prose-a:underline hover:prose-a:text-[#b45309]"
+                  dangerouslySetInnerHTML={{ __html: data.text }}
+                />
+              )}
             </div>
           </section>
         );
       }
     }
   };
+
+  const parsedPageContent = parseContentData(page.content);
 
   return (
     <div className="min-h-screen bg-white text-[#101114] pt-24 pb-20">
@@ -392,14 +551,27 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
         </div>
       </section>
 
-      {/* 2. Main Body Content (Rich Text/HTML if present) */}
-      {page.content && (
+      {/* 2. Main Body Content (Parsed Rich Text/HTML and inline media) */}
+      {(parsedPageContent.text || (parsedPageContent.image && parsedPageContent.image !== page.featuredImage)) && (
         <section className="py-12 sm:py-16 bg-white">
-          <div className="wrap max-w-4xl">
-            <div
-              className="prose prose-lg max-w-none text-[#374151] leading-relaxed prose-headings:font-black prose-headings:text-[#101114] prose-h2:text-2xl sm:prose-h2:text-3xl prose-h2:border-b prose-h2:border-[#e7e9ee] prose-h2:pb-3 prose-h2:mt-10 prose-h3:text-xl prose-h3:mt-8 prose-p:text-[#4b5563] prose-p:leading-relaxed prose-li:text-[#4b5563] prose-strong:text-[#101114] prose-a:text-[#d97706] prose-a:underline hover:prose-a:text-[#b45309]"
-              dangerouslySetInnerHTML={{ __html: page.content }}
-            />
+          <div className="wrap max-w-4xl space-y-6">
+            {parsedPageContent.image && parsedPageContent.image !== page.featuredImage && (
+              <div className="relative aspect-[16/9] rounded-2xl overflow-hidden border border-[#e7e9ee] shadow-md bg-gray-50">
+                <Image
+                  src={parsedPageContent.image}
+                  alt={page.title}
+                  fill
+                  className="object-cover"
+                />
+              </div>
+            )}
+
+            {parsedPageContent.text && (
+              <div
+                className="prose prose-lg max-w-none text-[#374151] leading-relaxed prose-headings:font-black prose-headings:text-[#101114] prose-h2:text-2xl sm:prose-h2:text-3xl prose-h2:border-b prose-h2:border-[#e7e9ee] prose-h2:pb-3 prose-h2:mt-10 prose-h3:text-xl prose-h3:mt-8 prose-p:text-[#4b5563] prose-p:leading-relaxed prose-li:text-[#4b5563] prose-strong:text-[#101114] prose-a:text-[#d97706] prose-a:underline hover:prose-a:text-[#b45309]"
+                dangerouslySetInnerHTML={{ __html: parsedPageContent.text }}
+              />
+            )}
           </div>
         </section>
       )}
@@ -412,7 +584,7 @@ export default function DynamicPageRenderer({ page }: DynamicPageRendererProps) 
       )}
 
       {/* 4. Default CTA Footer if no custom sections present */}
-      {sections.length === 0 && !page.content && (
+      {sections.length === 0 && !parsedPageContent.text && (
         <section className="py-20 text-center wrap max-w-2xl">
           <div className="p-8 bg-[#f8f9fa] rounded-[22px] border border-[#e7e9ee] space-y-4">
             <h2 className="text-xl font-black text-[#101114]">Page Content In Development</h2>
