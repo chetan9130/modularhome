@@ -1,0 +1,74 @@
+{
+  "companyName": "ModularHome.com",
+  "logoUrl": "/finallogo.avif",
+  "faviconUrl": "/favicon.ico",
+  "phone": "+1 (812) 595-4033",
+  "email": "support@modularhome.com",
+  "address": "Factory Headquarters, IN & Nationwide Delivery",
+  "socialLinks": {
+    "facebook": "https://facebook.com",
+    "instagram": "https://instagram.com",
+    "youtube": "https://youtube.com",
+    "tiktok": "https://tiktok.com"
+  },
+  "announcementEnabled": true,
+  "announcementText": "Direct Factory Modular & Prefab Home Builder • 2026 Models Released",
+  "announcementLink": "/buildings",
+  "navLinks": [
+    {
+      "label": "Home",
+      "href": "/"
+    },
+    {
+      "label": "Cabins",
+      "href": "/buildings?category=Cabins"
+    },
+    {
+      "label": "Barndominiums",
+      "href": "/buildings?category=Barndominiums"
+    },
+    {
+      "label": "Floor Plans",
+      "href": "/upload-floor-plan"
+    },
+    {
+      "label": "Videos",
+      "href": "/videos"
+    },
+    {
+      "label": "About",
+      "href": "/about"
+    },
+    {
+      "label": "Contact",
+      "href": "/contact"
+    }
+  ],
+  "footerText": "ModularHome.com leads the American prefabricated housing movement with precision-engineered modular residences, luxury barndominiums, and rapid-deployment cabin kits.",
+  "footerLinks": [
+    {
+      "label": "Cabins",
+      "href": "/buildings?category=Cabins"
+    },
+    {
+      "label": "Barndominiums",
+      "href": "/buildings?category=Barndominiums"
+    },
+    {
+      "label": "Floor Plans",
+      "href": "/upload-floor-plan"
+    },
+    {
+      "label": "Video Gallery",
+      "href": "/videos"
+    },
+    {
+      "label": "Quote Wizard",
+      "href": "/quote"
+    }
+  ],
+  "defaultSeoTitle": "ModularHome.com | Modern Homes. A Smarter Way to Build.",
+  "defaultMetaDescription": "Explore modular homes, prefab homes, cabins, ADUs, barndominiums, floor plans and custom home options.",
+  "ctaLabel": "Get Your Free Quote",
+  "ctaLink": "/quote"
+}

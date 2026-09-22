@@ -3,6 +3,8 @@ import { Playfair_Display, Manrope } from "next/font/google";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import AIBuildAssistant from "@/components/AIBuildAssistant";
+import { getPublicGlobalSettings } from "@/lib/settings";
+import { getPublicPages } from "@/lib/publicData";
 import "./globals.css";
 
 const playfair = Playfair_Display({
@@ -63,26 +65,31 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const [settings, pages] = await Promise.all([
+    getPublicGlobalSettings(),
+    getPublicPages(),
+  ]);
+
   return (
     <html lang="en" className={`scroll-smooth ${playfair.variable} ${manrope.variable}`}>
       <head>
-        <link rel="icon" type="image/png" href="/favicon.png?v=4" />
+        <link rel="icon" type="image/png" href={settings.faviconUrl || "/favicon.png?v=4"} />
         <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png?v=4" />
         <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png?v=4" />
-        <link rel="shortcut icon" href="/favicon.png?v=4" />
+        <link rel="shortcut icon" href={settings.faviconUrl || "/favicon.png?v=4"} />
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=4" />
       </head>
       <body className={`min-h-screen flex flex-col bg-white text-[#101114] antialiased selection:bg-[#fcb907] selection:text-[#101114] ${manrope.className}`}>
-        <Navbar />
+        <Navbar initialSettings={settings} customPages={pages} />
         <main className="flex-1">
           {children}
         </main>
-        <Footer />
+        <Footer initialSettings={settings} customPages={pages} />
         <AIBuildAssistant />
       </body>
     </html>

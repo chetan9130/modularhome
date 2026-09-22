@@ -1,5 +1,6 @@
 import { MapPin, Phone, Mail, Clock, HelpCircle } from "lucide-react";
 import ContactForm from "@/components/ContactForm";
+import { getPublicGlobalSettings } from "@/lib/settings";
 
 export const metadata = {
   title: "Contact Our Team | ModularHome.com",
@@ -25,7 +26,13 @@ const FAQS = [
   },
 ];
 
-export default function ContactPage() {
+export default async function ContactPage() {
+  const settings = await getPublicGlobalSettings();
+
+  const phone = settings.phone || "+1 (812) 595-4033";
+  const email = settings.email || "support@modularhome.com";
+  const address = settings.address || "Factory Headquarters, IN & Nationwide Delivery";
+
   return (
     <div className="min-h-screen bg-white pt-24 pb-20 text-[#101114]">
       <div className="wrap">
@@ -56,8 +63,11 @@ export default function ContactPage() {
                 <div className="space-y-0.5">
                   <div className="text-[11px] uppercase font-bold text-[#6b7280]">Phone Numbers</div>
                   <div className="flex flex-col">
-                    <a href="tel:+18125954033" className="text-base font-black text-[#101114] hover:text-[#d97706] transition-colors">
-                      Direct / Toll-Free: +1-812-595-4033
+                    <a
+                      href={`tel:${phone.replace(/[^0-9+]/g, "")}`}
+                      className="text-base font-black text-[#101114] hover:text-[#d97706] transition-colors"
+                    >
+                      Direct: {phone}
                     </a>
                   </div>
                 </div>
@@ -70,8 +80,11 @@ export default function ContactPage() {
                 </div>
                 <div>
                   <div className="text-[11px] uppercase font-bold text-[#6b7280]">Email Support & Quotes</div>
-                  <a href="mailto:support@modularhome.com" className="text-base font-black text-[#101114] hover:text-[#d97706] transition-colors break-all">
-                    support@modularhome.com
+                  <a
+                    href={`mailto:${email}`}
+                    className="text-base font-black text-[#101114] hover:text-[#d97706] transition-colors break-all"
+                  >
+                    {email}
                   </a>
                   <div className="text-[11px] text-[#6b7280]">Prompt assistance with pricing, plans & consultations</div>
                 </div>
@@ -83,9 +96,9 @@ export default function ContactPage() {
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
-                  <div className="text-[11px] uppercase font-bold text-[#6b7280]">Nationwide Delivery</div>
-                  <div className="text-sm font-bold text-[#101114]">Direct Factory Delivery Across All 50 States</div>
-                  <div className="text-[11px] text-[#6b7280]">Regional staging & certified installation crews</div>
+                  <div className="text-[11px] uppercase font-bold text-[#6b7280]">Headquarters & Delivery</div>
+                  <div className="text-sm font-bold text-[#101114]">{address}</div>
+                  <div className="text-[11px] text-[#6b7280]">Regional staging & certified installation crews across all 50 states</div>
                 </div>
               </div>
 
