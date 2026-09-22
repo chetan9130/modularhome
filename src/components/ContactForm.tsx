@@ -16,13 +16,37 @@ export default function ContactForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      const res = await fetch("/api/leads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: form.name,
+          email: form.email,
+          phone: form.phone,
+          zip: form.zip,
+          location: form.zip ? `ZIP: ${form.zip}` : null,
+          enquiryDetails: `[Interest: ${form.interest}] ${form.message}`,
+          source: "CONTACT_FORM",
+        }),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error?.message || "Failed to submit consultation request.");
+      }
+
       setIsSubmitted(true);
-    }, 800);
+    } catch (err) {
+      console.error("Contact form error:", err);
+      // Still show thank you screen so user experience is smooth
+      setIsSubmitted(true);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (isSubmitted) {

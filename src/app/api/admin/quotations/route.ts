@@ -9,6 +9,7 @@ export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
+    const search = searchParams.get("search");
 
     if (!isSupabaseConfigured()) {
       return NextResponse.json({
@@ -24,6 +25,11 @@ export async function GET(request: NextRequest) {
 
     if (status && status !== "ALL") {
       query = query.eq("status", status);
+    }
+
+    if (search && search.trim()) {
+      const s = search.trim();
+      query = query.or(`customer_name.ilike.%${s}%,customer_email.ilike.%${s}%,model_name.ilike.%${s}%,customer_phone.ilike.%${s}%`);
     }
 
     const { data: quotations, error } = await query;
@@ -43,6 +49,9 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const authResult = await requireAdminAuth();
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await request.json();
     const {
@@ -62,7 +71,10 @@ export async function POST(request: NextRequest) {
       source,
     } = body;
 
-    if (!customerName || !customerEmail) {
+    const name = customerName || body.name || body.customer_name;
+    const email = customerEmail || body.email || body.customer_email;
+
+    if (!name || !email) {
       return NextResponse.json(
         { success: false, error: { message: "Name and email are required.", code: "VALIDATION_ERROR" } },
         { status: 400 }
@@ -70,21 +82,23 @@ export async function POST(request: NextRequest) {
     }
 
     const quoteData = {
-      customer_name: customerName,
-      customer_email: customerEmail.toLowerCase().trim(),
-      customer_phone: customerPhone || null,
-      customer_zip: customerZip || null,
-      model_slug: modelSlug || null,
-      model_name: modelName || null,
+      customer_name: name,
+      customer_email: email.toLowerCase().trim(),
+      customer_phone: customerPhone || body.phone || null,
+      customer_zip: customerZip || body.zip || null,
+      model_slug: modelSlug || body.model_slug || null,
+      model_name: modelName || body.model_name || null,
       sqft: sqft ? Number(sqft) : null,
       dimensions: dimensions || null,
       options: typeof options === "string" ? JSON.parse(options) : options || [],
       pricing_inputs: typeof pricingInputs === "string" ? JSON.parse(pricingInputs) : pricingInputs || {},
       estimated_amount: estimatedAmount ? Number(estimatedAmount) : null,
       timeline: timeline || null,
-      requirements: requirements || null,
+      requirements: requirements || body.notes || null,
       source: source || "QUOTE_WIZARD",
-      status: "PENDING",
+      status: body.status || "PENDING",
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
     if (isSupabaseConfigured()) {
@@ -105,7 +119,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: { id: "mock-quote-id", ...quoteData },
+      data: { id: `mock-${Date.now()}`, ...quoteData },
       message: "Quotation recorded successfully (offline fallback).",
     });
   } catch (error: any) {

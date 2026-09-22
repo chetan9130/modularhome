@@ -51,13 +51,37 @@ export default function FloorPlanUploader() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    setTimeout(() => {
+
+    try {
+      const parsedSqft = form.approximateSqFt
+        ? parseInt(form.approximateSqFt.replace(/\D/g, ""), 10) || null
+        : null;
+
+      await fetch("/api/quotations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName: form.name,
+          customerEmail: form.email,
+          customerPhone: form.phone,
+          customerZip: form.zip,
+          modelName: "Custom Floor Plan Blueprint",
+          sqft: parsedSqft,
+          requirements: `Target Size: ${form.approximateSqFt || "Not specified"}${
+            file ? ` | Blueprint Document: ${file.name} (${(file.size / (1024 * 1024)).toFixed(2)} MB)` : ""
+          }${form.description ? ` | Notes: ${form.description}` : ""}`,
+          source: "FLOOR_PLAN_UPLOAD",
+        }),
+      });
+    } catch (err) {
+      console.error("Floor plan submission error:", err);
+    } finally {
       setIsSubmitting(false);
       setIsSubmitted(true);
-    }, 1200);
+    }
   };
 
   return (

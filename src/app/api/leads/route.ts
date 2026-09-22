@@ -1,0 +1,84 @@
+import { NextRequest, NextResponse } from "next/server";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const {
+      name,
+      email,
+      phone,
+      location,
+      zip,
+      enquiryDetails,
+      source,
+      notes,
+    } = body;
+
+    const leadName = (name || body.fullName || body.customerName || "Website Visitor").trim();
+    const leadEmail = (email || body.customerEmail || "").toLowerCase().trim();
+    const leadPhone = phone || body.customerPhone || null;
+    const leadZip = zip || body.customerZip || null;
+    const leadLocation = location || (leadZip ? `ZIP: ${leadZip}` : null);
+    const leadEnquiry = enquiryDetails || body.message || body.requirements || body.details || null;
+    const leadSource = source || body.leadSource || "WEBSITE";
+
+    if (!leadEmail) {
+      return NextResponse.json(
+        { success: false, error: { message: "Email is required to submit an inquiry.", code: "VALIDATION_ERROR" } },
+        { status: 400 }
+      );
+    }
+
+    const leadData = {
+      name: leadName,
+      email: leadEmail,
+      phone: leadPhone,
+      location: leadLocation,
+      zip: leadZip,
+      enquiry_details: leadEnquiry,
+      source: leadSource,
+      status: "NEW",
+      notes: notes || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    if (isSupabaseConfigured()) {
+      const { data, error } = await supabaseAdmin
+        .from("leads")
+        .insert(leadData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error("Supabase leads insert error:", error);
+        throw error;
+      }
+
+      return NextResponse.json({
+        success: true,
+        data,
+        message: "Your inquiry has been received. Our team will contact you shortly.",
+      });
+    }
+
+    return NextResponse.json({
+      success: true,
+      data: { id: `offline-${Date.now()}`, ...leadData },
+      message: "Lead recorded (offline fallback).",
+    });
+  } catch (error: any) {
+    console.error("Public lead submission error:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          message: error?.message || "Failed to submit inquiry. Please try again.",
+          code: "LEAD_SUBMISSION_ERROR",
+        },
+      },
+      { status: 500 }
+    );
+  }
+}

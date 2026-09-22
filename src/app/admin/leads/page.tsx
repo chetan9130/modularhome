@@ -27,13 +27,13 @@ export default function AdminLeadsPage() {
   const [sourceFilter, setSourceFilter] = useState("ALL");
 
   const STATUSES = ["NEW", "CONTACTED", "QUALIFIED", "QUOTE_SENT", "FOLLOW_UP", "WON", "LOST"];
-  const SOURCES = ["CONTACT_FORM", "AI_CHAT", "QUOTE_WIZARD", "FLOOR_PLAN_UPLOAD", "WEBSITE"];
+  const SOURCES = ["CONTACT_FORM", "AI_CHAT", "QUOTE_WIZARD", "FLOOR_PLAN_UPLOAD", "NEWSLETTER", "WEBSITE"];
 
   const fetchLeads = async () => {
     setIsLoading(true);
     try {
       const url = new URL("/api/admin/leads", window.location.origin);
-      if (search) url.searchParams.set("search", search);
+      if (search.trim()) url.searchParams.set("search", search.trim());
       if (statusFilter !== "ALL") url.searchParams.set("status", statusFilter);
       if (sourceFilter !== "ALL") url.searchParams.set("source", sourceFilter);
 
@@ -63,7 +63,7 @@ export default function AdminLeadsPage() {
       const json = await res.json();
       if (json.success) {
         setLeads((prev) =>
-          prev.map((l) => (l.id === id ? { ...l, status: newStatus } : l))
+          prev.map((l) => ((l.id === id || l._id === id) ? { ...l, status: newStatus } : l))
         );
       }
     } catch (e) {
@@ -78,7 +78,7 @@ export default function AdminLeadsPage() {
       const res = await fetch(`/api/admin/leads/${id}`, { method: "DELETE" });
       const json = await res.json();
       if (json.success) {
-        setLeads((prev) => prev.filter((l) => l.id !== id));
+        setLeads((prev) => prev.filter((l) => l.id !== id && l._id !== id));
       } else {
         alert(json.error?.message || "Failed to delete lead.");
       }
@@ -110,19 +110,19 @@ export default function AdminLeadsPage() {
       </div>
 
       {/* Filter and Search Bar */}
-      <div className="bg-white p-4 sm:p-5 rounded-[20px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
+      <div className="bg-white p-4 sm:p-5 rounded-[20px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
         <form
           onSubmit={(e) => {
             e.preventDefault();
             fetchLeads();
           }}
-          className="relative w-full lg:w-80"
+          className="relative w-full sm:w-80"
         >
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name, email, phone, location..."
+            placeholder="Search leads by name, email, phone..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
           />
           <Search className="w-4 h-4 text-[#6b7280] absolute left-3.5 top-1/2 -translate-y-1/2" />
@@ -191,16 +191,21 @@ export default function AdminLeadsPage() {
               <tbody className="divide-y divide-[#e7e9ee]">
                 {leads.map((lead) => {
                   const leadId = lead.id || lead._id;
+                  const enquiryDetails = lead.enquiry_details || lead.enquiryDetails || lead.message || "";
+                  const createdAt = lead.created_at || lead.createdAt;
+
                   return (
                     <tr key={leadId} className="hover:bg-[#f8f9fa]/70 transition-colors">
                       <td className="py-4 px-5">
                         <div className="font-bold text-[#101114] text-sm font-sans">{lead.name}</div>
-                        <div className="text-[11px] text-[#6b7280] flex items-center gap-1.5 mt-0.5">
-                          <Mail className="w-3 h-3 text-[#6b7280]" />
-                          <a href={`mailto:${lead.email}`} className="hover:text-[#d97706] hover:underline">
-                            {lead.email}
-                          </a>
-                        </div>
+                        {lead.email && (
+                          <div className="text-[11px] text-[#6b7280] flex items-center gap-1.5 mt-0.5">
+                            <Mail className="w-3 h-3 text-[#6b7280]" />
+                            <a href={`mailto:${lead.email}`} className="hover:text-[#d97706] hover:underline">
+                              {lead.email}
+                            </a>
+                          </div>
+                        )}
                         {lead.phone && (
                           <div className="text-[11px] text-[#6b7280] flex items-center gap-1.5 mt-0.5">
                             <Phone className="w-3 h-3 text-[#6b7280]" />
@@ -211,26 +216,26 @@ export default function AdminLeadsPage() {
                         )}
                       </td>
                       <td className="py-4 px-5 text-[#101114] font-medium">
-                        {lead.location || lead.zip || "Not specified"}
+                        {lead.location || (lead.zip ? `ZIP: ${lead.zip}` : "Not specified")}
                       </td>
                       <td className="py-4 px-5 text-[#101114] max-w-xs">
-                        {lead.enquiryDetails && (
+                        {enquiryDetails && (
                           <div className="italic text-[#101114] line-clamp-2 font-serif">
-                            &ldquo;{lead.enquiryDetails}&rdquo;
+                            &ldquo;{enquiryDetails}&rdquo;
                           </div>
                         )}
                         {lead.notes && (
-                          <div className="text-[10px] text-[#6b7280] mt-1">Internal Note: {lead.notes}</div>
+                          <div className="text-[10px] text-[#6b7280] mt-1 font-mono">Note: {lead.notes}</div>
                         )}
                       </td>
                       <td className="py-4 px-5">
                         <span className="px-2.5 py-1 rounded-md bg-[#f8f9fa] border border-[#d5d9e0] text-[#101114] font-mono text-[10px] font-bold">
-                          {lead.source}
+                          {lead.source || "WEBSITE"}
                         </span>
                       </td>
                       <td className="py-4 px-5">
                         <select
-                          value={lead.status}
+                          value={lead.status || "NEW"}
                           onChange={(e) => handleStatusChange(leadId, e.target.value)}
                           className={`px-3 py-1.5 rounded-xl text-[10px] font-bold uppercase border cursor-pointer focus:outline-none focus:ring-2 focus:ring-[#fcb907] ${
                             lead.status === "NEW"
@@ -250,8 +255,8 @@ export default function AdminLeadsPage() {
                         </select>
                       </td>
                       <td className="py-4 px-5 text-[#6b7280] text-[11px] whitespace-nowrap font-medium">
-                        {lead.createdAt
-                          ? new Date(lead.createdAt).toLocaleDateString("en-US", {
+                        {createdAt
+                          ? new Date(createdAt).toLocaleDateString("en-US", {
                               month: "short",
                               day: "numeric",
                               hour: "2-digit",

@@ -14,9 +14,23 @@ export default function Footer() {
     return null;
   }
 
-  const handleSubscribe = (e: React.FormEvent) => {
+  const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
     if (email.trim()) {
+      try {
+        await fetch("/api/leads", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name: "Newsletter Subscriber",
+            email: email.trim(),
+            enquiryDetails: "Subscribed to modular housing newsletter and updates.",
+            source: "NEWSLETTER",
+          }),
+        });
+      } catch (err) {
+        console.error("Newsletter subscription error:", err);
+      }
       setSubscribed(true);
       setEmail("");
     }

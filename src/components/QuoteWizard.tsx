@@ -12,6 +12,7 @@ import {
   ShieldAlert, 
   CheckCircle2, 
   RotateCcw,
+  Loader2,
 } from "lucide-react";
 import { BUILDING_MODELS, CATEGORIES, BuildingModel } from "@/data/models";
 import { formatPrice } from "@/utils/currency";
@@ -60,6 +61,8 @@ export default function QuoteWizard() {
   });
 
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Available models filtered by chosen category
   const filteredModels = useMemo(() => {
@@ -103,24 +106,66 @@ export default function QuoteWizard() {
     if (step > 1) setStep(step - 1);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsSubmitted(true);
+    setIsSubmitting(true);
+    setSubmitError(null);
 
     try {
-      confetti({
-        particleCount: 80,
-        spread: 70,
-        origin: { y: 0.6 },
-        colors: ["#fcb907", "#d97706", "#101114", "#f6f7f9"],
+      const selectedOptionObjects = AVAILABLE_OPTIONS.filter((o) =>
+        selectedOptions.includes(o.id)
+      );
+
+      const payload = {
+        customerName: formData.name,
+        customerEmail: formData.email,
+        customerPhone: formData.phone,
+        customerZip: formData.zip,
+        modelSlug: selectedModel?.slug || "",
+        modelName: selectedModel?.name || "Custom Configuration",
+        sqft: sqft,
+        options: selectedOptionObjects,
+        pricingInputs: calculation,
+        estimatedAmount: calculation.totalEstimate,
+        timeline: formData.timeline,
+        requirements: formData.notes,
+        source: "QUOTE_WIZARD",
+      };
+
+      const res = await fetch("/api/quotations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
-    } catch {
-      // Fallback
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.error?.message || "Failed to submit quote request.");
+      }
+
+      setIsSubmitted(true);
+
+      try {
+        confetti({
+          particleCount: 80,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ["#fcb907", "#d97706", "#101114", "#f6f7f9"],
+        });
+      } catch {
+        // Fallback
+      }
+    } catch (err: any) {
+      console.error("Quote submit error:", err);
+      setSubmitError(err.message || "Failed to submit quote request. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
   const handleReset = () => {
     setIsSubmitted(false);
+    setSubmitError(null);
     setStep(1);
     setSelectedOptions(["opt-insul", "opt-porch"]);
   };
@@ -588,13 +633,29 @@ export default function QuoteWizard() {
                   />
                 </div>
 
+                {submitError && (
+                  <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-xs text-red-800 font-medium">
+                    {submitError}
+                  </div>
+                )}
+
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="btn-primary w-full py-4 text-sm font-extrabold rounded-[11px] shadow-md flex items-center justify-center gap-2 cursor-pointer"
+                    disabled={isSubmitting}
+                    className="btn-primary w-full py-4 text-sm font-extrabold rounded-[11px] shadow-md flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50"
                   >
-                    <span>Request My Official Estimate Packet</span>
-                    <ArrowRight className="w-4 h-4" />
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin text-[#101114]" />
+                        <span>Submitting Estimate Request...</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Request My Official Estimate Packet</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </>
+                    )}
                   </button>
                 </div>
               </form>

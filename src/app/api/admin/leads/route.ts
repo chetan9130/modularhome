@@ -10,6 +10,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const source = searchParams.get("source");
+    const search = searchParams.get("search");
 
     if (!isSupabaseConfigured()) {
       return NextResponse.json({
@@ -30,6 +31,11 @@ export async function GET(request: NextRequest) {
       query = query.eq("source", source);
     }
 
+    if (search && search.trim()) {
+      const s = search.trim();
+      query = query.or(`name.ilike.%${s}%,email.ilike.%${s}%,phone.ilike.%${s}%,enquiry_details.ilike.%${s}%`);
+    }
+
     const { data: leads, error } = await query;
     if (error) throw error;
 
@@ -47,11 +53,17 @@ export async function GET(request: NextRequest) {
 }
 
 export async function POST(request: NextRequest) {
+  const authResult = await requireAdminAuth();
+  if (authResult instanceof NextResponse) return authResult;
+
   try {
     const body = await request.json();
     const { name, email, phone, location, zip, enquiryDetails, source, notes } = body;
 
-    if (!name || !email) {
+    const leadName = (name || body.fullName || body.customerName || "").trim();
+    const leadEmail = (email || body.customerEmail || "").toLowerCase().trim();
+
+    if (!leadName || !leadEmail) {
       return NextResponse.json(
         { success: false, error: { message: "Name and email are required.", code: "VALIDATION_ERROR" } },
         { status: 400 }
@@ -59,15 +71,17 @@ export async function POST(request: NextRequest) {
     }
 
     const leadData = {
-      name,
-      email: email.toLowerCase().trim(),
+      name: leadName,
+      email: leadEmail,
       phone: phone || null,
-      location: location || null,
+      location: location || (zip ? `ZIP: ${zip}` : null),
       zip: zip || null,
-      enquiry_details: enquiryDetails || null,
-      source: source || "WEBSITE",
-      status: "NEW",
+      enquiry_details: enquiryDetails || body.enquiry_details || null,
+      source: source || "ADMIN_MANUAL",
+      status: body.status || "NEW",
       notes: notes || null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
     };
 
     if (isSupabaseConfigured()) {
@@ -88,7 +102,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json({
       success: true,
-      data: { id: "mock-lead-id", ...leadData },
+      data: { id: `mock-${Date.now()}`, ...leadData },
       message: "Lead inquiry registered successfully (offline fallback).",
     });
   } catch (error: any) {

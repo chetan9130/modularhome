@@ -306,34 +306,38 @@ export default function AdminDashboardPage() {
 
           <div className="space-y-3">
             {data?.recentLeads?.length > 0 ? (
-              data.recentLeads.slice(0, 4).map((lead: any) => (
-                <div
-                  key={lead._id || lead.id}
-                  className="p-4 rounded-2xl bg-[#f8f9fa] border border-[#e7e9ee] hover:border-[#d5d9e0] flex items-start justify-between gap-3 text-xs transition-colors"
-                >
-                  <div className="flex items-start gap-3 min-w-0">
-                    <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-100 to-amber-200 text-[#b45309] font-bold flex items-center justify-center shrink-0 text-xs">
-                      {lead.name ? lead.name.charAt(0).toUpperCase() : "L"}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="font-bold text-[#101114] truncate font-sans">{lead.name}</div>
-                      <div className="text-[#6b7280] text-[11px] font-medium truncate flex items-center gap-1.5 mt-0.5">
-                        <Mail className="w-3 h-3 text-[#6b7280]" />
-                        <span>{lead.email}</span>
-                        {lead.phone && <span>• {lead.phone}</span>}
+              data.recentLeads.slice(0, 4).map((lead: any) => {
+                const leadName = lead.name || "Prospect";
+                const enquiry = lead.enquiry_details || lead.enquiryDetails || "";
+                return (
+                  <div
+                    key={lead._id || lead.id}
+                    className="p-4 rounded-2xl bg-[#f8f9fa] border border-[#e7e9ee] hover:border-[#d5d9e0] flex items-start justify-between gap-3 text-xs transition-colors"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-amber-100 to-amber-200 text-[#b45309] font-bold flex items-center justify-center shrink-0 text-xs">
+                        {leadName.charAt(0).toUpperCase()}
                       </div>
-                      {lead.enquiryDetails && (
-                        <div className="text-[#101114] text-[11px] mt-1.5 line-clamp-1 italic font-serif">
-                          &ldquo;{lead.enquiryDetails}&rdquo;
+                      <div className="min-w-0">
+                        <div className="font-bold text-[#101114] truncate font-sans">{leadName}</div>
+                        <div className="text-[#6b7280] text-[11px] font-medium truncate flex items-center gap-1.5 mt-0.5">
+                          <Mail className="w-3 h-3 text-[#6b7280]" />
+                          <span>{lead.email}</span>
+                          {lead.phone && <span>• {lead.phone}</span>}
                         </div>
-                      )}
+                        {enquiry && (
+                          <div className="text-[#101114] text-[11px] mt-1.5 line-clamp-1 italic font-serif">
+                            &ldquo;{enquiry}&rdquo;
+                          </div>
+                        )}
+                      </div>
                     </div>
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0 font-mono">
+                      {lead.status || "NEW"}
+                    </span>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-emerald-50 text-emerald-800 border border-emerald-200 shrink-0 font-mono">
-                    {lead.status}
-                  </span>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-xs text-[#6b7280] text-center py-8 font-medium">No leads recorded yet.</div>
             )}
@@ -360,27 +364,34 @@ export default function AdminDashboardPage() {
 
           <div className="space-y-3">
             {data?.recentQuotations?.length > 0 ? (
-              data.recentQuotations.slice(0, 4).map((quote: any) => (
-                <div
-                  key={quote._id || quote.id}
-                  className="p-4 rounded-2xl bg-[#f8f9fa] border border-[#e7e9ee] hover:border-[#d5d9e0] flex items-start justify-between gap-3 text-xs transition-colors"
-                >
-                  <div className="min-w-0">
-                    <div className="font-bold text-[#101114] truncate font-sans">{quote.customerName}</div>
-                    <div className="text-[#6b7280] text-[11px] font-medium truncate mt-0.5">
-                      {quote.modelName || "Custom Configuration"} • {quote.sqft ? `${quote.sqft} sq ft` : "Standard Model"}
-                    </div>
-                    {quote.estimatedAmount && (
-                      <div className="text-[#b45309] font-bold text-xs mt-1.5 font-mono">
-                        Est: ${quote.estimatedAmount.toLocaleString()}
+              data.recentQuotations.slice(0, 4).map((quote: any) => {
+                const customerName = quote.customer_name || quote.customerName || "Customer Quote";
+                const modelName = quote.model_name || quote.modelName || "Custom Configuration";
+                const estAmount = quote.estimated_amount ?? quote.estimatedAmount;
+                const sqft = quote.sqft || null;
+
+                return (
+                  <div
+                    key={quote._id || quote.id}
+                    className="p-4 rounded-2xl bg-[#f8f9fa] border border-[#e7e9ee] hover:border-[#d5d9e0] flex items-start justify-between gap-3 text-xs transition-colors"
+                  >
+                    <div className="min-w-0">
+                      <div className="font-bold text-[#101114] truncate font-sans">{customerName}</div>
+                      <div className="text-[#6b7280] text-[11px] font-medium truncate mt-0.5">
+                        {modelName} • {sqft ? `${Number(sqft).toLocaleString()} sq ft` : "Standard Model"}
                       </div>
-                    )}
+                      {estAmount && (
+                        <div className="text-[#b45309] font-bold text-xs mt-1.5 font-mono">
+                          Est: ${Number(estAmount).toLocaleString()}
+                        </div>
+                      )}
+                    </div>
+                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200 shrink-0 font-mono">
+                      {quote.status || "PENDING"}
+                    </span>
                   </div>
-                  <span className="px-2.5 py-1 rounded-full text-[10px] font-bold uppercase bg-amber-50 text-amber-800 border border-amber-200 shrink-0 font-mono">
-                    {quote.status}
-                  </span>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="text-xs text-[#6b7280] text-center py-8 font-medium">No quote requests recorded yet.</div>
             )}

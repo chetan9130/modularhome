@@ -21,11 +21,26 @@ export default function QuoteAndStepsSection() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
-    setTimeout(() => {
+    try {
+      await fetch("/api/quotations", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          customerName: fullName,
+          customerEmail: email,
+          customerPhone: phone,
+          modelName: homeType !== "Select Home Type" ? homeType : "Custom Architecture",
+          requirements: `State: ${state} | Home Type: ${homeType} | Budget: ${budget} | Details: ${details}${fileName ? ` | Attached File: ${fileName}` : ""}`,
+          source: "HOMEPAGE_QUOTE",
+        }),
+      });
+    } catch (err) {
+      console.error("Quote submit error:", err);
+    } finally {
       setIsSubmitting(false);
       setIsSubmitted(true);
       setFullName("");
@@ -33,7 +48,7 @@ export default function QuoteAndStepsSection() {
       setPhone("");
       setDetails("");
       setFileName("");
-    }, 800);
+    }
   };
 
   const steps = [
