@@ -2,6 +2,8 @@ import { supabaseAdmin, isSupabaseConfigured } from "./supabase";
 import { INITIAL_FLOOR_PLANS, FloorPlan } from "@/data/floorPlans";
 import { BUILDING_MODELS, BuildingModel } from "@/data/models";
 import { RESOURCE_ARTICLES } from "@/data/resources";
+import { getCustomPageBySlug, readPagesFromStore } from "./pageStore";
+import { getPublicGlobalSettings } from "./settings";
 
 /**
  * Normalizes Supabase floor plan row to FloorPlan interface
@@ -309,18 +311,30 @@ export async function getPublicBlogs(params?: { category?: string; search?: stri
       return RESOURCE_ARTICLES;
     }
 
-    const mapped = blogs.map((b: any) => ({
-      id: b.id,
-      title: b.title,
-      slug: b.slug,
-      excerpt: b.excerpt || b.meta_description || "",
-      content: Array.isArray(b.content) ? b.content : (typeof b.content === "string" ? [b.content] : []),
-      category: b.category || "Building Guides",
-      readTime: b.read_time || "5 min read",
-      date: b.published_at ? new Date(b.published_at).toLocaleDateString() : "Recent",
-      image: b.featured_image || "/finallogo.avif",
-      author: b.author_name || "ModularHome Engineering Team",
-    }));
+    const mapped = blogs.map((b: any) => {
+      let formattedDate = "Recent";
+      if (b.published_at) {
+        try {
+          const d = new Date(b.published_at);
+          if (!isNaN(d.getTime())) {
+            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+            formattedDate = `${months[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+          }
+        } catch {}
+      }
+      return {
+        id: b.id,
+        title: b.title,
+        slug: b.slug,
+        excerpt: b.excerpt || b.meta_description || "",
+        content: Array.isArray(b.content) ? b.content : (typeof b.content === "string" ? [b.content] : []),
+        category: b.category || "Building Guides",
+        readTime: b.read_time || "5 min read",
+        date: formattedDate,
+        image: b.featured_image || "/finallogo.avif",
+        author: b.author_name || "ModularHome Engineering Team",
+      };
+    });
 
     return mapped;
   } catch (e) {
@@ -333,19 +347,289 @@ export async function getPublicBlogs(params?: { category?: string; search?: stri
  */
 export async function getPublicSettings() {
   try {
-    if (!isSupabaseConfigured()) {
-      return null;
-    }
-
-    const { data: settings, error } = await supabaseAdmin
-      .from("global_settings")
-      .select("*")
-      .eq("key", "default")
-      .single();
-
-    if (error || !settings) return null;
-    return settings;
+    return await getPublicGlobalSettings();
   } catch (e) {
     return null;
+  }
+}
+
+export interface PageSection {
+  id: string;
+  pageId?: string;
+  type: string;
+  title?: string;
+  subtitle?: string;
+  content?: string;
+  displayOrder?: number;
+  isVisible?: boolean;
+}
+
+export interface CmsPage {
+  id: string;
+  title: string;
+  slug: string;
+  subtitle?: string;
+  content?: string;
+  status: string;
+  featuredImage?: string;
+  seoTitle?: string;
+  metaDescription?: string;
+  canonicalUrl?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  sections?: PageSection[];
+}
+
+const FALLBACK_PAGES: CmsPage[] = [
+  {
+    id: "page-warranty",
+    title: "Warranty & Engineering Certifications",
+    slug: "warranty-certifications",
+    subtitle: "Comprehensive 50-Year Structural Steel & 10-Year Weatherproofing Guarantee",
+    content: `<h2>50-Year Structural Warranty</h2>
+<p>Every ModularHome structure is built with precision cold-formed galvanized steel trusses and framing members engineered to withstand hurricane winds (up to 150 MPH) and extreme snow loads (up to 50 PSF). Our structural frames are guaranteed against rust-through, rot, warping, and seismic failure for 50 full years.</p>
+
+<h3>What Is Covered</h3>
+<ul>
+  <li><strong>Structural Steel Frame:</strong> 50-year non-prorated structural integrity warranty.</li>
+  <li><strong>Roofing & Thermal Envelope:</strong> 25-year manufacturer standing seam roof & weather barrier warranty.</li>
+  <li><strong>Plumbing & Electrical:</strong> 10-year comprehensive factory installed systems warranty.</li>
+  <li><strong>Interior Fixtures & Appliances:</strong> Full manufacturer warranties passed directly to the homeowner.</li>
+</ul>
+
+<h3>IBC & State Modular Certifications</h3>
+<p>All plans and builds carry stamped state engineering approvals and comply with all applicable International Building Codes (IBC) and International Residential Codes (IRC).</p>`,
+    status: "PUBLISHED",
+    featuredImage: "https://images.unsplash.com/photo-1541888946425-d0fbb18f15f6?auto=format&fit=crop&w=1600&q=80",
+    seoTitle: "Warranty & Engineering Certifications | ModularHome.com",
+    metaDescription: "Learn about ModularHome.com's 50-year structural warranty, IBC engineering certifications, and quality standards.",
+    sections: [
+      {
+        id: "sec-trust-1",
+        type: "TRUST",
+        title: "Built For Generations",
+        displayOrder: 1,
+        isVisible: true,
+      },
+      {
+        id: "sec-how-1",
+        type: "HOW_IT_WORKS",
+        title: "Our Precision Build Quality",
+        displayOrder: 2,
+        isVisible: true,
+      },
+      {
+        id: "sec-cta-1",
+        type: "CTA",
+        title: "Ready to Build Your Certified Modular Home?",
+        subtitle: "Speak with an architectural housing advisor today or get an instant engineering estimate.",
+        displayOrder: 3,
+        isVisible: true,
+      }
+    ]
+  },
+  {
+    id: "page-privacy",
+    title: "Privacy Policy",
+    slug: "privacy-policy",
+    subtitle: "How ModularHome.com collects, uses, and protects your information",
+    content: `<h2>Your Privacy Matters</h2>
+<p>At ModularHome.com, we respect your privacy and are committed to protecting your personal data. This privacy policy describes how we handle information collected on our website, quotation wizards, and consultation forms.</p>
+
+<h3>Information We Collect</h3>
+<p>We may collect personal details such as your name, email address, phone number, delivery ZIP code, and floor plan preferences when you request a custom price quote, upload blueprints, or contact our team.</p>
+
+<h3>How We Use Your Information</h3>
+<ul>
+  <li>To generate accurate regional housing quotations and delivery estimates.</li>
+  <li>To connect you with certified builders and logistics partners in your area.</li>
+  <li>To provide customer support and project updates.</li>
+</ul>
+
+<p>We do not sell your personal information to third-party marketing companies.</p>`,
+    status: "PUBLISHED",
+    seoTitle: "Privacy Policy | ModularHome.com",
+    metaDescription: "Read the ModularHome.com privacy policy to understand how we protect your personal and project information.",
+  },
+  {
+    id: "page-terms",
+    title: "Terms of Service",
+    slug: "terms-of-service",
+    subtitle: "Terms and conditions governing the use of ModularHome.com services and marketplace",
+    content: `<h2>Terms of Use</h2>
+<p>By accessing or using ModularHome.com, you agree to comply with and be bound by these terms of service.</p>
+
+<h3>Modular Home Quotes & Estimates</h3>
+<p>All pricing estimates provided by our online calculators and quotation tools are preliminary approximations based on standard site conditions. Final binding contracts are subject to local site inspection, foundation engineering, and local municipal zoning requirements.</p>
+
+<h3>Architectural Plans & CAD Licensing</h3>
+<p>Purchased floor plans and blueprints are licensed for single-structure construction unless a multi-use developer license is explicitly issued.</p>`,
+    status: "PUBLISHED",
+    seoTitle: "Terms of Service | ModularHome.com",
+    metaDescription: "Terms of service and customer agreements for ModularHome.com.",
+  }
+];
+
+/**
+ * Normalizes a DB row to CmsPage interface
+ */
+export function formatCmsPage(p: any, sections: any[] = []): CmsPage {
+  const formattedSections: PageSection[] = sections.map((s) => ({
+    id: s.id,
+    pageId: s.page_id,
+    type: (s.type || "RICH_CONTENT").toUpperCase(),
+    title: s.title || "",
+    subtitle: s.subtitle || "",
+    content: s.content || "",
+    displayOrder: Number(s.display_order) || 0,
+    isVisible: s.is_visible !== false,
+  }));
+
+  return {
+    id: p.id,
+    title: p.title || "Custom Page",
+    slug: p.slug || p.id,
+    subtitle: p.subtitle || "",
+    content: p.content || "",
+    status: p.status || "PUBLISHED",
+    featuredImage: p.featured_image || p.featuredImage || "",
+    seoTitle: p.seo_title || p.seoTitle || `${p.title} | ModularHome.com`,
+    metaDescription: p.meta_description || p.metaDescription || p.subtitle || "",
+    canonicalUrl: p.canonical_url || p.canonicalUrl || "",
+    createdAt: p.created_at || p.createdAt,
+    updatedAt: p.updated_at || p.updatedAt,
+    sections: formattedSections,
+  };
+}
+
+/**
+ * Fetches a single published page by slug (or ID) and its associated visible sections
+ */
+export async function getPublicPageBySlug(slugParam: string): Promise<CmsPage | null> {
+  if (!slugParam) return null;
+  const cleanSlug = decodeURIComponent(slugParam).toLowerCase().trim().replace(/^\/+|\/+$/g, "");
+  const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanSlug);
+
+  try {
+    if (isSupabaseConfigured()) {
+      // 1. Fetch page from Supabase with flexible slug matching (and safe UUID checking)
+      const orFilter = isUuid
+        ? `slug.eq.${cleanSlug},slug.eq./${cleanSlug},slug.eq.pages/${cleanSlug},slug.eq./pages/${cleanSlug},id.eq.${cleanSlug}`
+        : `slug.eq.${cleanSlug},slug.eq./${cleanSlug},slug.eq.pages/${cleanSlug},slug.eq./pages/${cleanSlug}`;
+
+      const { data: pages, error: pageError } = await supabaseAdmin
+        .from("pages")
+        .select("*")
+        .or(orFilter);
+
+      if (!pageError && pages && pages.length > 0) {
+        // Find published or active page (fallback to first if single)
+        const page = pages.find((p) => {
+          const st = String(p.status || "").toUpperCase();
+          return st === "PUBLISHED" || st === "ACTIVE" || !st;
+        }) || pages[0];
+
+        // 2. Fetch page sections from Supabase if page.id is UUID
+        let dbSections: any[] = [];
+        if (page.id && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(page.id)) {
+          const { data } = await supabaseAdmin
+            .from("page_sections")
+            .select("*")
+            .eq("page_id", page.id)
+            .eq("is_visible", true)
+            .order("display_order", { ascending: true })
+            .order("created_at", { ascending: true });
+          if (data) dbSections = data;
+        }
+
+        // Also fetch any local sections for this slug/id
+        const localSecs = getCustomPageBySlug(cleanSlug)?.sections || getCustomPageBySlug(page.slug)?.sections || [];
+        const formatted = formatCmsPage(page, dbSections);
+        
+        // Merge with local sections if any
+        if (localSecs.length > 0) {
+          const existingIds = new Set((formatted.sections || []).map((s) => s.id));
+          for (const ls of localSecs) {
+            if (!existingIds.has(ls.id) && ls.isVisible !== false) {
+              formatted.sections = formatted.sections || [];
+              formatted.sections.push(ls);
+              existingIds.add(ls.id);
+            }
+          }
+          formatted.sections?.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+        }
+
+        return formatted;
+      }
+    }
+
+    // 3. Check persistent custom pages store
+    const storedPage = getCustomPageBySlug(cleanSlug);
+    if (storedPage) return storedPage;
+
+    // 4. Fallback to static mock pages if DB unavailable or page matches mock
+    const fallback = FALLBACK_PAGES.find(
+      (p) =>
+        p.slug.toLowerCase() === cleanSlug ||
+        p.id === cleanSlug ||
+        p.slug.replace(/[^a-z0-9]/g, "") === cleanSlug.replace(/[^a-z0-9]/g, "")
+    );
+
+    return fallback || null;
+  } catch (error) {
+    console.error("Error fetching public page by slug:", error);
+    const storedPage = getCustomPageBySlug(cleanSlug);
+    if (storedPage) return storedPage;
+
+    const fallback = FALLBACK_PAGES.find(
+      (p) => p.slug.toLowerCase() === cleanSlug || p.id === cleanSlug
+    );
+    return fallback || null;
+  }
+}
+
+/**
+ * Fetches all published CMS pages for site navigation, sitemap, and directory listings
+ */
+export async function getPublicPages(): Promise<CmsPage[]> {
+  try {
+    const localPages = readPagesFromStore();
+
+    if (!isSupabaseConfigured()) {
+      return localPages.length > 0 ? localPages : FALLBACK_PAGES;
+    }
+
+    const { data: dbPages, error } = await supabaseAdmin
+      .from("pages")
+      .select("*")
+      .eq("status", "PUBLISHED")
+      .order("created_at", { ascending: false });
+
+    const formattedDb = (!error && dbPages && dbPages.length > 0)
+      ? dbPages.map((p) => formatCmsPage(p))
+      : [];
+
+    // Merge DB pages with local pages and fallbacks
+    const existingSlugs = new Set(formattedDb.map((p) => p.slug));
+    const merged = [...formattedDb];
+
+    for (const lp of localPages) {
+      if (!existingSlugs.has(lp.slug)) {
+        merged.push(lp);
+        existingSlugs.add(lp.slug);
+      }
+    }
+
+    for (const f of FALLBACK_PAGES) {
+      if (!existingSlugs.has(f.slug)) {
+        merged.push(f);
+      }
+    }
+
+    return merged;
+  } catch (error) {
+    console.error("Error fetching public pages:", error);
+    const localPages = readPagesFromStore();
+    return localPages.length > 0 ? localPages : FALLBACK_PAGES;
   }
 }

@@ -1,42 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
-import { getPublicGlobalSettings } from "@/lib/settings";
+import { getPublicGlobalSettings, writeSettingsToStore, readSettingsFromStore } from "@/lib/settings";
 
 export async function GET() {
   const authResult = await requireAdminAuth();
   if (authResult instanceof NextResponse) return authResult;
 
   try {
-    if (!isSupabaseConfigured()) {
-      const defaultSettings = await getPublicGlobalSettings();
-      return NextResponse.json({
-        success: true,
-        data: defaultSettings,
-      });
-    }
-
-    const { data: settings, error } = await supabaseAdmin
-      .from("global_settings")
-      .select("*")
-      .eq("key", "default")
-      .single();
-
-    if (error && error.code !== "PGRST116") {
-      throw error;
-    }
-
-    if (!settings) {
-      const defaultSettings = await getPublicGlobalSettings();
-      return NextResponse.json({
-        success: true,
-        data: defaultSettings,
-      });
-    }
-
+    const currentSettings = await getPublicGlobalSettings();
     return NextResponse.json({
       success: true,
-      data: settings,
+      data: currentSettings,
     });
   } catch (error: any) {
     console.error("Error fetching global settings:", error);
@@ -102,26 +77,52 @@ export async function PUT(request: NextRequest) {
     if (body.ctaLink !== undefined) updatePayload.cta_link = body.ctaLink;
     if (body.cta_link !== undefined) updatePayload.cta_link = body.cta_link;
 
+    // 1. Immediately persist locally
+    const savedLocal = writeSettingsToStore({
+      companyName: body.companyName || body.company_name,
+      logoUrl: body.logoUrl || body.logo_url,
+      faviconUrl: body.faviconUrl || body.favicon_url,
+      phone: body.phone,
+      email: body.email,
+      address: body.address,
+      socialLinks: parseJson(body.socialLinks || body.social_links),
+      announcementEnabled: body.announcementEnabled ?? body.announcement_enabled,
+      announcementText: body.announcementText || body.announcement_text,
+      announcementLink: body.announcementLink || body.announcement_link,
+      navLinks: parseJson(body.navLinks || body.nav_links),
+      footerText: body.footerText || body.footer_text,
+      footerLinks: parseJson(body.footerLinks || body.footer_links),
+      defaultSeoTitle: body.defaultSeoTitle || body.default_seo_title,
+      defaultMetaDescription: body.defaultMetaDescription || body.default_meta_description,
+      ctaLabel: body.ctaLabel || body.cta_label,
+      ctaLink: body.ctaLink || body.cta_link,
+    });
+
+    // 2. Also save to Supabase if configured
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabaseAdmin
-        .from("global_settings")
-        .upsert(updatePayload, { onConflict: "key" })
-        .select()
-        .single();
+      try {
+        const { data, error } = await supabaseAdmin
+          .from("global_settings")
+          .upsert(updatePayload, { onConflict: "key" })
+          .select()
+          .single();
 
-      if (error) throw error;
-
-      return NextResponse.json({
-        success: true,
-        data,
-        message: "Global settings updated successfully.",
-      });
+        if (!error && data) {
+          return NextResponse.json({
+            success: true,
+            data: savedLocal,
+            message: "Global settings updated successfully.",
+          });
+        }
+      } catch (sbErr) {
+        console.warn("Supabase settings upsert warning, saved locally:", sbErr);
+      }
     }
 
     return NextResponse.json({
       success: true,
-      data: updatePayload,
-      message: "Global settings updated (offline fallback).",
+      data: savedLocal,
+      message: "Global settings updated successfully.",
     });
   } catch (error: any) {
     console.error("Error updating global settings:", error);

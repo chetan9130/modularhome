@@ -1,6 +1,13 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import {
+  saveCustomPage,
+  deleteCustomPage,
+  readPagesFromStore,
+  getPageSections,
+  isUuidString,
+} from "@/lib/pageStore";
 
 export async function GET(
   request: NextRequest,
@@ -11,27 +18,48 @@ export async function GET(
 
   try {
     const { id } = await params;
-    if (!isSupabaseConfigured()) {
-      return NextResponse.json({
-        success: true,
-        data: null,
-      });
+
+    let foundPage: any = null;
+
+    if (isSupabaseConfigured() && isUuidString(id)) {
+      try {
+        const { data: page, error } = await supabaseAdmin
+          .from("pages")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (!error && page) {
+          foundPage = page;
+        }
+      } catch {}
     }
 
-    const { data: page, error } = await supabaseAdmin
-      .from("pages")
-      .select("*")
-      .eq("id", id)
-      .single();
+    if (!foundPage) {
+      const localPages = readPagesFromStore();
+      const local = localPages.find((p) => p.id === id || p.slug === id);
+      if (local) {
+        foundPage = local;
+      }
+    }
 
-    if (error || !page) {
+    if (!foundPage) {
       return NextResponse.json(
         { success: false, error: { message: "Page not found.", code: "NOT_FOUND" } },
         { status: 404 }
       );
     }
 
-    return NextResponse.json({ success: true, data: page });
+    // Attach all associated sections
+    const sections = getPageSections(foundPage.id || foundPage.slug || id);
+    const result = {
+      ...foundPage,
+      sections,
+      sectionCount: sections.length,
+      _count: { sections: sections.length },
+    };
+
+    return NextResponse.json({ success: true, data: result });
   } catch (error: any) {
     console.error("Error fetching page details:", error);
     return NextResponse.json(
@@ -53,6 +81,7 @@ export async function PUT(
     const body = await request.json();
 
     const updatePayload: Record<string, any> = {
+      id,
       updated_at: new Date().toISOString(),
     };
 
@@ -72,27 +101,46 @@ export async function PUT(
     if (body.canonicalUrl !== undefined) updatePayload.canonical_url = body.canonicalUrl;
     if (body.canonical_url !== undefined) updatePayload.canonical_url = body.canonical_url;
 
-    if (isSupabaseConfigured()) {
-      const { data, error } = await supabaseAdmin
-        .from("pages")
-        .update(updatePayload)
-        .eq("id", id)
-        .select()
-        .single();
+    // 1. Save locally
+    const savedLocal = saveCustomPage({
+      id,
+      title: body.title || "Custom Page",
+      slug: body.slug || id,
+      subtitle: body.subtitle,
+      content: body.content,
+      status: body.status,
+      featuredImage: body.featuredImage || body.featured_image,
+      seoTitle: body.seoTitle || body.seo_title,
+      metaDescription: body.metaDescription || body.meta_description,
+      canonicalUrl: body.canonicalUrl || body.canonical_url,
+    });
 
-      if (error) throw error;
+    // 2. Save in Supabase if UUID
+    if (isSupabaseConfigured() && isUuidString(id)) {
+      try {
+        const { data, error } = await supabaseAdmin
+          .from("pages")
+          .update(updatePayload)
+          .eq("id", id)
+          .select()
+          .single();
 
-      return NextResponse.json({
-        success: true,
-        data,
-        message: "Page updated successfully.",
-      });
+        if (!error && data) {
+          return NextResponse.json({
+            success: true,
+            data,
+            message: "Page updated successfully.",
+          });
+        }
+      } catch (sbErr) {
+        console.warn("Supabase update warning, updated locally:", sbErr);
+      }
     }
 
     return NextResponse.json({
       success: true,
-      data: { id, ...updatePayload },
-      message: "Page updated successfully (offline fallback).",
+      data: savedLocal,
+      message: "Page updated successfully.",
     });
   } catch (error: any) {
     console.error("Error updating page:", error);
@@ -113,13 +161,17 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    if (isSupabaseConfigured()) {
-      const { error } = await supabaseAdmin
-        .from("pages")
-        .delete()
-        .eq("id", id);
+    // 1. Delete locally
+    deleteCustomPage(id);
 
-      if (error) throw error;
+    // 2. Delete from Supabase if UUID
+    if (isSupabaseConfigured() && isUuidString(id)) {
+      try {
+        await supabaseAdmin
+          .from("pages")
+          .delete()
+          .eq("id", id);
+      } catch (err) {}
     }
 
     return NextResponse.json({

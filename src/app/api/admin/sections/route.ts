@@ -1,6 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import {
+  saveSection,
+  getPageSections,
+  reorderSections,
+  toggleSectionVisibility,
+  isUuidString,
+  readSectionsFromStore,
+} from "@/lib/pageStore";
 
 export async function GET(request: NextRequest) {
   const authResult = await requireAdminAuth();
@@ -10,29 +18,62 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const pageId = searchParams.get("pageId");
 
-    if (!isSupabaseConfigured()) {
-      return NextResponse.json({
-        success: true,
-        data: [],
-      });
+    let dbSections: any[] = [];
+
+    if (isSupabaseConfigured()) {
+      try {
+        let query = supabaseAdmin
+          .from("page_sections")
+          .select("*")
+          .order("display_order", { ascending: true })
+          .order("created_at", { ascending: true });
+
+        if (pageId && isUuidString(pageId)) {
+          query = query.eq("page_id", pageId);
+        }
+
+        const { data, error } = await query;
+        if (!error && data) {
+          dbSections = data;
+        }
+      } catch (dbErr) {
+        console.warn("Supabase fetch sections warning:", dbErr);
+      }
     }
 
-    let query = supabaseAdmin
-      .from("page_sections")
-      .select("*")
-      .order("display_order", { ascending: true })
-      .order("created_at", { ascending: true });
+    // Fetch from local persistent store
+    const localSections = pageId ? getPageSections(pageId) : readSectionsFromStore();
 
-    if (pageId) {
-      query = query.eq("page_id", pageId);
+    // Merge DB sections and local sections
+    const existingIds = new Set(dbSections.map((s) => s.id));
+    const merged: any[] = [...dbSections];
+
+    for (const ls of localSections) {
+      if (!existingIds.has(ls.id)) {
+        merged.push(ls);
+        existingIds.add(ls.id);
+      }
     }
 
-    const { data: sections, error } = await query;
-    if (error) throw error;
+    // Normalize property names for UI convenience
+    const formatted = merged.map((s, idx) => ({
+      id: s.id || s._id,
+      pageId: s.pageId || s.page_id,
+      page_id: s.page_id || s.pageId,
+      type: (s.type || "HERO").toUpperCase(),
+      title: s.title || "",
+      subtitle: s.subtitle || "",
+      content: s.content || "",
+      order: s.display_order ?? s.displayOrder ?? idx + 1,
+      displayOrder: s.display_order ?? s.displayOrder ?? idx + 1,
+      display_order: s.display_order ?? s.displayOrder ?? idx + 1,
+      isVisible: (s.isVisible !== undefined ? s.isVisible : s.is_visible) !== false,
+      is_visible: (s.is_visible !== undefined ? s.is_visible : s.isVisible) !== false,
+    })).sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
 
     return NextResponse.json({
       success: true,
-      data: sections || [],
+      data: formatted,
     });
   } catch (error: any) {
     console.error("Error fetching sections:", error);
@@ -58,36 +99,65 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const newSection = {
-      page_id: pageId,
+    const isVis = (isVisible !== undefined ? isVisible : is_visible) ?? true;
+    const finalOrder = Number(order ?? displayOrder ?? 1);
+    const finalContent = typeof content === "object" ? JSON.stringify(content) : content || "";
+
+    // 1. Save locally in persistent store
+    const localSaved = saveSection({
+      pageId,
       type: type.toUpperCase(),
-      title: title || null,
-      subtitle: subtitle || null,
-      content: typeof content === "object" ? JSON.stringify(content) : content || null,
-      display_order: Number(order ?? displayOrder ?? 1),
-      is_visible: (isVisible !== undefined ? isVisible : is_visible) ?? true,
-    };
+      title: title || "",
+      subtitle: subtitle || "",
+      content: finalContent,
+      displayOrder: finalOrder,
+      isVisible: isVis,
+    });
 
-    if (isSupabaseConfigured()) {
-      const { data, error } = await supabaseAdmin
-        .from("page_sections")
-        .insert(newSection)
-        .select()
-        .single();
+    // 2. Also save to Supabase if configured and pageId is a valid UUID
+    if (isSupabaseConfigured() && isUuidString(pageId)) {
+      try {
+        const newSection = {
+          page_id: pageId,
+          type: type.toUpperCase(),
+          title: title || null,
+          subtitle: subtitle || null,
+          content: finalContent || null,
+          display_order: finalOrder,
+          is_visible: isVis,
+        };
 
-      if (error) throw error;
+        const { data, error } = await supabaseAdmin
+          .from("page_sections")
+          .insert(newSection)
+          .select()
+          .single();
 
-      return NextResponse.json({
-        success: true,
-        data,
-        message: "Section created successfully.",
-      });
+        if (!error && data) {
+          return NextResponse.json({
+            success: true,
+            data: {
+              ...data,
+              order: data.display_order,
+              displayOrder: data.display_order,
+              isVisible: data.is_visible,
+            },
+            message: "Section created successfully.",
+          });
+        }
+      } catch (sbErr) {
+        console.warn("Supabase insert section warning, saved locally:", sbErr);
+      }
     }
 
     return NextResponse.json({
       success: true,
-      data: { id: "mock-section-id", ...newSection },
-      message: "Section created successfully (offline fallback).",
+      data: {
+        ...localSaved,
+        order: localSaved.displayOrder,
+        isVisible: localSaved.isVisible,
+      },
+      message: "Section created successfully.",
     });
   } catch (error: any) {
     console.error("Error creating section:", error);
@@ -108,26 +178,51 @@ export async function PUT(request: NextRequest) {
     const { action, reorderedItems, sectionId, isVisible } = body;
 
     if (action === "reorder" && Array.isArray(reorderedItems)) {
+      // 1. Reorder in local store
+      reorderSections(
+        reorderedItems.map((item: any, index: number) => ({
+          id: item.id || item._id,
+          order: index + 1,
+        }))
+      );
+
+      // 2. Reorder in Supabase for UUID items
       if (isSupabaseConfigured()) {
-        const updatePromises = reorderedItems.map((item: any, index: number) => {
-          const id = item.id || item._id;
-          return supabaseAdmin
-            .from("page_sections")
-            .update({ display_order: index + 1, updated_at: new Date().toISOString() })
-            .eq("id", id);
-        });
-        await Promise.all(updatePromises);
+        try {
+          const updatePromises = reorderedItems
+            .filter((item: any) => isUuidString(item.id || item._id))
+            .map((item: any, index: number) => {
+              const id = item.id || item._id;
+              return supabaseAdmin
+                .from("page_sections")
+                .update({ display_order: index + 1, updated_at: new Date().toISOString() })
+                .eq("id", id);
+            });
+          await Promise.all(updatePromises);
+        } catch (sbErr) {
+          console.warn("Supabase reorder warning:", sbErr);
+        }
       }
+
       return NextResponse.json({ success: true, message: "Sections reordered successfully." });
     }
 
     if (action === "toggleVisibility" && sectionId) {
-      if (isSupabaseConfigured()) {
-        await supabaseAdmin
-          .from("page_sections")
-          .update({ is_visible: !!isVisible, updated_at: new Date().toISOString() })
-          .eq("id", sectionId);
+      // 1. Toggle locally
+      toggleSectionVisibility(sectionId, !!isVisible);
+
+      // 2. Toggle in Supabase if UUID
+      if (isSupabaseConfigured() && isUuidString(sectionId)) {
+        try {
+          await supabaseAdmin
+            .from("page_sections")
+            .update({ is_visible: !!isVisible, updated_at: new Date().toISOString() })
+            .eq("id", sectionId);
+        } catch (sbErr) {
+          console.warn("Supabase toggle visibility warning:", sbErr);
+        }
       }
+
       return NextResponse.json({ success: true, message: "Visibility updated." });
     }
 

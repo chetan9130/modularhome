@@ -33,6 +33,7 @@ export default function AdminPagesPage() {
     metaDescription: "",
   });
   const [createError, setCreateError] = useState("");
+  const [lastCreatedPage, setLastCreatedPage] = useState<{ title: string; slug: string } | null>(null);
 
   const fetchPages = async () => {
     setIsLoading(true);
@@ -76,6 +77,9 @@ export default function AdminPagesPage() {
       const json = await res.json();
 
       if (json.success) {
+        const createdSlug = json.data?.slug || createForm.slug;
+        const createdTitle = json.data?.title || createForm.title;
+        setLastCreatedPage({ title: createdTitle, slug: createdSlug });
         setCreateModalOpen(false);
         setCreateForm({
           title: "",
@@ -136,6 +140,35 @@ export default function AdminPagesPage() {
         </button>
       </div>
 
+      {/* Success alert on recently created page */}
+      {lastCreatedPage && (
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs shadow-xs animate-in slide-in-from-top-2">
+          <div className="flex items-center gap-2.5">
+            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
+            <span>
+              <strong>Page Created Successfully!</strong> &ldquo;{lastCreatedPage.title}&rdquo; is now live on your site.
+            </span>
+          </div>
+          <div className="flex items-center gap-2 shrink-0">
+            <a
+              href={`/${lastCreatedPage.slug === "home" ? "" : lastCreatedPage.slug}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold transition-all shadow-xs"
+            >
+              <span>View Live Page</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </a>
+            <button
+              onClick={() => setLastCreatedPage(null)}
+              className="p-1 text-emerald-700 hover:text-emerald-950 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
       {/* Filter and Search Bar */}
       <div className="bg-white p-4 sm:p-5 rounded-[20px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4">
         <form onSubmit={handleSearchSubmit} className="relative w-full sm:w-80">
@@ -191,6 +224,7 @@ export default function AdminPagesPage() {
               <tbody className="divide-y divide-[#e7e9ee]">
                 {pages.map((page) => {
                   const pageId = page._id || page.id;
+                  const livePath = `/${page.slug === "home" ? "" : page.slug}`;
                   return (
                     <tr key={pageId} className="hover:bg-[#f8f9fa]/70 transition-colors">
                       <td className="py-4 px-5 font-bold text-[#101114]">
@@ -201,8 +235,17 @@ export default function AdminPagesPage() {
                           </span>
                         )}
                       </td>
-                      <td className="py-4 px-5 font-mono text-[#6b7280] text-[11px]">
-                        /{page.slug === "home" ? "" : page.slug}
+                      <td className="py-4 px-5 font-mono text-[11px]">
+                        <a
+                          href={livePath}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="text-[#6b7280] hover:text-[#d97706] hover:underline inline-flex items-center gap-1 font-bold group"
+                          title="Open live page in new tab"
+                        >
+                          <span>{livePath}</span>
+                          <ExternalLink className="w-3 h-3 text-[#9ca3af] group-hover:text-[#d97706]" />
+                        </a>
                       </td>
                       <td className="py-4 px-5">
                         <Link
@@ -210,7 +253,10 @@ export default function AdminPagesPage() {
                           className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-amber-50 text-[#b45309] border border-amber-200 font-bold hover:bg-amber-100 transition-colors"
                         >
                           <Layers className="w-3.5 h-3.5" />
-                          <span>{page.sectionCount || page._count?.sections || 0} Sections</span>
+                          <span>
+                            {(page.sectionCount ?? page._count?.sections ?? 0)}{" "}
+                            {(page.sectionCount === 1 || page._count?.sections === 1) ? "Section" : "Sections"}
+                          </span>
                         </Link>
                       </td>
                       <td className="py-4 px-5">
@@ -230,6 +276,15 @@ export default function AdminPagesPage() {
                         {page.updatedAt ? new Date(page.updatedAt).toLocaleDateString() : "Recent"}
                       </td>
                       <td className="py-4 px-5 text-right space-x-2">
+                        <a
+                          href={livePath}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="p-2 rounded-xl text-[#d97706] hover:bg-amber-50 border border-transparent hover:border-amber-200 inline-block transition-all shadow-2xs"
+                          title="View Live Page"
+                        >
+                          <ExternalLink className="w-4 h-4" />
+                        </a>
                         <Link
                           href={`/admin/pages/${pageId}`}
                           className="p-2 rounded-xl text-[#101114] hover:bg-white hover:border-[#d5d9e0] border border-transparent inline-block transition-all shadow-2xs"

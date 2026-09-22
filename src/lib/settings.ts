@@ -1,3 +1,5 @@
+import fs from "fs";
+import path from "path";
 import { supabase, isSupabaseConfigured } from "./supabase";
 
 export interface PublicGlobalSettings {
@@ -19,6 +21,9 @@ export interface PublicGlobalSettings {
   ctaLabel: string;
   ctaLink: string;
 }
+
+const DATA_DIR = path.join(process.cwd(), "src", "data");
+const SETTINGS_FILE = path.join(DATA_DIR, "custom_settings.json");
 
 const DEFAULT_SETTINGS: PublicGlobalSettings = {
   companyName: "ModularHome.com",
@@ -59,10 +64,50 @@ const DEFAULT_SETTINGS: PublicGlobalSettings = {
   ctaLink: "/quote",
 };
 
+function ensureDataDirectory() {
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch (err) {
+    console.error("Error creating data directory:", err);
+  }
+}
+
+export function readSettingsFromStore(): PublicGlobalSettings {
+  try {
+    ensureDataDirectory();
+    if (!fs.existsSync(SETTINGS_FILE)) {
+      fs.writeFileSync(SETTINGS_FILE, JSON.stringify(DEFAULT_SETTINGS, null, 2), "utf-8");
+      return DEFAULT_SETTINGS;
+    }
+    const data = fs.readFileSync(SETTINGS_FILE, "utf-8");
+    const parsed = JSON.parse(data);
+    return { ...DEFAULT_SETTINGS, ...parsed };
+  } catch (error) {
+    return DEFAULT_SETTINGS;
+  }
+}
+
+export function writeSettingsToStore(settings: Partial<PublicGlobalSettings>): PublicGlobalSettings {
+  try {
+    ensureDataDirectory();
+    const current = readSettingsFromStore();
+    const updated = { ...current, ...settings };
+    fs.writeFileSync(SETTINGS_FILE, JSON.stringify(updated, null, 2), "utf-8");
+    return updated;
+  } catch (error) {
+    console.error("Error writing to custom_settings.json:", error);
+    return DEFAULT_SETTINGS;
+  }
+}
+
 export async function getPublicGlobalSettings(): Promise<PublicGlobalSettings> {
+  const localSettings = readSettingsFromStore();
+
   try {
     if (!isSupabaseConfigured()) {
-      return DEFAULT_SETTINGS;
+      return localSettings;
     }
 
     const { data: raw, error } = await supabase
@@ -71,50 +116,52 @@ export async function getPublicGlobalSettings(): Promise<PublicGlobalSettings> {
       .eq("key", "default")
       .single();
 
-    if (error || !raw) return DEFAULT_SETTINGS;
+    if (error || !raw) return localSettings;
 
-    let socialLinks = DEFAULT_SETTINGS.socialLinks;
+    let socialLinks = localSettings.socialLinks;
     try {
       if (raw.social_links) {
         socialLinks = typeof raw.social_links === "string" ? JSON.parse(raw.social_links) : raw.social_links;
       }
     } catch {}
 
-    let navLinks = DEFAULT_SETTINGS.navLinks;
+    let navLinks = localSettings.navLinks;
     try {
       if (raw.nav_links) {
         navLinks = typeof raw.nav_links === "string" ? JSON.parse(raw.nav_links) : raw.nav_links;
       }
     } catch {}
 
-    let footerLinks = DEFAULT_SETTINGS.footerLinks;
+    let footerLinks = localSettings.footerLinks;
     try {
       if (raw.footer_links) {
         footerLinks = typeof raw.footer_links === "string" ? JSON.parse(raw.footer_links) : raw.footer_links;
       }
     } catch {}
 
-    return {
-      companyName: raw.company_name || DEFAULT_SETTINGS.companyName,
-      logoUrl: raw.logo_url || DEFAULT_SETTINGS.logoUrl,
-      faviconUrl: raw.favicon_url || DEFAULT_SETTINGS.faviconUrl,
-      phone: raw.phone || DEFAULT_SETTINGS.phone,
-      email: raw.email || DEFAULT_SETTINGS.email,
-      address: raw.address || DEFAULT_SETTINGS.address,
-      socialLinks,
-      announcementEnabled: raw.announcement_enabled ?? true,
-      announcementText: raw.announcement_text || DEFAULT_SETTINGS.announcementText,
-      announcementLink: raw.announcement_link || DEFAULT_SETTINGS.announcementLink,
-      navLinks,
-      footerText: raw.footer_text || DEFAULT_SETTINGS.footerText,
-      footerLinks,
-      defaultSeoTitle: raw.default_seo_title || DEFAULT_SETTINGS.defaultSeoTitle,
-      defaultMetaDescription: raw.default_meta_description || DEFAULT_SETTINGS.defaultMetaDescription,
-      ctaLabel: raw.cta_label || DEFAULT_SETTINGS.ctaLabel,
-      ctaLink: raw.cta_link || DEFAULT_SETTINGS.ctaLink,
+    const merged: PublicGlobalSettings = {
+      companyName: raw.company_name || localSettings.companyName,
+      logoUrl: raw.logo_url || localSettings.logoUrl,
+      faviconUrl: raw.favicon_url || localSettings.faviconUrl,
+      phone: raw.phone || localSettings.phone,
+      email: raw.email || localSettings.email,
+      address: raw.address || localSettings.address,
+      socialLinks: socialLinks || localSettings.socialLinks,
+      announcementEnabled: raw.announcement_enabled ?? localSettings.announcementEnabled,
+      announcementText: raw.announcement_text || localSettings.announcementText,
+      announcementLink: raw.announcement_link || localSettings.announcementLink,
+      navLinks: navLinks || localSettings.navLinks,
+      footerText: raw.footer_text || localSettings.footerText,
+      footerLinks: footerLinks || localSettings.footerLinks,
+      defaultSeoTitle: raw.default_seo_title || localSettings.defaultSeoTitle,
+      defaultMetaDescription: raw.default_meta_description || localSettings.defaultMetaDescription,
+      ctaLabel: raw.cta_label || localSettings.ctaLabel,
+      ctaLink: raw.cta_link || localSettings.ctaLink,
     };
+
+    return merged;
   } catch (error) {
-    console.warn("Could not fetch global settings from Supabase, using defaults:", error);
-    return DEFAULT_SETTINGS;
+    console.warn("Could not fetch global settings from Supabase, using local settings:", error);
+    return localSettings;
   }
 }

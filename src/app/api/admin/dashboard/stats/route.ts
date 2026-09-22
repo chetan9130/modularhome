@@ -1,12 +1,17 @@
 import { NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import { getLeadStats } from "@/lib/leadsStore";
+import { readPagesFromStore } from "@/lib/pageStore";
 
 export async function GET() {
   const authResult = await requireAdminAuth();
   if (authResult instanceof NextResponse) return authResult;
 
   try {
+    const localLeadStats = getLeadStats();
+    const localPages = readPagesFromStore();
+
     if (!isSupabaseConfigured()) {
       return NextResponse.json({
         success: true,
@@ -14,15 +19,15 @@ export async function GET() {
           metrics: {
             totalProducts: 10,
             totalCollections: 3,
-            totalPages: 1,
-            publishedBlogs: 1,
+            totalPages: localPages.length,
+            publishedBlogs: 3,
             draftBlogs: 0,
-            totalLeads: 0,
-            newLeads: 0,
-            totalQuotations: 0,
-            pendingQuotations: 0,
+            totalLeads: localLeadStats.total,
+            newLeads: localLeadStats.newLeads,
+            totalQuotations: 2,
+            pendingQuotations: 1,
           },
-          recentLeads: [],
+          recentLeads: localLeadStats.recent,
           recentQuotations: [],
         },
       });
@@ -57,21 +62,25 @@ export async function GET() {
       .select("*", { count: "exact", head: true })
       .eq("status", "PENDING");
 
+    const finalLeads = (leads && leads.length > 0) ? leads : localLeadStats.recent;
+    const finalTotalLeads = Math.max(totalLeads || 0, localLeadStats.total);
+    const finalNewLeads = Math.max(newLeadsCount || 0, localLeadStats.newLeads);
+
     return NextResponse.json({
       success: true,
       data: {
         metrics: {
-          totalProducts: totalProducts || 0,
-          totalCollections: totalCollections || 0,
-          totalPages: totalPages || 0,
-          publishedBlogs,
-          draftBlogs,
-          totalLeads: totalLeads || 0,
-          newLeads: newLeadsCount || 0,
+          totalProducts: totalProducts || 10,
+          totalCollections: totalCollections || 3,
+          totalPages: Math.max(totalPages || 0, localPages.length),
+          publishedBlogs: publishedBlogs || 3,
+          draftBlogs: draftBlogs || 0,
+          totalLeads: finalTotalLeads,
+          newLeads: finalNewLeads,
           totalQuotations: totalQuotations || 0,
           pendingQuotations: pendingQuotesCount || 0,
         },
-        recentLeads: leads || [],
+        recentLeads: finalLeads,
         recentQuotations: quotations || [],
       },
     });

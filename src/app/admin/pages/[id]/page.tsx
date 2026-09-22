@@ -13,6 +13,7 @@ import {
   AlertCircle,
   Loader2,
   Sparkles,
+  ExternalLink,
 } from "lucide-react";
 import ImageUpload from "@/components/admin/ImageUpload";
 
@@ -113,7 +114,17 @@ export default function AdminEditPage() {
           </div>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <a
+            href={`/${page.slug === "home" ? "" : page.slug}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-amber-200 bg-amber-50 text-[#b45309] hover:bg-amber-100 text-xs font-bold transition-all shadow-2xs"
+            title="Open live page in a new browser tab"
+          >
+            <ExternalLink className="w-4 h-4" />
+            <span>View Live Page</span>
+          </a>
           <Link
             href={`/admin/sections?pageId=${page.id || page._id}`}
             className="inline-flex items-center gap-1.5 px-4 py-2.5 rounded-xl border border-[#d5d9e0] bg-white text-[#101114] hover:bg-[#f6f7f9] text-xs font-bold transition-all shadow-2xs"

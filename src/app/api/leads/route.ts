@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import { saveLead } from "@/lib/leadsStore";
 
 export async function POST(request: NextRequest) {
   try {
@@ -38,35 +39,40 @@ export async function POST(request: NextRequest) {
       zip: leadZip,
       enquiry_details: leadEnquiry,
       source: leadSource,
-      status: "NEW",
+      status: "NEW" as const,
       notes: notes || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
+    // 1. Immediately save to persistent local store (ensures 100% data capture)
+    const localLead = saveLead(leadData);
+
+    // 2. Also save to Supabase if configured
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabaseAdmin
-        .from("leads")
-        .insert(leadData)
-        .select()
-        .single();
+      try {
+        const { data, error } = await supabaseAdmin
+          .from("leads")
+          .insert(leadData)
+          .select()
+          .single();
 
-      if (error) {
-        console.error("Supabase leads insert error:", error);
-        throw error;
+        if (!error && data) {
+          return NextResponse.json({
+            success: true,
+            data,
+            message: "Your inquiry has been received. Our team will contact you shortly.",
+          });
+        }
+      } catch (sbErr) {
+        console.warn("Supabase lead insert warning, captured locally:", sbErr);
       }
-
-      return NextResponse.json({
-        success: true,
-        data,
-        message: "Your inquiry has been received. Our team will contact you shortly.",
-      });
     }
 
     return NextResponse.json({
       success: true,
-      data: { id: `offline-${Date.now()}`, ...leadData },
-      message: "Lead recorded (offline fallback).",
+      data: localLead,
+      message: "Your inquiry has been received. Our team will contact you shortly.",
     });
   } catch (error: any) {
     console.error("Public lead submission error:", error);

@@ -1,0 +1,44 @@
+[
+  {
+    "id": "sec-new-home-trust",
+    "type": "TRUST",
+    "title": "Why Choose Our New Home Series",
+    "displayOrder": 1,
+    "isVisible": true,
+    "pageId": "page-new-home"
+  },
+  {
+    "id": "sec-new-home-cta",
+    "type": "CTA",
+    "title": "Ready to Build Your New Home?",
+    "subtitle": "Get a free itemized quote or consult with our architectural design team.",
+    "displayOrder": 2,
+    "isVisible": true,
+    "pageId": "page-new-home"
+  },
+  {
+    "id": "sec-trust-1",
+    "type": "TRUST",
+    "title": "Built For Generations",
+    "displayOrder": 1,
+    "isVisible": true,
+    "pageId": "page-warranty"
+  },
+  {
+    "id": "sec-how-1",
+    "type": "HOW_IT_WORKS",
+    "title": "Our Precision Build Quality",
+    "displayOrder": 2,
+    "isVisible": true,
+    "pageId": "page-warranty"
+  },
+  {
+    "id": "sec-cta-1",
+    "type": "CTA",
+    "title": "Ready to Build Your Certified Modular Home?",
+    "subtitle": "Speak with an architectural housing advisor today or get an instant engineering estimate.",
+    "displayOrder": 3,
+    "isVisible": true,
+    "pageId": "page-warranty"
+  }
+]

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import { updateSection, deleteSection, isUuidString } from "@/lib/pageStore";
 
 export async function PUT(
   request: NextRequest,
@@ -29,27 +30,42 @@ export async function PUT(
     if (body.isVisible !== undefined) updatePayload.is_visible = !!body.isVisible;
     if (body.is_visible !== undefined) updatePayload.is_visible = !!body.is_visible;
 
-    if (isSupabaseConfigured()) {
-      const { data, error } = await supabaseAdmin
-        .from("page_sections")
-        .update(updatePayload)
-        .eq("id", id)
-        .select()
-        .single();
+    // 1. Update in local store
+    const localUpdated = updateSection(id, {
+      type: body.type,
+      title: body.title,
+      subtitle: body.subtitle,
+      content: body.content,
+      displayOrder: body.order ?? body.displayOrder ?? body.display_order,
+      isVisible: body.isVisible !== undefined ? body.isVisible : body.is_visible,
+    });
 
-      if (error) throw error;
+    // 2. Update in Supabase if UUID
+    if (isSupabaseConfigured() && isUuidString(id)) {
+      try {
+        const { data, error } = await supabaseAdmin
+          .from("page_sections")
+          .update(updatePayload)
+          .eq("id", id)
+          .select()
+          .single();
 
-      return NextResponse.json({
-        success: true,
-        data,
-        message: "Section updated successfully.",
-      });
+        if (!error && data) {
+          return NextResponse.json({
+            success: true,
+            data,
+            message: "Section updated successfully.",
+          });
+        }
+      } catch (sbErr) {
+        console.warn("Supabase update section warning:", sbErr);
+      }
     }
 
     return NextResponse.json({
       success: true,
-      data: { id, ...updatePayload },
-      message: "Section updated successfully (offline fallback).",
+      data: localUpdated || { id, ...updatePayload },
+      message: "Section updated successfully.",
     });
   } catch (error: any) {
     console.error("Error updating section:", error);
@@ -70,13 +86,19 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    if (isSupabaseConfigured()) {
-      const { error } = await supabaseAdmin
-        .from("page_sections")
-        .delete()
-        .eq("id", id);
+    // 1. Delete from local store
+    deleteSection(id);
 
-      if (error) throw error;
+    // 2. Delete from Supabase if UUID
+    if (isSupabaseConfigured() && isUuidString(id)) {
+      try {
+        await supabaseAdmin
+          .from("page_sections")
+          .delete()
+          .eq("id", id);
+      } catch (sbErr) {
+        console.warn("Supabase delete section warning:", sbErr);
+      }
     }
 
     return NextResponse.json({

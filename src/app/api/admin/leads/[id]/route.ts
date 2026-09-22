@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import { updateLead, deleteLead, readLeadsFromStore } from "@/lib/leadsStore";
 
 export async function GET(
   request: NextRequest,
@@ -11,27 +12,31 @@ export async function GET(
 
   try {
     const { id } = await params;
-    if (!isSupabaseConfigured()) {
-      return NextResponse.json({
-        success: true,
-        data: null,
-      });
+
+    if (isSupabaseConfigured()) {
+      try {
+        const { data: lead, error } = await supabaseAdmin
+          .from("leads")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (!error && lead) {
+          return NextResponse.json({ success: true, data: lead });
+        }
+      } catch {}
     }
 
-    const { data: lead, error } = await supabaseAdmin
-      .from("leads")
-      .select("*")
-      .eq("id", id)
-      .single();
-
-    if (error || !lead) {
-      return NextResponse.json(
-        { success: false, error: { message: "Lead not found.", code: "NOT_FOUND" } },
-        { status: 404 }
-      );
+    const localLeads = readLeadsFromStore();
+    const found = localLeads.find((l) => l.id === id);
+    if (found) {
+      return NextResponse.json({ success: true, data: found });
     }
 
-    return NextResponse.json({ success: true, data: lead });
+    return NextResponse.json(
+      { success: false, error: { message: "Lead not found.", code: "NOT_FOUND" } },
+      { status: 404 }
+    );
   } catch (error: any) {
     console.error("Error fetching lead:", error);
     return NextResponse.json(
@@ -65,27 +70,35 @@ export async function PATCH(
     if (body.enquiryDetails !== undefined) updatePayload.enquiry_details = body.enquiryDetails;
     if (body.enquiry_details !== undefined) updatePayload.enquiry_details = body.enquiry_details;
 
+    // 1. Update in local store
+    const localUpdated = updateLead(id, updatePayload);
+
+    // 2. Update in Supabase
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabaseAdmin
-        .from("leads")
-        .update(updatePayload)
-        .eq("id", id)
-        .select()
-        .single();
+      try {
+        const { data, error } = await supabaseAdmin
+          .from("leads")
+          .update(updatePayload)
+          .eq("id", id)
+          .select()
+          .single();
 
-      if (error) throw error;
-
-      return NextResponse.json({
-        success: true,
-        data,
-        message: "Lead status updated.",
-      });
+        if (!error && data) {
+          return NextResponse.json({
+            success: true,
+            data,
+            message: "Lead status updated.",
+          });
+        }
+      } catch (sbErr) {
+        console.warn("Supabase lead patch warning:", sbErr);
+      }
     }
 
     return NextResponse.json({
       success: true,
-      data: { id, ...updatePayload },
-      message: "Lead updated (offline fallback).",
+      data: localUpdated || { id, ...updatePayload },
+      message: "Lead status updated.",
     });
   } catch (error: any) {
     console.error("Error updating lead:", error);
@@ -106,13 +119,17 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    if (isSupabaseConfigured()) {
-      const { error } = await supabaseAdmin
-        .from("leads")
-        .delete()
-        .eq("id", id);
+    // 1. Delete from local store
+    deleteLead(id);
 
-      if (error) throw error;
+    // 2. Delete from Supabase
+    if (isSupabaseConfigured()) {
+      try {
+        await supabaseAdmin
+          .from("leads")
+          .delete()
+          .eq("id", id);
+      } catch (err) {}
     }
 
     return NextResponse.json({

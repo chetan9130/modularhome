@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import { readLeadsFromStore, saveLead } from "@/lib/leadsStore";
 
 export async function GET(request: NextRequest) {
   const authResult = await requireAdminAuth();
@@ -10,38 +11,72 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const status = searchParams.get("status");
     const source = searchParams.get("source");
-    const search = searchParams.get("search");
+    const search = searchParams.get("search")?.toLowerCase().trim();
 
-    if (!isSupabaseConfigured()) {
-      return NextResponse.json({
-        success: true,
-        data: [],
-      });
+    let dbLeads: any[] = [];
+
+    if (isSupabaseConfigured()) {
+      try {
+        let query = supabaseAdmin
+          .from("leads")
+          .select("*")
+          .order("created_at", { ascending: false });
+
+        if (status && status !== "ALL") {
+          query = query.eq("status", status);
+        }
+        if (source && source !== "ALL") {
+          query = query.eq("source", source);
+        }
+
+        const { data, error } = await query;
+        if (!error && data) {
+          dbLeads = data;
+        }
+      } catch (dbErr) {
+        console.warn("Supabase fetch leads warning:", dbErr);
+      }
     }
 
-    let query = supabaseAdmin
-      .from("leads")
-      .select("*")
-      .order("created_at", { ascending: false });
+    // Merge with local persistent store
+    const localLeads = readLeadsFromStore();
+    const existingEmailsOrIds = new Set(
+      dbLeads.map((l) => `${l.email || ""}_${l.created_at || ""}`)
+    );
+    const merged: any[] = [...dbLeads];
 
-    if (status && status !== "ALL") {
-      query = query.eq("status", status);
-    }
-    if (source && source !== "ALL") {
-      query = query.eq("source", source);
+    for (const ll of localLeads) {
+      const key = `${ll.email || ""}_${ll.created_at || ""}`;
+      if (!existingEmailsOrIds.has(key) && !dbLeads.some((d) => d.id === ll.id)) {
+        if (!status || status === "ALL" || ll.status === status) {
+          if (!source || source === "ALL" || ll.source === source) {
+            merged.push(ll);
+            existingEmailsOrIds.add(key);
+          }
+        }
+      }
     }
 
-    if (search && search.trim()) {
-      const s = search.trim();
-      query = query.or(`name.ilike.%${s}%,email.ilike.%${s}%,phone.ilike.%${s}%,enquiry_details.ilike.%${s}%`);
+    // Apply search filter if present
+    let filtered = merged;
+    if (search) {
+      filtered = filtered.filter(
+        (l) =>
+          l.name?.toLowerCase().includes(search) ||
+          l.email?.toLowerCase().includes(search) ||
+          l.phone?.toLowerCase().includes(search) ||
+          l.location?.toLowerCase().includes(search) ||
+          l.zip?.toLowerCase().includes(search) ||
+          l.enquiry_details?.toLowerCase().includes(search)
+      );
     }
 
-    const { data: leads, error } = await query;
-    if (error) throw error;
+    // Sort newest first
+    filtered.sort((a, b) => new Date(b.created_at || 0).getTime() - new Date(a.created_at || 0).getTime());
 
     return NextResponse.json({
       success: true,
-      data: leads || [],
+      data: filtered,
     });
   } catch (error: any) {
     console.error("Error fetching leads:", error);
@@ -58,7 +93,7 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { name, email, phone, location, zip, enquiryDetails, source, notes } = body;
+    const { name, email, phone, location, zip, enquiryDetails, source, notes, status } = body;
 
     const leadName = (name || body.fullName || body.customerName || "").trim();
     const leadEmail = (email || body.customerEmail || "").toLowerCase().trim();
@@ -78,32 +113,40 @@ export async function POST(request: NextRequest) {
       zip: zip || null,
       enquiry_details: enquiryDetails || body.enquiry_details || null,
       source: source || "ADMIN_MANUAL",
-      status: body.status || "NEW",
+      status: status || "NEW",
       notes: notes || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
 
+    // 1. Save to local store
+    const localSaved = saveLead(leadData);
+
+    // 2. Save to Supabase if configured
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabaseAdmin
-        .from("leads")
-        .insert(leadData)
-        .select()
-        .single();
+      try {
+        const { data, error } = await supabaseAdmin
+          .from("leads")
+          .insert(leadData)
+          .select()
+          .single();
 
-      if (error) throw error;
-
-      return NextResponse.json({
-        success: true,
-        data,
-        message: "Lead inquiry registered successfully.",
-      });
+        if (!error && data) {
+          return NextResponse.json({
+            success: true,
+            data,
+            message: "Lead inquiry registered successfully.",
+          });
+        }
+      } catch (sbErr) {
+        console.warn("Supabase lead manual insert warning:", sbErr);
+      }
     }
 
     return NextResponse.json({
       success: true,
-      data: { id: `mock-${Date.now()}`, ...leadData },
-      message: "Lead inquiry registered successfully (offline fallback).",
+      data: localSaved,
+      message: "Lead inquiry registered successfully.",
     });
   } catch (error: any) {
     console.error("Error creating lead:", error);

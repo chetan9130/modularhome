@@ -18,6 +18,7 @@ import {
   X,
   FileText,
   ImageIcon,
+  ExternalLink,
 } from "lucide-react";
 import ImageUpload from "@/components/admin/ImageUpload";
 
@@ -63,10 +64,19 @@ function SectionsManager() {
     try {
       const res = await fetch("/api/admin/pages");
       const json = await res.json();
-      if (json.success && json.data) {
+      if (json.success && json.data && json.data.length > 0) {
         setPages(json.data);
-        if (!selectedPageId && json.data.length > 0) {
-          setSelectedPageId(json.data[0].id);
+        if (initialPageId) {
+          const matched = json.data.find(
+            (p: any) => (p.id || p._id) === initialPageId || p.slug === initialPageId
+          );
+          if (matched) {
+            setSelectedPageId(matched.id || matched._id);
+          } else {
+            setSelectedPageId(initialPageId);
+          }
+        } else if (!selectedPageId) {
+          setSelectedPageId(json.data[0].id || json.data[0]._id);
         }
       }
     } catch (e) {
@@ -274,14 +284,31 @@ function SectionsManager() {
           </p>
         </div>
 
-        <button
-          onClick={() => setAddModalOpen(true)}
-          disabled={!selectedPageId}
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] text-xs font-black uppercase tracking-wider shadow-sm transition-all disabled:opacity-50 cursor-pointer self-start sm:self-auto"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add Section</span>
-        </button>
+        <div className="flex items-center gap-2.5 self-start sm:self-auto flex-wrap">
+          {selectedPageId && (
+            <a
+              href={(() => {
+                const selectedPage = pages.find((p) => (p.id || p._id) === selectedPageId);
+                return selectedPage ? `/${selectedPage.slug === "home" ? "" : selectedPage.slug}` : "/";
+              })()}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 px-4 py-3 rounded-xl border border-[#d5d9e0] bg-white text-[#101114] hover:bg-[#f6f7f9] text-xs font-bold transition-all shadow-2xs cursor-pointer"
+              title="Preview live page in new tab"
+            >
+              <ExternalLink className="w-4 h-4 text-[#d97706]" />
+              <span>Preview Live Page</span>
+            </a>
+          )}
+          <button
+            onClick={() => setAddModalOpen(true)}
+            disabled={!selectedPageId}
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] text-xs font-black uppercase tracking-wider shadow-sm transition-all disabled:opacity-50 cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add Section</span>
+          </button>
+        </div>
       </div>
 
       {/* Page Selector Bar */}
