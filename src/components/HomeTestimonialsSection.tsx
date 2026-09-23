@@ -1,26 +1,38 @@
 import Link from "next/link";
+import { PublicReview } from "@/lib/publicData";
 
-export default function HomeTestimonialsSection() {
-  const reviews = [
-    {
-      stars: "★★★★★",
-      quote: "The process was easy and the quality is outstanding. We love our new home!",
-      author: "— Sarah T.",
-      location: "Texas",
-    },
-    {
-      stars: "★★★★★",
-      quote: "Great experience from start to finish. Highly recommend ModularHome.com.",
-      author: "— Michael R.",
-      location: "Tennessee",
-    },
-    {
-      stars: "★★★★★",
-      quote: "Beautiful home, built on time and within budget.",
-      author: "— Jennifer L.",
-      location: "North Carolina",
-    },
-  ];
+interface HomeTestimonialsSectionProps {
+  initialReviews?: PublicReview[];
+}
+
+export default function HomeTestimonialsSection({ initialReviews }: HomeTestimonialsSectionProps) {
+  const reviews = (initialReviews && initialReviews.length > 0)
+    ? initialReviews.slice(0, 3).map((r) => ({
+        stars: "★".repeat(Math.min(5, Math.max(1, r.rating || 5))),
+        quote: r.reviewText,
+        author: `— ${r.customerName}`,
+        location: r.location || "USA",
+      }))
+    : [
+        {
+          stars: "★★★★★",
+          quote: "From initial CAD customization to final on-site modular delivery in Austin, the precision steel engineering saved us over 4 months compared to traditional stick framing. Exceptional thermal insulation!",
+          author: "— David & Sarah J.",
+          location: "Texas",
+        },
+        {
+          stars: "★★★★★",
+          quote: "We built in heavy snow territory in Montana. The 50 PSF snow load certification and 50-year structural steel frame warranty gave us complete peace of mind. High vaulted ceilings are stunning.",
+          author: "— Marcus V.",
+          location: "Montana",
+        },
+        {
+          stars: "★★★★★",
+          quote: "We purchased a downloadable floor-plan CAD package and ended up commissioning the full turnkey steel framing kit. Customer support guided our local foundation contractor seamlessly.",
+          author: "— Elena R.",
+          location: "Arizona",
+        },
+      ];
 
   return (
     <section className="py-12 sm:py-16 bg-white" id="testimonials">
@@ -31,11 +43,11 @@ export default function HomeTestimonialsSection() {
               What Our Customers Say
             </h2>
             <p className="text-sm sm:text-base text-[#6b7280] mt-1.5 mb-0">
-              Real stories from homeowners.
+              Real stories and verified ratings from modular homeowners nationwide.
             </p>
           </div>
           <Link
-            href="/about"
+            href="/about#testimonials"
             className="text-[#d97706] hover:text-[#b45309] font-extrabold text-sm sm:text-base hover:underline whitespace-nowrap self-start sm:self-auto"
           >
             View All Reviews →

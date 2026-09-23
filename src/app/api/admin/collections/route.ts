@@ -35,10 +35,14 @@ export async function GET(request: NextRequest) {
 
     if (error) throw error;
 
-    const formatted = (collections || []).map((col: any) => ({
-      ...col,
-      productIds: col.product_collections ? col.product_collections.map((pc: any) => pc.product_id) : [],
-    }));
+    const formatted = (collections || []).map((col: any) => {
+      const pIds = col.product_collections ? col.product_collections.map((pc: any) => pc.product_id) : [];
+      return {
+        ...col,
+        productIds: pIds,
+        productCount: pIds.length,
+      };
+    });
 
     return NextResponse.json({
       success: true,

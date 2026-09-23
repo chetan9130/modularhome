@@ -19,6 +19,7 @@ import {
   FileText,
   ImageIcon,
   ExternalLink,
+  Copy
 } from "lucide-react";
 import ImageUpload from "@/components/admin/ImageUpload";
 
@@ -36,6 +37,7 @@ function SectionsManager() {
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [editingSection, setEditingSection] = useState<any | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [duplicatingId, setDuplicatingId] = useState<string | null>(null);
   const [newSection, setNewSection] = useState({
     type: "HERO",
     title: "",
@@ -161,6 +163,38 @@ function SectionsManager() {
     }
   };
 
+  const handleDuplicateSection = async (sec: any) => {
+    if (!selectedPageId) return;
+    const secId = sec.id || sec._id;
+    setDuplicatingId(secId);
+
+    try {
+      const res = await fetch("/api/admin/sections", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pageId: selectedPageId,
+          type: sec.type,
+          title: sec.title ? `${sec.title} (Copy)` : "Copied Section",
+          subtitle: sec.subtitle || "",
+          content: sec.content || "",
+          order: sections.length + 1,
+          isVisible: sec.isVisible !== false,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        await fetchSections(selectedPageId);
+      } else {
+        alert(json.error?.message || "Failed to duplicate section.");
+      }
+    } catch (e) {
+      alert("Failed to duplicate section.");
+    } finally {
+      setDuplicatingId(null);
+    }
+  };
+
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to delete this section?")) return;
 
@@ -268,7 +302,7 @@ function SectionsManager() {
             Page Section & Block Manager
           </h1>
           <p className="text-xs sm:text-sm text-[#6b7280] mt-1 font-medium">
-            Reorder, toggle visibility, and configure dynamic content modules on your pages.
+            Reorder, duplicate, toggle visibility, and configure dynamic modular blocks across your website pages.
           </p>
         </div>
 
@@ -386,6 +420,19 @@ function SectionsManager() {
                 {/* Right: Actions */}
                 <div className="flex items-center gap-2 shrink-0">
                   <button
+                    onClick={() => handleDuplicateSection(sec)}
+                    disabled={duplicatingId === (sec.id || sec._id)}
+                    className="p-2 rounded-xl text-[#6b7280] hover:text-[#101114] hover:bg-[#f8f9fa] border border-transparent hover:border-[#d5d9e0] transition-colors cursor-pointer"
+                    title="Duplicate Section"
+                  >
+                    {duplicatingId === (sec.id || sec._id) ? (
+                      <Loader2 className="w-4 h-4 animate-spin text-[#fcb907]" />
+                    ) : (
+                      <Copy className="w-4 h-4" />
+                    )}
+                  </button>
+
+                  <button
                     onClick={() => {
                       let img = "";
                       let rawText = "";
@@ -425,7 +472,7 @@ function SectionsManager() {
 
                   <button
                     onClick={() => handleDelete(sec.id || sec._id)}
-                    className="p-2 rounded-xl text-[#6b7280] hover:text-[#d97706] hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors cursor-pointer"
+                    className="p-2 rounded-xl text-[#6b7280] hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors cursor-pointer"
                     title="Delete Section"
                   >
                     <Trash2 className="w-4 h-4" />

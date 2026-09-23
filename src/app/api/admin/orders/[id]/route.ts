@@ -101,3 +101,70 @@ export async function PATCH(
     );
   }
 }
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const authResult = await requireAdminAuth();
+  if (authResult instanceof NextResponse) return authResult;
+
+  try {
+    const { id } = await params;
+    const body = await request.json();
+    const { action } = body;
+
+    if (action === "regenerate_download_token") {
+      const crypto = await import("crypto");
+      const newToken = crypto.randomBytes(32).toString("hex");
+      const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+
+      if (isSupabaseConfigured()) {
+        const { data: order } = await supabaseAdmin
+          .from("orders")
+          .select("customer_email, order_items(floor_plan_id)")
+          .eq("id", id)
+          .single();
+
+        const planId = order?.order_items?.[0]?.floor_plan_id || null;
+        const customerEmail = order?.customer_email || "customer@example.com";
+
+        await supabaseAdmin.from("download_access").insert({
+          order_id: id,
+          floor_plan_id: planId,
+          customer_email: customerEmail,
+          download_token: newToken,
+          expires_at: expiresAt,
+          download_count: 0,
+          max_downloads: 5,
+        });
+
+        return NextResponse.json({
+          success: true,
+          token: newToken,
+          expiresAt,
+          message: "New secure download link generated (valid 7 days).",
+        });
+      }
+
+      return NextResponse.json({
+        success: true,
+        token: newToken,
+        expiresAt,
+        message: "New secure download link generated (offline mode).",
+      });
+    }
+
+    return NextResponse.json(
+      { success: false, error: { message: "Invalid action.", code: "INVALID_ACTION" } },
+      { status: 400 }
+    );
+  } catch (error: any) {
+    console.error("Error managing order download token:", error);
+    return NextResponse.json(
+      { success: false, error: { message: error?.message || "Internal error.", code: "ERROR" } },
+      { status: 500 }
+    );
+  }
+}
+

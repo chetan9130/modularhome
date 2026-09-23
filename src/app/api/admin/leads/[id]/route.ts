@@ -69,6 +69,9 @@ export async function PATCH(
     if (body.zip !== undefined) updatePayload.zip = body.zip;
     if (body.enquiryDetails !== undefined) updatePayload.enquiry_details = body.enquiryDetails;
     if (body.enquiry_details !== undefined) updatePayload.enquiry_details = body.enquiry_details;
+    if (body.assignedTo !== undefined) updatePayload.assigned_to = body.assignedTo;
+    if (body.followUpDate !== undefined) updatePayload.follow_up_date = body.followUpDate;
+    if (body.leadHistory !== undefined) updatePayload.lead_history = body.leadHistory;
 
     // 1. Update in local store
     const localUpdated = updateLead(id, updatePayload);

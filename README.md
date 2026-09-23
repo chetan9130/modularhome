@@ -1,1213 +1,1599 @@
-# MODULARHOME — PHASE 2 IMPLEMENTATION PROMPT
+# MODULARHOME / STEELWEB
 
-## Phase 2: Shopify Migration + Premium Frontend + Floor-Plan E-commerce
+## ADMIN COMPLETION + SECURITY HARDENING IMPLEMENTATION PROMPT
 
 You are working on the existing **ModularHome / SteelWeb** project.
 
-Phase 1 — Admin Backend & CMS has already been implemented. Your job now is to implement **Phase 2 only**.
+The current project already has a functioning admin dashboard, Supabase backend, Stripe integration, Shopify migration tooling, floor-plan e-commerce, CMS structure, and public frontend.
 
-The project currently uses:
+The client has reviewed the admin and wants the existing structure completed before considering the Admin Backend finished.
 
-* Next.js 16.3.5
+### PRIMARY OBJECTIVE
+
+Complete the existing admin system so that the client has **full operational control of the website without needing developer/code changes for normal website management**.
+
+Do NOT redesign the admin dashboard from scratch.
+
+The current admin design and structure are acceptable. Focus on:
+
+* Completing missing functionality
+* Connecting admin controls to the live frontend
+* Correct CRUD operations
+* Proper relationships between entities
+* Role-based permissions
+* Security
+* Auditability
+* Version/recovery capability
+* End-to-end testing
+
+Do not implement Phase 3 AI functionality unless it is required for an existing admin integration.
+
+---
+
+# 1. EXISTING TECHNOLOGY — DO NOT CHANGE UNNECESSARILY
+
+Use the existing architecture:
+
+* Next.js 16 App Router
 * React 19
 * TypeScript
 * Tailwind CSS v4
-* Supabase as the backend
 * Supabase PostgreSQL
-* Supabase Auth
+* Supabase RLS
 * Supabase Storage
-* Next.js App Router
-* Existing Admin CMS
-* Existing public frontend
-* Existing Quote Wizard
-* Existing video/YouTube functionality
+* Stripe
+* Existing Shopify migration system
+* Existing YouTube synchronization
+* Existing admin authentication/session architecture
+
+Do NOT introduce:
+
+* Convex
+* Prisma
+* MongoDB
+* A second database
+* A second payment gateway
+* Unnecessary authentication providers
+* A complete admin UI rewrite
+
+Preserve working functionality.
+
+Before making changes, inspect the existing implementation and understand:
+
+* database schema
+* RLS policies
+* admin authentication
+* middleware
+* API routes
+* admin components
+* public data fetching
+* frontend CMS rendering
+* Stripe integration
+* storage implementation
+* Shopify migration
+* YouTube sync
 
 ---
 
-# 1. CRITICAL INSTRUCTIONS
+# 2. HOME MODELS — COMPLETE MANAGEMENT
 
-Before changing anything:
+Admin must provide complete control over every Home Model.
 
-1. Inspect the complete existing codebase.
-2. Understand the current folder structure.
-3. Inspect the existing Supabase schema, migrations, clients, queries, server actions and API routes.
-4. Inspect the existing Admin CMS.
-5. Inspect the existing public frontend.
-6. Inspect existing authentication and middleware.
-7. Inspect existing Quote Wizard.
-8. Inspect existing product/model pages.
-9. Inspect existing blog pages.
-10. Inspect existing floor-plan functionality.
-11. Inspect existing YouTube functionality.
-12. Inspect existing environment variables.
-13. Inspect package.json and existing dependencies.
+For every model support:
 
-### DO NOT:
+* Name
+* Slug
+* Price
+* Category
+* Collections
+* Square footage
+* Bedrooms
+* Bathrooms
+* Specifications
+* Description
+* Main image
+* Image gallery
+* Floor plans
+* Status
+* Featured
+* Trending
+* SEO title
+* SEO description
+* Canonical URL
+* OG image
+* Other relevant SEO metadata
 
-* Rebuild Phase 1 from scratch.
-* Replace Supabase with Convex.
-* Introduce Prisma.
-* Introduce PostgreSQL separately from Supabase.
-* Introduce MongoDB.
-* Replace the existing authentication architecture unnecessarily.
-* Delete working features.
-* Create duplicate database systems.
-* Create unnecessary API layers.
-* Rewrite the entire application just for styling.
-* Implement Phase 3 AI automation yet.
+Support:
 
-Use and extend the existing architecture wherever possible.
+* Create
+* Read
+* Edit
+* Delete
+* Publish/unpublish
+* Draft/active status where applicable
+
+### Price issue
+
+Some models currently display only `$` without an actual price.
+
+Investigate the complete data flow:
+
+Database → API → publicData → model page/card → formatting component.
+
+Fix the root cause.
+
+Do not simply hardcode a price on the frontend.
+
+Ensure:
+
+* Missing prices are handled correctly
+* Valid prices display correctly
+* Currency formatting is consistent
+* Admin price changes immediately reflect on the frontend
 
 ---
 
-# 2. PRIMARY OBJECTIVE
+# 3. COLLECTION MANAGEMENT
 
-Complete Phase 2 in the following areas:
+Complete Collections functionality.
 
-### A. Shopify data migration
+Admin must be able to:
 
-### B. SEO migration
+* Create collections
+* Edit collections
+* Delete collections
+* Change collection name
+* Change slug
+* Change description/content
+* Upload/change collection image
+* Manage SEO
+* Assign models
+* Remove models
+* Reorder models if supported by the existing architecture
 
-### C. Premium frontend integration
+### IMPORTANT
 
-### D. Floor-plan e-commerce
+Collections currently show **0 models**.
 
-### E. Payment integration
+Investigate and fix the model-to-collection relationship.
 
-### F. Supabase Storage integration
+Verify:
 
-### G. End-to-end validation
+products
+↓
+product_collections
+↓
+collections
+↓
+public frontend
 
-The implementation must integrate with the existing Phase 1 Admin CMS.
+Make sure assigned models actually appear on:
+
+* Collection admin
+* Collection pages
+* Related model listings
+* Any collection filters
+
+Test both:
+
+* Assign model → model appears
+* Remove model → model disappears
+
+Do not merely fix the UI count.
+
+Fix the underlying database/API relationship.
 
 ---
 
-# 3. CURRENT BACKEND ARCHITECTURE
+# 4. FLOOR PLAN MANAGEMENT
 
-The backend is now Supabase.
+The Floor Plan Manager must provide complete control.
+
+Admin must manage:
+
+* Plan name
+* Slug
+* Price
+* Category
+* Description
+* Square footage
+* Bedrooms
+* Bathrooms
+* Specifications
+* Main image
+* Image gallery
+* Preview images
+* PDF
+* CAD/DWG files
+* ZIP files where applicable
+* Status
+* Featured
+* SEO metadata
+
+Support:
+
+* Create
+* Edit
+* Delete
+* Publish/unpublish
+
+### Secure files
+
+Paid PDF/CAD/ZIP files MUST NOT be publicly accessible.
 
 Use:
 
-* Supabase PostgreSQL
-* Supabase Auth
-* Supabase Storage
-* Supabase Row Level Security
-* Supabase server/client SDKs already present in the project
+* Private Supabase Storage
+* Authorization checks
+* Signed/time-limited URLs
+* Purchase verification
+* Download access records
 
-The logical CMS entities include:
-
-* admin users
-* global settings
-* pages
-* page sections
-* products/models
-* collections
-* product-collection relationships
-* blogs
-* leads
-* quotations
-
-For Phase 2, extend the database only where required.
-
-Potential additional entities for e-commerce may include:
-
-* floor_plans
-* orders
-* order_items
-* payments
-* download_access
-
-Do not create these blindly.
-
-First inspect the existing schema and reuse existing structures where appropriate.
+Never expose permanent public URLs for paid files.
 
 ---
 
-# 4. PHASE 2 — SHOPIFY MIGRATION
+# 5. ORDER MANAGEMENT
 
-## 4.1 Shopify API Integration
+Complete the existing Orders admin.
 
-Implement a secure Shopify Admin API integration.
+When opening an order, display complete information.
 
-Requirements:
+### Customer
 
-* Store Shopify configuration securely.
-* Never expose Shopify Admin API credentials to the browser.
-* Use server-side code for Shopify requests.
-* Create reusable Shopify service functions.
-* Handle API errors.
-* Handle rate limits.
-* Log migration errors safely.
-* Make migration repeatable/idempotent where possible.
+Show:
 
-Suggested conceptual structure:
+* Name
+* Email
+* Phone if collected
+* Billing details where applicable
+* Shipping/customer information where applicable
 
-```text
-src/
-  lib/
-    shopify/
-      client.ts
-      products.ts
-      collections.ts
-      pages.ts
-      blogs.ts
-      media.ts
-      seo.ts
-      migration.ts
-```
+### Payment
 
-Adapt this to the existing project structure rather than forcing this exact structure.
+Show:
+
+* Order number
+* Stripe payment/order identifiers
+* Payment status
+* Payment amount
+* Currency
+* Payment date
+* Relevant Stripe status
+* Refund status if supported
+
+### Purchased product
+
+Show:
+
+* Floor plan
+* Quantity
+* Price
+* Purchased files/product
+* Download access status
+
+### Download
+
+Show:
+
+* Download token/access
+* Expiration
+* Download count
+* Download status
+
+Do not expose Stripe secret information.
+
+Never store card numbers, CVV, or other card details.
+
+Stripe remains responsible for payment information.
 
 ---
 
-# 5. SHOPIFY PRODUCT MIGRATION
+# 6. LEADS — COMPLETE CRM MANAGEMENT
 
-Migrate:
+The Leads section must become a real lead-management interface instead of only a table.
 
-* Products
-* Product titles
-* Descriptions
-* Handles
-* Product status
-* Prices
-* Variants where applicable
-* Specifications
+When opening a lead, show:
+
+### Customer information
+
+* Name
+* Email
+* Phone
+* Location
+* Source
+* Submission date
+
+### Lead information
+
+* Original inquiry
+* Quote information
+* Selected model
+* Requirements
+* Budget
+* Square footage
+* Other submitted fields
+
+### Lead management
+
+Admin should be able to:
+
+* Add notes
+* Edit notes
+* Change lead status
+* Assign lead
+* Set follow-up date
+* Set follow-up reminder/status
+* Track lead history
+* Add internal comments
+* View previous interactions
+* Manage quotation
+
+Suggested statuses:
+
+* New
+* Contacted
+* Qualified
+* Quote Sent
+* Follow-up
+* Won
+* Lost
+
+Do not hardcode these in a way that prevents future extension.
+
+---
+
+# 7. QUOTE SUBMISSIONS
+
+Quote submissions need complete management.
+
+Admin should see:
+
+* Customer details
+* Building/model selection
+* Foundation
+* Insulation
+* Roof style
+* ZIP/location
+* Square footage
+* Budget
+* Requirements
+* Submitted date
+* Current status
+
+Allow:
+
+* Notes
+* Status changes
+* Follow-up
+* Quote editing
+* Final quotation amount
+* Internal comments
+* Quote history
+
+The client should be able to manage a quotation from the admin without developer involvement.
+
+---
+
+# 8. PAGE MANAGER + SECTION BLOCKS
+
+This is one of the highest-priority requirements.
+
+The client must have complete control of all pages.
+
+Admin should support:
+
+* Create page
+* Edit page
+* Delete page
+* Publish/unpublish
+* Draft state
+* Page title
+* Slug
+* SEO
+* Sections
+* Section visibility
+
+For every section/block allow:
+
+* Add
+* Edit
+* Delete
+* Duplicate if practical
+* Hide/show
+* Reorder
+* Change text
+* Change images
+* Change videos
+* Change buttons
+* Change links
+* Change CTA
+* Configure section-specific content
+
+### Drag and drop
+
+Implement drag-and-drop section ordering if compatible with the existing architecture.
+
+The ordering must be persisted in the database.
+
+Example:
+
+section_order:
+
+1. Hero
+2. Home Types
+3. Available Homes
+4. Budget
+5. Locations
+6. Trending Homes
+7. Customization
+8. Floor Plans
+9. Quote CTA
+10. How It Works
+11. Financing
+12. Videos
+13. Reviews
+14. Blogs
+
+The exact order must be configurable from admin.
+
+---
+
+# 9. HOMEPAGE — NO HARDCODED CONTENT
+
+Every important homepage section must be manageable through admin.
+
+Verify and connect:
+
+* Hero
+* Home Types
+* Available Homes
+* Budget section
+* Locations
+* Trending Homes
+* Customization
+* Floor Plans
+* Quote section
+* How It Works
+* Financing
+* Videos
+* Reviews
+* Blogs
+* Testimonials
+* FAQs
+* Trust sections
+* Other existing homepage sections
+
+IMPORTANT:
+
+Do not create admin controls that only exist visually.
+
+Every admin change must actually affect the public website.
+
+Test:
+
+Admin edit
+→ database
+→ API/data layer
+→ frontend
+→ live rendered result
+
+---
+
+# 10. HEADER + MENU MANAGEMENT
+
+Create/complete Header and Navigation management.
+
+Admin must control:
+
+* Main menu
+* Menu labels
+* Links
+* Dropdown menus
+* Dropdown items
+* Ordering
+* Visibility
+* External/internal URLs
+
+Support nested navigation where appropriate.
+
+Changes must reflect on the live website without code changes.
+
+---
+
+# 11. FOOTER MANAGEMENT
+
+Admin must control:
+
+* Footer columns
+* Footer links
+* Link labels
+* URLs
+* Ordering
+* Social links
+* Contact information
+* Copyright text
+* CTA
+* Other footer content
+
+Ensure changes appear on the public website.
+
+---
+
+# 12. GLOBAL SETTINGS
+
+Verify that all Global Settings are actually connected.
+
+Admin controls:
+
+* Logo
+* Favicon
+* Phone
+* Email
+* Address
+* Announcement bar
+* Social links
+* Footer information
+* Global CTA
+* Global SEO
+
+The current phone number should remain:
+
+812-595-4033
+
+Verify that the value comes from the appropriate settings source rather than being independently hardcoded in multiple frontend components.
+
+Test every setting against the live website.
+
+---
+
+# 13. MEDIA LIBRARY
+
+Add a centralized Media Library.
+
+The purpose is to prevent repeatedly uploading the same assets.
+
+Support:
+
 * Images
-* Featured images
-* Product metadata
-* SEO title
-* SEO description
-* Product relationships
+* Documents
+* Videos where appropriate
+* Search
+* Filtering
+* Preview
+* File metadata
+* Upload
+* Delete
+* Reuse existing media
+* Copy/select existing media when editing CMS content
 
-Map Shopify products into the existing Supabase product/model structure.
+For each asset consider storing:
 
-Before migration:
+* Filename
+* Storage path
+* MIME type
+* File size
+* Width/height for images
+* Upload date
+* Uploaded by
+* Alt text
+* Usage/reference information where practical
 
-1. Inspect the existing `products` table.
-2. Determine which fields already exist.
-3. Add only missing fields.
-4. Create a mapping between Shopify fields and Supabase fields.
+Use Supabase Storage.
 
-Do not duplicate products.
-
-Use Shopify IDs or another stable external ID to make migration idempotent.
-
-Example conceptual field:
-
-```text
-shopify_id
-```
-
-If an equivalent field already exists, reuse it.
-
----
-
-# 6. COLLECTION MIGRATION
-
-Migrate:
-
-* Collection title
-* Handle
-* Description
-* Image/banner
-* SEO metadata
-* Product relationships
-
-Map collections into the existing Supabase collections structure.
-
-Maintain:
-
-```text
-Shopify Collection
-        ↓
-Supabase Collection
-        ↓
-Products
-```
-
-Do not break existing product-collection relationships.
+Do not expose private files publicly unless intentionally configured as public assets.
 
 ---
 
-# 7. PAGE CONTENT MIGRATION
+# 14. ARTICLES / BLOG CMS
 
-Migrate required Shopify pages.
+Complete blog management.
 
-Examples:
-
-* About
-* Contact
-* Services
-* FAQ
-* Other existing marketing pages
-
-Preserve:
+Admin must control:
 
 * Title
 * Slug
 * Content
-* Images
-* SEO metadata
-
-Map content into the existing:
-
-```text
-pages
-page_sections
-```
-
-CMS structure wherever practical.
-
-Do not create a second page/content system.
-
----
-
-# 8. BLOG MIGRATION
-
-Migrate:
-
-* Blog/article title
-* Content
-* Author
-* Publish date
-* Handle/slug
-* Categories
-* Tags
 * Featured image
+* Gallery/media
+* Category
+* Author
+* Video
+* Tags where applicable
+* Excerpt
 * SEO title
-* Meta description
-
-Map them into the existing Supabase `blogs` structure.
-
-Preserve original URLs wherever possible.
-
----
-
-# 9. MEDIA MIGRATION
-
-Inspect how the existing project handles images.
-
-Prefer:
-
-```text
-Shopify media
-      ↓
-Supabase Storage
-      ↓
-Supabase database reference
-      ↓
-Next.js frontend
-```
-
-Do not store large images as base64 inside database records.
-
-Use appropriate Supabase Storage buckets.
-
-Create separate storage policies for:
-
-* Public website media
-* Admin-managed media
-* Protected paid floor-plan files
-
----
-
-# 10. MIGRATION TOOLING
-
-Create a controlled migration process.
-
-The migration should support:
-
-```text
-Products
-Collections
-Pages
-Blogs
-Media
-SEO
-```
-
-Provide:
-
-* Migration command or admin action
-* Progress logging
-* Error reporting
-* Duplicate detection
-* Retry support
-* Migration summary
-
-Example conceptual output:
-
-```text
-Shopify Migration
------------------
-Products:     120 imported
-Collections:   12 imported
-Pages:         18 imported
-Blogs:         46 imported
-Media:        238 processed
-SEO:          184 records updated
-Errors:         2
-```
-
-Do not perform destructive deletion of existing CMS data unless explicitly required.
-
----
-
-# 11. SEO MIGRATION
-
-Preserve existing Shopify SEO as much as possible.
-
-Implement:
-
-### SEO metadata
-
-* SEO title
-* Meta description
+* SEO description
 * Canonical URL
-* Open Graph title
-* Open Graph description
-* Open Graph image
+* OG image
+* Draft/published status
+* Publish date
 
-### URLs
+Support:
 
-Preserve existing URLs where possible.
+* Create
+* Edit
+* Delete
+* Draft
+* Publish
+* Unpublish
 
-For changed URLs create:
-
-```text
-old URL → new URL
-```
-
-301 redirects.
-
-Create a redirect data structure if the project does not already have one.
+Ensure published content appears correctly on the public resources/blog pages.
 
 ---
 
-# 12. SITEMAP
+# 15. YOUTUBE AUTO-SYNC MANAGEMENT
 
-Ensure the production website has a dynamic sitemap containing:
+The existing YouTube synchronization must have an admin status interface.
 
-* Pages
-* Products/models
-* Collections
-* Blogs
-* Other indexable public content
+Display:
 
-Exclude:
+* Connection status
+* Connected channel
+* Last successful sync
+* Last attempted sync
+* Number of videos imported
+* Generated blogs
+* Failed syncs
+* Error messages
+* Sync history
 
-* Admin pages
-* Private pages
-* Draft content
-* Customer-specific pages
-* Checkout/payment pages
+Allow:
 
----
+* Manual sync
+* View sync result
+* Review failed items
+* Retry failed sync
 
-# 13. ROBOTS.TXT
-
-Configure robots appropriately.
-
-Allow public website content.
-
-Disallow private/admin areas such as:
-
-```text
-/admin
-```
-
-and other private application routes where appropriate.
-
-Do not accidentally block:
-
-* Products
-* Blogs
-* Public pages
-* Important SEO content
+Do not hide synchronization failures.
 
 ---
 
-# 14. BROKEN-LINK VALIDATION
+# 16. SEO MANAGEMENT
 
-After migration:
+SEO must be manageable for each major content entity.
 
-Check:
+Support individual SEO fields for:
+
+### Pages
+
+* Meta title
+* Meta description
+* Canonical
+* OG title
+* OG description
+* OG image
+* Robots/indexing settings
+
+### Models
+
+Same SEO controls.
+
+### Collections
+
+Same SEO controls.
+
+### Blogs
+
+Same SEO controls.
+
+### Floor Plans
+
+Same SEO controls.
+
+Verify:
+
+* sitemap.xml
+* robots.txt
+* canonical URLs
+* metadata rendering
+* OG tags
+* noindex handling
+
+---
+
+# 17. SHOPIFY SEO + 301 REDIRECT MANAGEMENT
+
+Preserve old Shopify URLs.
+
+Admin should have redirect management where practical.
+
+Support:
+
+* Old URL
+* New URL
+* Redirect type
+* Active/inactive
+* Source entity
+* Creation/update date
+
+Shopify migration must preserve:
 
 * Product URLs
 * Collection URLs
 * Blog URLs
 * Page URLs
-* Images
-* Internal links
-* Redirects
-* Sitemap URLs
 
-Generate a report of:
+All relevant old URLs should redirect using **301 redirects**.
 
-```text
-Working
-Redirected
-Broken
-Missing
-```
+Verify that the existing middleware redirect system and database redirects do not conflict.
 
-Fix all critical broken links before Phase 2 completion.
+Test old Shopify URL → new URL.
 
 ---
 
-# 15. PREMIUM FRONTEND
+# 18. REVIEWS / TESTIMONIALS
 
-Connect the existing public frontend to Supabase.
-
-The frontend must consume CMS-controlled data instead of hardcoded content wherever Phase 1 CMS already supports that content.
-
----
-
-# 16. REQUIRED PUBLIC AREAS
-
-Verify and improve:
-
-### Homepage
-
-* Hero
-* Featured models
-* Collections
-* Features
-* Trust indicators
-* Testimonials
-* Gallery
-* CTA
-* FAQ
-
-### Models
-
-* Model listing
-* Filtering
-* Search
-* Categories
-* Square footage
-* Bedrooms
-* Bathrooms
-* Price
-
-### Model Detail
-
-* Gallery
-* Specifications
-* Pricing
-* Features
-* Floor plans
-* CTA
-* Quote action
-
-### Collections
-
-* Collection landing pages
-* Related models
-
-### Blog
-
-* Blog listing
-* Categories
-* Tags
-* Blog details
-* SEO metadata
-
-### Videos
-
-* Video gallery
-* YouTube integration
-
-### Quote
-
-* Existing Quote Wizard
-* Backend quotation submission
-
-### Contact
-
-* Contact form
-* Lead creation
-
-### Floor Plan
-
-* Upload workflow
-* E-commerce floor-plan catalog
-
----
-
-# 17. DESIGN DIRECTION
-
-The final frontend should look like a premium modular-home / architectural manufacturing platform.
-
-Use:
-
-* Warm orange as primary brand color
-* Cream/light-neutral backgrounds
-* White surfaces
-* Neutral dark typography
-* Premium spacing
-* Strong visual hierarchy
-* Architectural imagery
-* Clean cards
-* Professional CTA sections
-* Subtle animations
-
-IMPORTANT:
-
-### Do NOT use red as the primary brand color.
-
-Review existing styles and replace outdated red-primary branding where necessary.
-
-Do not blindly change every existing color.
-
-Preserve colors that are part of semantic UI states such as:
-
-* error
-* warning
-* success
-* validation
-
----
-
-# 18. TYPOGRAPHY
-
-Maintain the existing typography system if it is already established.
-
-Use consistent:
-
-* Heading hierarchy
-* Body typography
-* Button typography
-* Card titles
-* Navigation typography
-
-Do not introduce unnecessary font libraries.
-
----
-
-# 19. RESPONSIVE DESIGN
-
-Test:
-
-### Desktop
-
-1920px
-1440px
-1280px
-
-### Tablet
-
-1024px
-768px
-
-### Mobile
-
-430px
-390px
-375px
-
-Check:
-
-* Navigation
-* Cards
-* Galleries
-* Tables
-* Forms
-* Quote Wizard
-* Product filters
-* Checkout
-* Floor-plan pages
-
----
-
-# 20. FLOOR-PLAN E-COMMERCE
-
-This is a mandatory Phase 2 feature.
-
-Build a complete floor-plan store.
-
-Customer flow:
-
-```text
-Floor Plan Catalog
-        ↓
-Floor Plan Detail
-        ↓
-Add to Cart / Buy
-        ↓
-Checkout
-        ↓
-Razorpay
-        ↓
-Payment Verification
-        ↓
-Order
-        ↓
-Secure Download
-```
-
----
-
-# 21. FLOOR-PLAN DATABASE
-
-Inspect the existing Supabase schema first.
-
-If required, create structures similar to:
-
-```text
-floor_plans
-orders
-order_items
-payments
-download_access
-```
-
-Potential floor-plan fields:
-
-```text
-id
-title
-slug
-description
-price
-preview_image
-file_path
-category
-bedrooms
-bathrooms
-square_feet
-status
-created_at
-updated_at
-```
-
-Do not implement fields that are unnecessary for the actual application.
-
----
-
-# 22. FLOOR-PLAN ADMIN MANAGEMENT
-
-Where appropriate, connect floor plans to the existing Admin CMS.
+Add CMS management for reviews/testimonials.
 
 Admin should be able to:
 
-* Create floor plan
-* Edit floor plan
-* Upload preview image
-* Upload protected PDF/file
-* Set price
-* Set category
+* Create
+* Edit
+* Delete
 * Publish/unpublish
-* View orders
+* Change customer name
+* Change review text
+* Rating
+* Image where applicable
+* Location
+* Date
+* Featured status
+* Ordering
 
-Protected paid files must not be publicly accessible.
-
----
-
-# 23. SUPABASE STORAGE SECURITY
-
-Use:
-
-### Public storage
-
-For:
-
-* Product images
-* Collection banners
-* Blog images
-* Public website media
-
-### Private storage
-
-For:
-
-* Paid floor-plan PDFs
-* Customer-specific downloads
-* Protected documents
-
-Use signed URLs or an equivalent authorized download mechanism.
-
-Never expose a private bucket's permanent public URL.
+No important testimonials should remain hardcoded in the frontend.
 
 ---
 
-# 24. RAZORPAY INTEGRATION
+# 19. FAQ MANAGEMENT
 
-Use Razorpay Test Mode first.
+Add complete FAQ management.
 
-Environment variables:
+Admin should be able to:
 
-```env
-RAZORPAY_KEY_ID=
-RAZORPAY_KEY_SECRET=
-RAZORPAY_WEBHOOK_SECRET=
-```
+* Create FAQ
+* Edit FAQ
+* Delete FAQ
+* Question
+* Answer
+* Category
+* Page association
+* Publish/unpublish
+* Ordering
 
-Never expose:
-
-```text
-RAZORPAY_KEY_SECRET
-RAZORPAY_WEBHOOK_SECRET
-```
-
-to the browser.
+FAQs should be dynamically loaded on the frontend.
 
 ---
 
-# 25. PAYMENT FLOW
+# 20. ADMIN ROLES
+
+Implement proper role-based access control.
+
+Minimum roles:
+
+### Super Admin
+
+Full access:
+
+* All CMS
+* Products
+* Collections
+* Floor plans
+* Orders
+* Payments
+* Leads
+* Quotes
+* Settings
+* Users
+* Security
+* Activity logs
+* Migration
+* Media
+
+### Content/Admin
+
+Access:
+
+* Pages
+* Sections
+* Products/models
+* Collections
+* Blogs
+* Media
+* Reviews
+* FAQs
+* SEO
+
+Should NOT automatically have access to:
+
+* Payment secrets
+* Security settings
+* Admin user management
+* Sensitive financial controls
+
+### Sales
+
+Access:
+
+* Leads
+* Quotes
+* Customer details required for sales
+* Follow-ups
+* Relevant models/floor plans
+
+Should NOT have unrestricted access to:
+
+* Global settings
+* Security
+* Admin users
+* Payment configuration
+* CMS structure
+
+Permissions must be enforced on the backend/database.
+
+Do NOT rely only on hiding menu items.
+
+---
+
+# 21. TWO-FACTOR AUTHENTICATION
+
+Implement admin 2FA.
+
+Prefer a secure TOTP-based approach compatible with authenticator applications.
+
+Requirements:
+
+* 2FA enrollment
+* QR/setup process
+* Verification
+* Recovery codes
+* Login challenge
+* Disable/reset process requiring appropriate authorization
+* Re-authentication for sensitive security changes
+
+Do not store raw recovery codes.
+
+Hash sensitive recovery credentials where appropriate.
+
+---
+
+# 22. ADMIN SESSION SECURITY
 
 Implement:
 
-```text
-Customer
-   ↓
-Create Order
-   ↓
-Razorpay Checkout
-   ↓
-Payment
-   ↓
-Server Verification
-   ↓
-Webhook
-   ↓
-Payment Status
-   ↓
-Order Status
-   ↓
-Secure Download
-```
+* Automatic inactivity expiration
+* Secure HTTP-only cookies
+* Secure cookie configuration in production
+* Session invalidation
+* Logout
+* Logout all devices/sessions
+* Session/device visibility where practical
 
-The server must verify payment before granting access to the paid floor-plan file.
-
-Do not trust only frontend payment-success callbacks.
+An admin should be able to invalidate all active sessions when necessary.
 
 ---
 
-# 26. ORDER MANAGEMENT
+# 23. LOGIN RATE LIMITING + LOCKOUT
 
-Create an order workflow supporting statuses such as:
+Protect admin authentication against brute force.
 
-```text
-PENDING
-PAYMENT_PENDING
-PAID
-FAILED
-CANCELLED
-REFUNDED
-COMPLETED
-```
+Implement:
 
-Adapt status names to the existing database conventions if they already exist.
+* Login attempt rate limiting
+* Temporary lockout after repeated failures
+* Increasing delay/backoff where appropriate
+* Logging of failed attempts
+* IP/user-based controls where practical
 
-Admin should be able to view:
-
-* Customer
-* Order ID
-* Products
-* Amount
-* Payment status
-* Order status
-* Date
-* Download status
+Do not permanently lock accounts without a recovery mechanism.
 
 ---
 
-# 27. SECURE DOWNLOAD
+# 24. SENSITIVE ACTION CONFIRMATION
 
-After successful verified payment:
+Require confirmation for destructive or high-impact operations.
 
-```text
-Payment Verified
-       ↓
-Order = PAID
-       ↓
-Generate authorized download
-       ↓
-Temporary signed URL
-       ↓
-Customer downloads file
-```
+Examples:
 
-Do not expose the original private storage path publicly.
+* Delete model
+* Delete page
+* Delete collection
+* Delete floor plan
+* Delete order-related records
+* Delete blog
+* Delete media
+* Change pricing
+* Change global settings
+* Create admin
+* Delete admin
+* Change role
+* Change 2FA/security settings
 
----
+For highly sensitive security/account actions require:
 
-# 28. CART / CHECKOUT
-
-Inspect whether a cart already exists.
-
-If it exists:
-
-* Reuse it.
-* Improve it where necessary.
-
-If it does not exist:
-
-Implement a minimal reliable floor-plan purchase flow.
-
-Do not introduce unnecessary state-management libraries if the existing architecture already provides an appropriate solution.
+* Current password confirmation
+* 2FA confirmation where applicable
 
 ---
 
-# 29. PHASE 2 API/SERVER STRUCTURE
+# 25. ADMIN ACTIVITY LOG
 
-Reuse existing API routes/server actions.
+Create an Admin Activity Log.
 
-Potential server operations:
+Record:
 
-```text
-Shopify migration
-Product migration
-Collection migration
-Blog migration
-Floor-plan creation
-Order creation
-Payment verification
-Razorpay webhook
-Secure download
-```
+* Admin user
+* Role
+* Action
+* Entity/type
+* Entity ID
+* Description
+* Timestamp
+* IP address where appropriate
+* User agent where appropriate
+* Before/after data for important changes where appropriate
 
-Keep sensitive operations server-side.
+Examples:
+
+* Login
+* Failed login
+* Logout
+* Model created
+* Model edited
+* Price changed
+* Page deleted
+* Settings changed
+* Admin user created
+* Role changed
+* Order viewed
+* Refund/payment action where supported
+* Security setting changed
+
+Activity logs should be protected from normal modification/deletion.
 
 ---
 
-# 30. SUPABASE SECURITY
+# 26. CONTENT VERSION HISTORY
+
+For important CMS content, maintain previous versions where practical.
+
+At minimum consider:
+
+* Pages
+* Sections
+* Blogs
+* Models
+* Collections
+* Global settings
+
+Store:
+
+* Previous data
+* Changed by
+* Changed at
+
+Provide a restore capability for appropriate content.
+
+The goal is to recover from accidental changes.
+
+---
+
+# 27. SUPABASE RLS + BACKEND AUTHORIZATION
+
+This is CRITICAL.
+
+Do not depend on:
+
+* Frontend route protection
+* Hidden buttons
+* Admin-only navigation
+
+Every sensitive operation must be protected.
+
+Implement and verify:
+
+* Supabase RLS
+* Server-side authorization
+* Role checks
+* API authorization
+* Ownership/access checks
+* Admin session verification
+
+Verify that unauthorized users cannot access:
+
+* Leads
+* Quotes
+* Orders
+* Payments
+* Customer information
+* Private files
+* Admin settings
+
+Test APIs directly, not only through the UI.
+
+---
+
+# 28. SECRETS MANAGEMENT
+
+Never expose:
+
+* Supabase service-role key
+* Stripe secret key
+* Stripe webhook secret
+* OpenAI API key
+* Shopify Admin credentials
+* YouTube credentials
+* Email provider credentials
+
+These must only exist in secure server-side environment variables.
+
+Review the complete codebase for accidental exposure.
+
+Check:
+
+* Client components
+* `NEXT_PUBLIC_*`
+* API responses
+* browser network requests
+* logs
+* Git history where appropriate
+
+Only genuinely public values should use `NEXT_PUBLIC_*`.
+
+---
+
+# 29. CUSTOMER DATA PROTECTION
+
+Customer information must only be available to authorized admin roles.
+
+Protect:
+
+* Email
+* Phone
+* Address
+* Quote information
+* Lead information
+* Order information
+* Payment information
+
+Do not expose customer data through public APIs.
+
+Check all:
+
+* `/api/*`
+* Server actions
+* Public data functions
+* Supabase policies
+* Search endpoints
+* Frontend requests
+
+---
+
+# 30. PRIVATE FLOOR-PLAN FILE SECURITY
+
+Paid files must use private storage.
+
+Required flow:
+
+Customer completes Stripe payment
+→ verified Stripe webhook
+→ order/payment validated
+→ download access generated
+→ signed/time-limited URL
+→ authorized download
+
+Do NOT trust:
+
+* Frontend payment status
+* Query parameters
+* Client-side order status
+* Client-provided payment IDs without verification
+
+A user must not be able to access a paid CAD/PDF/ZIP file without a valid purchase.
+
+---
+
+# 31. FILE UPLOAD SECURITY
+
+Validate all uploads server-side.
+
+Restrict:
+
+* MIME type
+* File extension
+* File size
+* Storage destination
+
+Pay particular attention to:
+
+* PDF
+* DWG
+* ZIP
+* Images
+* Documents
+
+Do not allow executable files through customer/admin upload endpoints unless there is an explicitly required and secured use case.
+
+Validate files before storing them.
+
+---
+
+# 32. PUBLIC FORM SECURITY
+
+Protect:
+
+* Contact forms
+* Quote forms
+* Lead forms
+* Floor-plan related forms
+* Upload forms
+
+Implement:
+
+* Rate limiting
+* Server-side validation
+* CAPTCHA/Cloudflare Turnstile where appropriate
+* Spam protection
+* Input sanitization
+
+Do not rely only on client-side validation.
+
+---
+
+# 33. XSS / SQL INJECTION / UNSAFE HTML
+
+Review every dynamic input.
+
+Protect against:
+
+* XSS
+* SQL injection
+* unsafe HTML
+* malicious URLs
+* malicious uploaded files
+
+Use parameterized Supabase/database queries.
+
+If rich HTML content is supported, sanitize it before rendering.
+
+Avoid unsafe HTML rendering unless content has been properly sanitized.
+
+---
+
+# 34. CSRF + SECURITY HEADERS
+
+Review application security headers.
+
+Configure appropriate:
+
+* Content Security Policy where practical
+* X-Frame-Options/frame-ancestors
+* X-Content-Type-Options
+* Referrer-Policy
+* Permissions-Policy
+* Strict-Transport-Security in production
+
+Protect state-changing operations against CSRF where applicable.
+
+Review cookies:
+
+* HttpOnly
+* Secure
+* SameSite
+
+---
+
+# 35. STRIPE SECURITY
+
+Stripe must remain the payment authority.
+
+Never store card information.
+
+Never trust frontend payment status.
+
+Payment/order confirmation must come from verified Stripe webhooks.
+
+Verify:
+
+* Webhook signature
+* Event type
+* Payment/order identity
+* Amount where appropriate
+* Currency where appropriate
+* Idempotency
+
+Ensure duplicate webhook events cannot create duplicate orders/download access.
+
+---
+
+# 36. DATABASE BACKUPS
+
+Configure a reliable Supabase backup strategy.
 
 Review:
 
-* RLS policies
-* Admin authorization
-* Public read policies
-* Protected writes
-* Storage policies
-* Server-side secrets
-* API routes
+* Automated backups
+* Point-in-time recovery availability for the client's Supabase plan
+* Recovery procedure
+* Backup retention
+* Migration backup procedure
 
-A user must never be able to:
+Before major schema/data migrations:
 
-* Edit products without authorization
-* Modify orders
-* Mark payments as paid
-* Download unpaid floor plans
-* Access private admin data
+1. Backup
+2. Apply migration
+3. Verify
+4. Test
+5. Keep recovery path available
 
----
-
-# 31. DO NOT IMPLEMENT PHASE 3 YET
-
-Do NOT implement the following unless required for Phase 2 compatibility:
-
-* AI chatbot
-* AI lead qualification
-* AI-generated blogs
-* AI quotation assistance
-* YouTube → AI blog automation
-* Advanced AI lead generation
-
-These belong to Phase 3.
-
-You may create clean integration points for them, but do not spend Phase 2 time implementing them.
+Document the recovery process.
 
 ---
 
-# 32. ENVIRONMENT VARIABLES
+# 37. END-TO-END ADMIN VERIFICATION
 
-Inspect the current `.env` structure first.
+Do not stop when the admin UI looks correct.
 
-Add only required variables.
+For every major admin feature test:
 
-Expected categories:
-
-```env
-# Supabase
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=
-SUPABASE_SECRET_KEY=
-
-# Shopify
-SHOPIFY_STORE_DOMAIN=
-SHOPIFY_ACCESS_TOKEN=
-
-# Razorpay
-RAZORPAY_KEY_ID=
-RAZORPAY_KEY_SECRET=
-RAZORPAY_WEBHOOK_SECRET=
-
-# Site
-NEXT_PUBLIC_SITE_URL=
+```text
+Admin UI
+   ↓
+API / Server Action
+   ↓
+Authorization
+   ↓
+Supabase
+   ↓
+Database
+   ↓
+Public API/Data Layer
+   ↓
+Frontend
 ```
 
-Do not invent unnecessary variables.
+Verify that actual frontend content changes after admin changes.
 
----
+Test at minimum:
 
-# 33. PERFORMANCE
+### Models
 
-Optimize:
+Create/edit/delete/price/gallery/SEO/collections.
 
-* Images
-* Server-side queries
-* Database queries
-* Product listing
-* Blog listing
-* Shopify migration operations
-* Supabase requests
-* Large media
-* Dynamic pages
+### Collections
 
-Avoid:
+Create/edit/assign models/remove models/SEO.
 
-* N+1 queries
-* Large client-side payloads
-* Base64 images
-* Unnecessary API calls
-* Blocking server requests
-* Duplicate data fetching
+### Floor Plans
 
-Use Next.js image optimization where appropriate.
+Create/edit/pricing/files/orders/download authorization.
 
----
+### Leads
 
-# 34. ERROR HANDLING
+Open/details/notes/status/follow-up/history.
 
-Every external integration should handle:
+### Quotes
 
-* Authentication failure
-* Rate limits
-* Network errors
-* Invalid responses
-* Missing data
-* Duplicate records
-* Payment failures
-* Webhook failures
-* Storage errors
+Details/status/quotation/follow-up.
 
-Show user-friendly messages on the frontend.
+### Pages
 
-Log useful technical information server-side without exposing secrets.
+Sections/add/edit/delete/hide/show/reorder.
 
----
+### Homepage
 
-# 35. TESTING
+Every existing section editable from admin.
 
-Before declaring Phase 2 complete, test:
+### Header/Footer
 
-### Shopify
+Menu/dropdowns/footer links.
 
-* Product migration
-* Collection migration
-* Page migration
-* Blog migration
-* Media migration
-* Duplicate handling
-* Error handling
+### Global Settings
 
-### Frontend
+Every setting connected to frontend.
 
-* Homepage
-* Models
-* Product details
-* Collections
-* Blog
-* Videos
-* Quote
-* Contact
-* Floor plans
+### Media
+
+Upload/reuse/delete/authorization.
+
+### Blogs
+
+Create/edit/publish/SEO/media/video.
+
+### YouTube
+
+Sync/status/history/errors/retry.
 
 ### SEO
 
-* Metadata
-* Sitemap
-* Robots
-* Canonical URLs
-* Redirects
-* Broken links
+Metadata/sitemap/robots/canonical/redirects.
 
-### E-commerce
+### Reviews
 
-* Floor-plan listing
-* Product detail
-* Cart
-* Checkout
-* Razorpay Test Mode
-* Payment verification
-* Webhook
-* Order creation
-* Secure download
+CRUD + frontend.
 
-### Security
+### FAQs
 
-* RLS
-* Admin authorization
-* Payment verification
-* Private file access
-* Secret exposure
-
-### Responsive
-
-Test mobile, tablet and desktop.
+CRUD + frontend.
 
 ---
 
-# 36. SEVEN-DAY PHASE 2 SCHEDULE
+# 38. SECURITY TEST MATRIX
 
-## DAY 1
+Before completion, test:
 
-* Inspect complete project
-* Inspect Supabase schema
-* Inspect Phase 1 implementation
-* Configure Shopify API
-* Create migration architecture
-* Prepare migration mappings
+### Authentication
 
-## DAY 2
+* Correct credentials
+* Incorrect credentials
+* Repeated failed login
+* 2FA
+* Session expiration
+* Logout
+* Logout all sessions
 
-* Product migration
-* Collection migration
-* Product relationships
-* Duplicate detection
+### Authorization
 
-## DAY 3
+Test every role against every sensitive module.
 
-* Page migration
-* Blog migration
-* Media migration
-* Content validation
+### API
 
-## DAY 4
+Attempt unauthorized requests directly.
 
-* SEO migration
-* Redirect system
-* Sitemap
-* Robots
-* Frontend CMS integration
+### Database
 
-## DAY 5
+Verify RLS prevents unauthorized data access.
 
-* Premium frontend refinement
-* Product/model pages
-* Collections
-* Floor-plan catalog
-* Floor-plan detail pages
+### Storage
 
-## DAY 6
+Attempt direct access to private files.
 
-* Cart/checkout
-* Razorpay Test Mode
-* Order creation
-* Payment verification
-* Webhooks
-* Secure downloads
+### Payments
 
-## DAY 7
+Attempt fake frontend payment success.
 
-* Full integration testing
-* SEO validation
-* Responsive testing
-* Security testing
-* Performance checks
-* Fix critical issues
-* Final Phase 2 report
+### Webhooks
+
+Test invalid webhook signatures.
+
+### Forms
+
+Test spam/rate limits.
+
+### Uploads
+
+Test invalid file types and oversized files.
+
+### XSS
+
+Test malicious text in CMS fields/forms.
+
+### SQL injection
+
+Verify query handling.
+
+### Secrets
+
+Verify no secret is exposed to browser.
 
 ---
 
-# 37. ACCEPTANCE CRITERIA
+# 39. DO NOT MARK FEATURES COMPLETE BASED ONLY ON UI
 
-Phase 2 should be considered complete only when:
+A feature is complete only when:
 
-* Shopify data can be migrated successfully.
-* Products appear correctly in the new CMS/frontend.
-* Collections work correctly.
-* Pages and blogs are migrated.
-* Media is correctly stored/referenced.
-* SEO metadata is preserved.
-* Redirects work.
-* Sitemap works.
-* Robots configuration works.
-* Public frontend uses the Supabase-backed CMS.
-* Premium visual direction is implemented.
-* Warm orange/light-neutral branding is applied.
-* Floor-plan catalog works.
-* Floor-plan detail pages work.
-* Razorpay Test Mode works.
-* Payment verification works server-side.
-* Orders are created correctly.
-* Protected floor-plan files cannot be accessed without authorization.
-* Responsive layouts work.
-* No critical security issues remain.
-* No critical broken links remain.
+1. Admin control exists
+2. Database stores the change
+3. API/server authorization works
+4. RLS/permissions work
+5. Public website reflects the change
+6. Validation works
+7. Security is verified
+8. Error handling works
+
+Do not create placeholder controls.
+
+Do not leave hardcoded frontend data when an admin-controlled equivalent exists.
 
 ---
 
-# 38. FINAL REPORT
+# 40. DEVELOPMENT APPROACH
 
-At the end, provide a detailed implementation report containing:
+Work in this order:
+
+### Step 1
+
+Inspect the entire existing implementation.
+
+### Step 2
+
+Map every client requirement to:
+
+* Existing feature
+* Partially implemented feature
+* Missing feature
+* Broken feature
+
+### Step 3
+
+Fix database relationships/schema where necessary.
+
+### Step 4
+
+Fix APIs and server-side authorization.
+
+### Step 5
+
+Complete admin functionality.
+
+### Step 6
+
+Connect admin data to frontend.
+
+### Step 7
+
+Implement security/RLS/roles/2FA.
+
+### Step 8
+
+Implement activity logs/version history.
+
+### Step 9
+
+Test storage/payment/security.
+
+### Step 10
+
+Perform complete end-to-end regression testing.
+
+---
+
+# 41. IMPORTANT PRESERVATION RULE
+
+Do not break existing working functionality.
+
+Before changing:
+
+* Stripe
+* Shopify migration
+* Supabase
+* public pages
+* middleware
+* SEO
+* floor-plan downloads
+
+inspect the current implementation first.
+
+Reuse existing utilities and services where possible.
+
+Avoid unnecessary rewrites.
+
+---
+
+# 42. FINAL ACCEPTANCE CRITERIA
+
+The Admin Backend should be considered complete only when the client can independently:
+
+* Manage all Home Models
+* Manage Collections
+* Assign models to collections
+* Manage Floor Plans
+* Manage floor-plan files
+* View complete Orders
+* Manage Leads
+* Manage Quote Submissions
+* Manage Homepage sections
+* Manage all pages
+* Reorder sections
+* Manage Header/Menu
+* Manage Footer
+* Manage Global Settings
+* Manage Media
+* Manage Articles
+* Monitor YouTube sync
+* Manage SEO
+* Manage Shopify redirects
+* Manage Reviews
+* Manage FAQs
+* Manage admin users/roles
+* Use 2FA
+* Review activity logs
+* Restore important content versions
+
+without requiring developer code changes for normal website operations.
+
+Security acceptance additionally requires:
+
+* 2FA
+* Role-based authorization
+* Session expiration
+* Logout-all-sessions
+* Login rate limiting
+* Sensitive-action confirmation
+* Activity logging
+* Supabase RLS
+* Server-side authorization
+* Private file storage
+* Secure signed downloads
+* Secure Stripe webhooks
+* Upload validation
+* Public-form rate limiting
+* XSS/input protection
+* Security headers
+* Secret protection
+* Database backup/recovery strategy
+
+---
+
+# 43. FINAL REPORT
+
+After implementation, provide a detailed report containing:
 
 ### Completed
 
-List everything implemented.
+List every completed feature.
 
 ### Partially Completed
 
-List anything requiring client access, credentials or additional work.
+List anything dependent on external credentials, client decisions, or third-party configuration.
 
 ### Not Completed
 
-List anything intentionally deferred to Phase 3.
+Clearly identify anything remaining.
 
 ### Database Changes
 
 List:
 
-* New Supabase tables
+* New tables
 * Modified tables
-* New columns
-* Indexes
+* Columns
+* Relationships
 * RLS policies
-* Storage buckets
+* Indexes
 
-### API Integrations
+### API Changes
+
+List every new/modified endpoint.
+
+### Security Changes
 
 List:
 
-* Shopify
-* Razorpay
-* Supabase
-* Any other integration
+* 2FA
+* RBAC
+* RLS
+* Sessions
+* Rate limiting
+* Activity logs
+* Storage security
+* Webhook security
+* Upload validation
 
 ### Environment Variables
 
-List every new environment variable required.
+List all required environment variables without exposing secret values.
 
 ### Testing
 
-Provide:
+Report:
 
-* Tests performed
-* Results
-* Failed tests
-* Fixed issues
-* Remaining issues
+* TypeScript check
+* Build
+* API tests
+* Admin tests
+* Role tests
+* RLS tests
+* Storage tests
+* Stripe webhook tests
+* Security tests
+* Frontend end-to-end tests
 
-### Phase 3 Preparation
+### Remaining Client Requirements
 
-Explain exactly what integration points are ready for:
+Clearly identify anything that requires client credentials or external configuration.
 
-* AI chatbot
-* AI lead generation
-* YouTube-to-blog automation
-* AI-assisted quotations
-* Notifications
+Do not claim something is complete merely because the UI exists.
 
----
+The final goal is:
 
-# FINAL RULE
-
-Do not assume that a feature is missing simply because it is not obvious.
-
-**Inspect first → understand existing implementation → reuse existing code → extend where necessary → test → document.**
-
-The objective is not to rewrite ModularHome.
-
-The objective is to **complete Phase 2 on top of the existing Phase 1 architecture while preserving all working functionality.**
+**"The client can operate and manage the entire website from the admin without contacting the developer for normal content, product, CMS, SEO, lead, quote, order, or website changes."**

@@ -383,6 +383,135 @@ CREATE TABLE IF NOT EXISTS redirects (
 CREATE INDEX IF NOT EXISTS idx_redirects_source ON redirects(source_path);
 
 -- ==============================================================================
+-- 18. ADMIN AUDIT TRAILS & ACTIVITY LOGS
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID REFERENCES admin_users(id) ON DELETE SET NULL,
+  user_name TEXT,
+  user_role TEXT,
+  action TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT,
+  description TEXT,
+  details JSONB DEFAULT '{}'::jsonb,
+  ip_address TEXT,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_logs_user ON activity_logs(user_id);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_action ON activity_logs(action);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_entity ON activity_logs(entity_type, entity_id);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_created ON activity_logs(created_at);
+
+-- ==============================================================================
+-- 19. CONTENT VERSION HISTORY & RESTORE REVISIONS
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS content_versions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  entity_type TEXT NOT NULL, -- 'pages', 'products', 'collections', 'blogs', 'global_settings'
+  entity_id TEXT NOT NULL,
+  version_number INTEGER NOT NULL DEFAULT 1,
+  data JSONB NOT NULL,
+  created_by UUID REFERENCES admin_users(id) ON DELETE SET NULL,
+  creator_name TEXT,
+  notes TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_content_versions_lookup ON content_versions(entity_type, entity_id, version_number);
+
+-- ==============================================================================
+-- 20. MEDIA LIBRARY ASSETS
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS media_assets (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  filename TEXT NOT NULL,
+  file_path TEXT NOT NULL,
+  public_url TEXT NOT NULL,
+  mime_type TEXT,
+  file_size BIGINT,
+  width INTEGER,
+  height INTEGER,
+  alt_text TEXT,
+  uploaded_by UUID REFERENCES admin_users(id) ON DELETE SET NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_media_assets_mime ON media_assets(mime_type);
+CREATE INDEX IF NOT EXISTS idx_media_assets_created ON media_assets(created_at);
+
+-- ==============================================================================
+-- 21. REVIEWS & TESTIMONIALS CMS
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS reviews (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_name TEXT NOT NULL,
+  location TEXT,
+  rating INTEGER DEFAULT 5,
+  review_text TEXT NOT NULL,
+  project_title TEXT,
+  image_url TEXT,
+  status TEXT DEFAULT 'PUBLISHED', -- 'PUBLISHED', 'DRAFT'
+  is_featured BOOLEAN DEFAULT true,
+  display_order INTEGER DEFAULT 0,
+  review_date TIMESTAMPTZ DEFAULT now(),
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_reviews_status ON reviews(status);
+CREATE INDEX IF NOT EXISTS idx_reviews_featured ON reviews(is_featured);
+
+-- ==============================================================================
+-- 22. FAQS CMS
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS faqs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  question TEXT NOT NULL,
+  answer TEXT NOT NULL,
+  category TEXT DEFAULT 'General',
+  page_slug TEXT DEFAULT 'all',
+  status TEXT DEFAULT 'PUBLISHED', -- 'PUBLISHED', 'DRAFT'
+  display_order INTEGER DEFAULT 0,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_faqs_status ON faqs(status);
+CREATE INDEX IF NOT EXISTS idx_faqs_category ON faqs(category);
+
+-- ==============================================================================
+-- 23. LOGIN ATTEMPTS & RATE LIMITING
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS login_attempts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT NOT NULL,
+  ip_address TEXT,
+  attempt_count INTEGER DEFAULT 1,
+  last_attempt_at TIMESTAMPTZ DEFAULT now(),
+  locked_until TIMESTAMPTZ
+);
+
+CREATE INDEX IF NOT EXISTS idx_login_attempts_email ON login_attempts(email);
+
+-- Update admin_users with 2FA columns if needed
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS two_factor_secret TEXT;
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS two_factor_enabled BOOLEAN DEFAULT false;
+ALTER TABLE admin_users ADD COLUMN IF NOT EXISTS two_factor_recovery_codes JSONB DEFAULT '[]'::jsonb;
+
+-- Update leads and quotations with CRM management fields
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS assigned_to UUID REFERENCES admin_users(id);
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS follow_up_date TIMESTAMPTZ;
+ALTER TABLE leads ADD COLUMN IF NOT EXISTS lead_history JSONB DEFAULT '[]'::jsonb;
+
+ALTER TABLE quotations ADD COLUMN IF NOT EXISTS assigned_to UUID REFERENCES admin_users(id);
+ALTER TABLE quotations ADD COLUMN IF NOT EXISTS follow_up_date TIMESTAMPTZ;
+ALTER TABLE quotations ADD COLUMN IF NOT EXISTS quote_history JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE quotations ADD COLUMN IF NOT EXISTS internal_notes TEXT;
+
+-- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- ==============================================================================
 
@@ -404,6 +533,12 @@ ALTER TABLE order_items ENABLE ROW LEVEL SECURITY;
 ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE download_access ENABLE ROW LEVEL SECURITY;
 ALTER TABLE redirects ENABLE ROW LEVEL SECURITY;
+ALTER TABLE activity_logs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE content_versions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE media_assets ENABLE ROW LEVEL SECURITY;
+ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
+ALTER TABLE faqs ENABLE ROW LEVEL SECURITY;
+ALTER TABLE login_attempts ENABLE ROW LEVEL SECURITY;
 
 -- Public Read Policies
 CREATE POLICY "Public can read published products" ON products FOR SELECT USING (is_published = true);
@@ -415,6 +550,9 @@ CREATE POLICY "Public can read published blogs" ON blogs FOR SELECT USING (statu
 CREATE POLICY "Public can read global settings" ON global_settings FOR SELECT USING (true);
 CREATE POLICY "Public can read published floor plans" ON floor_plans FOR SELECT USING (status = 'PUBLISHED');
 CREATE POLICY "Public can read active redirects" ON redirects FOR SELECT USING (is_active = true);
+CREATE POLICY "Public can read published reviews" ON reviews FOR SELECT USING (status = 'PUBLISHED');
+CREATE POLICY "Public can read published faqs" ON faqs FOR SELECT USING (status = 'PUBLISHED');
+CREATE POLICY "Public can read media assets" ON media_assets FOR SELECT USING (true);
 
 -- Public Insert Policies
 CREATE POLICY "Public can submit leads" ON leads FOR INSERT WITH CHECK (true);
@@ -441,6 +579,12 @@ CREATE POLICY "Service role full access on order_items" ON order_items FOR ALL U
 CREATE POLICY "Service role full access on payments" ON payments FOR ALL USING (auth.jwt() IS NULL OR true);
 CREATE POLICY "Service role full access on download_access" ON download_access FOR ALL USING (auth.jwt() IS NULL OR true);
 CREATE POLICY "Service role full access on redirects" ON redirects FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on activity_logs" ON activity_logs FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on content_versions" ON content_versions FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on media_assets" ON media_assets FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on reviews" ON reviews FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on faqs" ON faqs FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on login_attempts" ON login_attempts FOR ALL USING (auth.jwt() IS NULL OR true);
 
 -- Schema and Table Permissions for PostgREST & Supabase Client Roles
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
@@ -451,3 +595,4 @@ GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO anon, authenticated, service_role;
+

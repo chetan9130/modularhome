@@ -182,3 +182,61 @@ export async function requireAdminAuth(): Promise<NextResponse | AdminSessionUse
   return session;
 }
 
+/**
+ * Route protection helper that verifies the current admin user possesses one of the allowed roles
+ */
+export async function requireAdminRole(
+  allowedRoles: string[]
+): Promise<NextResponse | AdminSessionUser> {
+  const authResult = await requireAdminAuth();
+  if (authResult instanceof NextResponse) {
+    return authResult;
+  }
+
+  const userRole = (authResult.role || "SUPER_ADMIN").toUpperCase();
+  // Normalize legacy 'ADMIN' or 'EDITOR'
+  const normalizedRole =
+    userRole === "ADMIN" ? "SUPER_ADMIN" : userRole === "EDITOR" ? "CONTENT_ADMIN" : userRole;
+
+  const normalizedAllowed = allowedRoles.map((r) =>
+    r.toUpperCase() === "ADMIN" ? "SUPER_ADMIN" : r.toUpperCase() === "EDITOR" ? "CONTENT_ADMIN" : r.toUpperCase()
+  );
+
+  if (!normalizedAllowed.includes(normalizedRole) && normalizedRole !== "SUPER_ADMIN") {
+    return NextResponse.json(
+      {
+        success: false,
+        error: {
+          message: `Forbidden. Your role (${authResult.role}) does not have permission for this action.`,
+          code: "FORBIDDEN",
+        },
+      },
+      { status: 403 }
+    );
+  }
+
+  return authResult;
+}
+
+/**
+ * Invalidates all active sessions for a specific user across all devices
+ */
+export async function invalidateAllUserSessions(userId: string): Promise<void> {
+  // 1. Remove from memory store
+  for (const [token, record] of Array.from(memorySessions.entries())) {
+    if (record.user.id === userId) {
+      memorySessions.delete(token);
+    }
+  }
+
+  // 2. Remove from Supabase sessions
+  if (isSupabaseConfigured() && userId !== "admin-root") {
+    try {
+      await supabaseAdmin.from("sessions").delete().eq("user_id", userId);
+    } catch (e) {
+      console.warn("Could not invalidate sessions in Supabase:", e);
+    }
+  }
+}
+
+

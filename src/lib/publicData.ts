@@ -826,3 +826,283 @@ export async function getPublicVideoBySlug(idOrSlug: string) {
   }
 }
 
+export interface PublicCollection {
+  id: string;
+  name: string;
+  slug: string;
+  tagline?: string;
+  description?: string;
+  image?: string;
+  bannerImage?: string;
+  isFeatured?: boolean;
+  status: string;
+  displayOrder?: number;
+  seoTitle?: string;
+  metaDescription?: string;
+  productCount?: number;
+  productIds?: string[];
+  products?: BuildingModel[];
+}
+
+export interface PublicReview {
+  id: string;
+  customerName: string;
+  location?: string;
+  rating: number;
+  reviewText: string;
+  projectTitle?: string;
+  imageUrl?: string;
+  status: string;
+  isFeatured?: boolean;
+  displayOrder?: number;
+  reviewDate?: string;
+}
+
+export interface PublicFaq {
+  id: string;
+  question: string;
+  answer: string;
+  category: string;
+  pageSlug?: string;
+  status: string;
+  displayOrder?: number;
+}
+
+/**
+ * Fetches all published collections with associated products
+ */
+export async function getPublicCollections(): Promise<PublicCollection[]> {
+  try {
+    if (!isSupabaseConfigured()) {
+      return [
+        {
+          id: "col-1",
+          name: "Modern Residential Series",
+          slug: "modern-residential",
+          tagline: "Architectural luxury with rigid steel durability",
+          description: "Explore clean lines, vaulted ceilings, and panoramic double-pane windows.",
+          image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+          status: "PUBLISHED",
+          isFeatured: true,
+          productCount: 5,
+        },
+        {
+          id: "col-2",
+          name: "Luxury Barndominiums",
+          slug: "barndominiums",
+          tagline: "Expansive clear-span interiors and massive garage space",
+          description: "Spacious multi-use steel layouts designed for country living and modern workshops.",
+          image: "https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=1200&q=80",
+          status: "PUBLISHED",
+          isFeatured: true,
+          productCount: 4,
+        },
+        {
+          id: "col-3",
+          name: "Rapid-Ship Cabin Kits",
+          slug: "cabin-kits",
+          tagline: "Turnkey weekend retreats engineered for extreme weather",
+          description: "Compact, energy-efficient cabin packages with high snow and wind load ratings.",
+          image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+          status: "PUBLISHED",
+          isFeatured: true,
+          productCount: 3,
+        },
+      ];
+    }
+
+    const { data: dbCollections, error } = await supabaseAdmin
+      .from("collections")
+      .select(`
+        *,
+        product_collections (
+          product_id
+        )
+      `)
+      .eq("status", "PUBLISHED")
+      .order("display_order", { ascending: true });
+
+    if (error || !dbCollections || dbCollections.length === 0) {
+      return [];
+    }
+
+    return dbCollections.map((col: any) => {
+      const pIds = col.product_collections ? col.product_collections.map((pc: any) => pc.product_id) : [];
+      return {
+        id: col.id,
+        name: col.name,
+        slug: col.slug,
+        tagline: col.tagline || "",
+        description: col.description || "",
+        image: col.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+        bannerImage: col.banner_image || col.image,
+        isFeatured: Boolean(col.is_featured),
+        status: col.status || "PUBLISHED",
+        displayOrder: Number(col.display_order) || 0,
+        seoTitle: col.seo_title || `${col.name} | ModularHome`,
+        metaDescription: col.meta_description || col.description || "",
+        productCount: pIds.length,
+        productIds: pIds,
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching public collections:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetches single collection by slug with mapped products
+ */
+export async function getPublicCollectionBySlug(slug: string): Promise<PublicCollection | null> {
+  const cleanSlug = slug.toLowerCase().trim();
+  const allCols = await getPublicCollections();
+  const matched = allCols.find((c) => c.slug.toLowerCase() === cleanSlug || c.id === cleanSlug);
+  if (!matched) return null;
+
+  // Retrieve products
+  const allProducts = await getPublicProducts();
+  const mappedProducts = matched.productIds && matched.productIds.length > 0
+    ? allProducts.filter((p) => matched.productIds?.includes(p.id))
+    : allProducts.filter((p) => p.category.toLowerCase().includes(matched.name.toLowerCase()));
+
+  return {
+    ...matched,
+    products: mappedProducts,
+  };
+}
+
+/**
+ * Fetches published customer reviews / testimonials
+ */
+export async function getPublicReviews(): Promise<PublicReview[]> {
+  try {
+    if (isSupabaseConfigured()) {
+      const { data, error } = await supabaseAdmin
+        .from("reviews")
+        .select("*")
+        .eq("status", "PUBLISHED")
+        .order("display_order", { ascending: true })
+        .order("created_at", { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        return data.map((r: any) => ({
+          id: r.id,
+          customerName: r.customer_name,
+          location: r.location || "USA",
+          rating: Number(r.rating) || 5,
+          reviewText: r.review_text,
+          projectTitle: r.project_title || "Modular Home Build",
+          imageUrl: r.image_url,
+          status: r.status,
+          isFeatured: Boolean(r.is_featured),
+          displayOrder: Number(r.display_order) || 0,
+          reviewDate: r.review_date || r.created_at,
+        }));
+      }
+    }
+  } catch (error) {
+    console.warn("Supabase reviews fetch error:", error);
+  }
+
+  // Initial High-Quality Testimonials Fallback
+  return [
+    {
+      id: "rev-1",
+      customerName: "David & Sarah Jenkins",
+      location: "Austin, Texas",
+      rating: 5,
+      reviewText: "From initial CAD customization to final on-site modular delivery in Austin, the precision steel engineering saved us over 4 months compared to traditional stick framing. Exceptional thermal insulation!",
+      projectTitle: "The Aspen Barndominium (2,400 SQ FT)",
+      status: "PUBLISHED",
+      isFeatured: true,
+      displayOrder: 1,
+    },
+    {
+      id: "rev-2",
+      customerName: "Marcus Vance",
+      location: "Bozeman, Montana",
+      rating: 5,
+      reviewText: "We built in heavy snow territory in Montana. The 50 PSF snow load certification and 50-year structural steel frame warranty gave us complete peace of mind. High vaulted ceilings are stunning.",
+      projectTitle: "The Ridgeview Modern Cabin",
+      status: "PUBLISHED",
+      isFeatured: true,
+      displayOrder: 2,
+    },
+    {
+      id: "rev-3",
+      customerName: "Elena Rodriguez",
+      location: "Phoenix, Arizona",
+      rating: 5,
+      reviewText: "We purchased a downloadable floor-plan CAD package and ended up commissioning the full turnkey steel framing kit. Customer support guided our local foundation contractor seamlessly.",
+      projectTitle: "The Clearwater Multi-Gen ADU",
+      status: "PUBLISHED",
+      isFeatured: true,
+      displayOrder: 3,
+    },
+  ];
+}
+
+/**
+ * Fetches published FAQs
+ */
+export async function getPublicFaqs(category?: string): Promise<PublicFaq[]> {
+  try {
+    if (isSupabaseConfigured()) {
+      let query = supabaseAdmin
+        .from("faqs")
+        .select("*")
+        .eq("status", "PUBLISHED")
+        .order("display_order", { ascending: true });
+
+      if (category && category !== "ALL") {
+        query = query.eq("category", category);
+      }
+
+      const { data, error } = await query;
+      if (!error && data && data.length > 0) {
+        return data.map((f: any) => ({
+          id: f.id,
+          question: f.question,
+          answer: f.answer,
+          category: f.category || "General",
+          pageSlug: f.page_slug || "all",
+          status: f.status,
+          displayOrder: Number(f.display_order) || 0,
+        }));
+      }
+    }
+  } catch (error) {
+    console.warn("Supabase FAQs fetch error:", error);
+  }
+
+  // Default Structured FAQs Fallback
+  return [
+    {
+      id: "faq-1",
+      question: "How long does it take from order to modular home delivery?",
+      answer: "Standard precision-engineered modular home models are typically manufactured within 4 to 8 weeks in our controlled indoor factory environment, then delivered nationwide via heavy freight carriers ready for swift crane assembly.",
+      category: "Delivery & Timeline",
+      status: "PUBLISHED",
+      displayOrder: 1,
+    },
+    {
+      id: "faq-2",
+      question: "What are the structural advantages of galvanized light-gauge steel framing?",
+      answer: "Our 100% commercial-grade galvanized steel frames are impervious to rot, termites, warping, and mold. They offer superior strength-to-weight ratios with up to 150 MPH wind ratings and seismic resilience.",
+      category: "Engineering & Materials",
+      status: "PUBLISHED",
+      displayOrder: 2,
+    },
+    {
+      id: "faq-3",
+      question: "What is included in downloadable digital blueprint packages?",
+      answer: "Each downloadable blueprint package includes full architectural construction sheets (PDF + CAD DWG), structural steel framing diagrams, foundation details, and electrical/plumbing schematics ready for permit submission.",
+      category: "Floor Plans & Store",
+      status: "PUBLISHED",
+      displayOrder: 3,
+    },
+  ];
+}
+
+

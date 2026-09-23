@@ -59,6 +59,11 @@ export async function PATCH(
     if (body.estimatedAmount !== undefined) updatePayload.estimated_amount = Number(body.estimatedAmount);
     if (body.estimated_amount !== undefined) updatePayload.estimated_amount = Number(body.estimated_amount);
     if (body.requirements !== undefined) updatePayload.requirements = body.requirements;
+    if (body.internalNotes !== undefined) updatePayload.internal_notes = body.internalNotes;
+    if (body.internal_notes !== undefined) updatePayload.internal_notes = body.internal_notes;
+    if (body.assignedTo !== undefined) updatePayload.assigned_to = body.assignedTo;
+    if (body.followUpDate !== undefined) updatePayload.follow_up_date = body.followUpDate;
+    if (body.quoteHistory !== undefined) updatePayload.quote_history = body.quoteHistory;
 
     if (isSupabaseConfigured()) {
       const { data, error } = await supabaseAdmin

@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import TrustBar from "@/components/TrustBar";
 import HomeSearchBox from "@/components/HomeSearchBox";
@@ -14,9 +12,10 @@ import HomeVideosSection from "@/components/HomeVideosSection";
 import HomeTestimonialsSection from "@/components/HomeTestimonialsSection";
 import HomeArticlesSection from "@/components/HomeArticlesSection";
 import CTASection from "@/components/CTASection";
+import { getPublicProducts, getPublicReviews, getPublicSettings } from "@/lib/publicData";
 
-// Available Homes Data matching reference HTML
-const AVAILABLE_HOMES: ProductItem[] = [
+// Curated default models fallback matching architectural steel design
+const DEFAULT_AVAILABLE: ProductItem[] = [
   {
     id: "aspen",
     slug: "the-aspen",
@@ -74,8 +73,7 @@ const AVAILABLE_HOMES: ProductItem[] = [
   },
 ];
 
-// Trending Homes Data matching reference HTML
-const TRENDING_HOMES: ProductItem[] = [
+const DEFAULT_TRENDING: ProductItem[] = [
   {
     id: "lakeside",
     slug: "the-lakeside",
@@ -123,7 +121,53 @@ const TRENDING_HOMES: ProductItem[] = [
   },
 ];
 
-export default function HomePage() {
+export default async function HomePage() {
+  const [products, reviews, settings] = await Promise.all([
+    getPublicProducts(),
+    getPublicReviews(),
+    getPublicSettings(),
+  ]);
+
+  // Map dynamic products to ProductItem format
+  let availableHomes: ProductItem[] = [];
+  let trendingHomes: ProductItem[] = [];
+
+  if (products && products.length > 0) {
+    availableHomes = products.slice(0, 5).map((p, idx) => ({
+      id: p.id || String(idx),
+      slug: p.slug,
+      name: p.name,
+      badge: idx === 0 ? "Best Seller" : idx === 1 ? "Quick Ship" : idx === 2 ? "Popular" : undefined,
+      image: p.primaryImage || p.image || DEFAULT_AVAILABLE[0].image,
+      bedrooms: p.bedrooms || 3,
+      bathrooms: p.bathrooms || 2,
+      sqft: p.sqft || 1600,
+      price: p.startingPrice || 189000,
+    }));
+
+    if (products.length > 5) {
+      trendingHomes = products.slice(5, 10).map((p, idx) => ({
+        id: p.id || String(idx),
+        slug: p.slug,
+        name: p.name,
+        badge: idx === 0 ? "Trending" : undefined,
+        image: p.primaryImage || p.image || DEFAULT_TRENDING[0].image,
+        bedrooms: p.bedrooms || 3,
+        bathrooms: p.bathrooms || 2,
+        sqft: p.sqft || 1800,
+        price: p.startingPrice || 195000,
+      }));
+    } else {
+      trendingHomes = DEFAULT_TRENDING;
+    }
+  } else {
+    availableHomes = DEFAULT_AVAILABLE;
+    trendingHomes = DEFAULT_TRENDING;
+  }
+
+  const heroHeading = settings?.defaultSeoTitle || "Modular Homes For A Better Tomorrow";
+  const heroTagline = settings?.announcementText || "MODERN. AFFORDABLE. BUILT FOR LIFE.";
+
   return (
     <div className="flex flex-col min-h-screen bg-white">
       {/* 1. HERO SECTION */}
@@ -136,7 +180,7 @@ export default function HomePage() {
         <div className="wrap w-full py-16 sm:py-20 relative z-10">
           <div className="max-w-2xl text-left">
             <div className="text-xs sm:text-[13px] font-black tracking-[1.4px] text-white/95 uppercase mb-3">
-              MODERN. AFFORDABLE. BUILT FOR LIFE.
+              {heroTagline}
             </div>
 
             <h1 className="text-4xl sm:text-6xl lg:text-[68px] font-black tracking-[-2.5px] sm:tracking-[-3px] text-white leading-[0.98] sm:leading-[0.96] mb-4 sm:mb-5">
@@ -146,7 +190,7 @@ export default function HomePage() {
             </h1>
 
             <p className="text-base sm:text-[19px] text-white/90 leading-[1.55] max-w-xl mb-7 sm:mb-8 font-normal">
-              Explore beautiful modular homes, floor plans and flexible options designed around your lifestyle, location and budget.
+              Explore precision steel modular homes, downloadable construction floor plans, and turnkey prefab models designed around your lifestyle, location and budget.
             </p>
 
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
@@ -198,7 +242,7 @@ export default function HomePage() {
 
           {/* 5-Column Product Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-4.5">
-            {AVAILABLE_HOMES.map((home) => (
+            {availableHomes.map((home) => (
               <HomeProductCard key={home.id} product={home} />
             ))}
           </div>
@@ -233,7 +277,7 @@ export default function HomePage() {
 
           {/* 5-Column Trending Grid */}
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-4.5">
-            {TRENDING_HOMES.map((home) => (
+            {trendingHomes.map((home) => (
               <HomeProductCard key={home.id} product={home} />
             ))}
           </div>
@@ -252,8 +296,8 @@ export default function HomePage() {
       {/* 12. WATCH OUR HOME TOURS (Asymmetric 5-Video Showcase) */}
       <HomeVideosSection />
 
-      {/* 13. WHAT OUR CUSTOMERS SAY (Testimonials) */}
-      <HomeTestimonialsSection />
+      {/* 13. WHAT OUR CUSTOMERS SAY (Live Testimonials) */}
+      <HomeTestimonialsSection initialReviews={reviews} />
 
       {/* 14. LATEST NEWS & RESOURCES (Articles) */}
       <HomeArticlesSection />

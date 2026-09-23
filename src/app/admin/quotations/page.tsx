@@ -20,6 +20,8 @@ import {
   MapPin,
   Layers,
   Sparkles,
+  Send,
+  UserCheck
 } from "lucide-react";
 
 export default function AdminQuotationsPage() {
@@ -28,6 +30,14 @@ export default function AdminQuotationsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [selectedQuote, setSelectedQuote] = useState<any | null>(null);
+
+  // Quote Drawer Edit States
+  const [editPrice, setEditPrice] = useState<string>("");
+  const [assignee, setAssignee] = useState<string>("");
+  const [followUpDate, setFollowUpDate] = useState<string>("");
+  const [newNote, setNewNote] = useState<string>("");
+  const [isSaving, setIsSaving] = useState(false);
+  const [drawerMessage, setDrawerMessage] = useState<string | null>(null);
 
   const STATUSES = ["PENDING", "REVIEWED", "ESTIMATE_SENT", "ACCEPTED", "DECLINED"];
 
@@ -54,6 +64,21 @@ export default function AdminQuotationsPage() {
     fetchQuotations();
   }, [statusFilter]);
 
+  const openQuoteDrawer = (quote: any) => {
+    setSelectedQuote(quote);
+    setEditPrice(
+      quote.estimated_amount !== undefined && quote.estimated_amount !== null
+        ? String(quote.estimated_amount)
+        : quote.estimatedAmount !== undefined && quote.estimatedAmount !== null
+        ? String(quote.estimatedAmount)
+        : ""
+    );
+    setAssignee(quote.assigned_to || quote.assignedTo || "");
+    setFollowUpDate(quote.follow_up_date || quote.followUpDate || "");
+    setNewNote("");
+    setDrawerMessage(null);
+  };
+
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
       const res = await fetch(`/api/admin/quotations/${id}`, {
@@ -72,6 +97,72 @@ export default function AdminQuotationsPage() {
       }
     } catch (e) {
       alert("Failed to update quotation status.");
+    }
+  };
+
+  const handleSaveQuoteAudit = async () => {
+    if (!selectedQuote) return;
+    const qId = selectedQuote.id || selectedQuote._id;
+    setIsSaving(true);
+
+    try {
+      let updatedHistory = Array.isArray(selectedQuote.quote_history)
+        ? [...selectedQuote.quote_history]
+        : [];
+
+      if (newNote.trim()) {
+        updatedHistory.push({
+          id: Date.now().toString(),
+          text: newNote.trim(),
+          author: "Admin Advisor",
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      const res = await fetch(`/api/admin/quotations/${qId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          estimatedAmount: editPrice ? Number(editPrice) : null,
+          assignedTo: assignee,
+          followUpDate: followUpDate || null,
+          quoteHistory: updatedHistory,
+          internalNotes: newNote.trim()
+            ? `${selectedQuote.internal_notes ? selectedQuote.internal_notes + " | " : ""}${newNote.trim()}`
+            : selectedQuote.internal_notes,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        setSelectedQuote((prev: any) => ({
+          ...prev,
+          estimated_amount: editPrice ? Number(editPrice) : null,
+          assigned_to: assignee,
+          follow_up_date: followUpDate,
+          quote_history: updatedHistory,
+        }));
+        setQuotations((prev) =>
+          prev.map((q) =>
+            q.id === qId || q._id === qId
+              ? {
+                  ...q,
+                  estimated_amount: editPrice ? Number(editPrice) : null,
+                  assigned_to: assignee,
+                  follow_up_date: followUpDate,
+                  quote_history: updatedHistory,
+                }
+              : q
+          )
+        );
+        setNewNote("");
+        setDrawerMessage("Quote calculation & notes updated successfully.");
+        setTimeout(() => setDrawerMessage(null), 3000);
+      }
+    } catch (e) {
+      alert("Failed to update quotation details.");
+    } finally {
+      setIsSaving(false);
     }
   };
 
@@ -274,9 +365,9 @@ export default function AdminQuotationsPage() {
                       <td className="py-4 px-5 text-right">
                         <div className="flex items-center justify-end gap-1.5">
                           <button
-                            onClick={() => setSelectedQuote(quote)}
+                            onClick={() => openQuoteDrawer(quote)}
                             className="p-2 rounded-xl text-[#6b7280] hover:text-[#101114] hover:bg-[#f8f9fa] border border-transparent hover:border-[#d5d9e0] transition-colors cursor-pointer"
-                            title="View Full Calculation Details"
+                            title="Inspect & Adjust Quote"
                           >
                             <Eye className="w-4 h-4" />
                           </button>
@@ -304,8 +395,9 @@ export default function AdminQuotationsPage() {
           <div className="bg-white rounded-[24px] border border-[#e7e9ee] shadow-2xl max-w-2xl w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto space-y-6">
             <div className="flex items-start justify-between border-b border-[#e7e9ee] pb-4">
               <div>
-                <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#d97706]">
-                  Quote Submission Audit
+                <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#d97706] flex items-center gap-1.5">
+                  <FileSpreadsheet className="w-4 h-4" />
+                  <span>Quote Submission Audit & Pricing Studio</span>
                 </div>
                 <h2 className="text-xl font-bold text-[#101114] font-serif mt-1">
                   {selectedQuote.customer_name || selectedQuote.customerName || "Customer Quote"}
@@ -318,6 +410,13 @@ export default function AdminQuotationsPage() {
                 <X className="w-5 h-5" />
               </button>
             </div>
+
+            {drawerMessage && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>{drawerMessage}</span>
+              </div>
+            )}
 
             {/* Contact Details Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#f8f9fa] p-4 rounded-2xl border border-[#e7e9ee] text-xs">
@@ -351,55 +450,121 @@ export default function AdminQuotationsPage() {
               </div>
             </div>
 
-            {/* Configured Home Model & Breakdown */}
-            <div className="space-y-3">
-              <h3 className="text-sm font-bold text-[#101114] uppercase tracking-wider font-mono">
-                Building Specification & Calculation
+            {/* Building Specification & Calculation */}
+            <div className="border border-[#e7e9ee] rounded-2xl p-4 space-y-3 bg-white">
+              <h3 className="text-xs font-bold text-[#101114] uppercase tracking-wider font-mono">
+                Building Specifications
               </h3>
-
-              <div className="border border-[#e7e9ee] rounded-2xl p-4 space-y-3">
-                <div className="flex items-center justify-between text-xs">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div className="flex items-center justify-between">
                   <span className="text-[#6b7280]">Model Name:</span>
                   <span className="font-bold text-[#101114]">
                     {selectedQuote.model_name || selectedQuote.modelName || "Custom Plan"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-xs">
+                <div className="flex items-center justify-between">
                   <span className="text-[#6b7280]">Target Size:</span>
                   <span className="font-bold text-[#101114]">
                     {selectedQuote.sqft ? `${Number(selectedQuote.sqft).toLocaleString()} sq ft` : "Standard"}
                   </span>
                 </div>
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-[#6b7280]">Estimated Total:</span>
-                  <span className="font-bold text-base text-[#b45309] font-serif">
-                    {selectedQuote.estimated_amount ?? selectedQuote.estimatedAmount
-                      ? `$${Number(selectedQuote.estimated_amount ?? selectedQuote.estimatedAmount).toLocaleString()}`
-                      : "Pending"}
-                  </span>
-                </div>
-                {selectedQuote.source && (
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-[#6b7280]">Intake Source:</span>
-                    <span className="font-mono px-2 py-0.5 bg-slate-100 rounded text-[11px] font-bold text-slate-800">
-                      {selectedQuote.source}
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
 
-            {/* Custom Notes & Options */}
-            {(selectedQuote.requirements || selectedQuote.notes || selectedQuote.description) && (
-              <div className="space-y-2">
-                <h3 className="text-xs font-bold text-[#101114] uppercase tracking-wider font-mono">
-                  Customer Notes & Requirements
-                </h3>
-                <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-200/60 text-xs text-[#101114] leading-relaxed font-serif italic">
-                  &ldquo;{selectedQuote.requirements || selectedQuote.notes || selectedQuote.description}&rdquo;
+            {/* Price Adjuster & CRM Parameters */}
+            <div className="p-4 rounded-2xl border border-amber-200 bg-amber-50/40 space-y-4 text-xs">
+              <h3 className="text-xs font-bold text-[#101114] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                <DollarSign className="w-4 h-4 text-[#d97706]" />
+                <span>Adjust Estimate & Set Sales Parameters</span>
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="block text-[#6b7280] font-mono text-[10px] uppercase mb-1">
+                    Estimated Price ($)
+                  </label>
+                  <input
+                    type="number"
+                    value={editPrice}
+                    onChange={(e) => setEditPrice(e.target.value)}
+                    placeholder="e.g. 195000"
+                    className="w-full px-3 py-2 rounded-xl border border-[#d5d9e0] bg-white font-serif font-bold text-sm text-[#101114] focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#6b7280] font-mono text-[10px] uppercase mb-1">
+                    Assigned Rep
+                  </label>
+                  <input
+                    type="text"
+                    value={assignee}
+                    onChange={(e) => setAssignee(e.target.value)}
+                    placeholder="e.g. Sarah J."
+                    className="w-full px-3 py-2 rounded-xl border border-[#d5d9e0] bg-white font-medium text-xs text-[#101114] focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#6b7280] font-mono text-[10px] uppercase mb-1">
+                    Follow-Up Date
+                  </label>
+                  <input
+                    type="date"
+                    value={followUpDate}
+                    onChange={(e) => setFollowUpDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-[#d5d9e0] bg-white font-medium text-xs text-[#101114] focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  />
                 </div>
               </div>
-            )}
+            </div>
+
+            {/* Custom Notes & Interaction History */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-[#101114] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                <Layers className="w-3.5 h-3.5 text-[#d97706]" />
+                <span>Customer Notes & Internal Adjustments</span>
+              </h3>
+
+              {(selectedQuote.requirements || selectedQuote.notes || selectedQuote.description) && (
+                <div className="p-3.5 rounded-xl bg-[#f8f9fa] border border-[#e7e9ee] text-xs text-[#101114] italic font-serif">
+                  <span className="text-[10px] text-[#6b7280] not-italic block font-mono mb-1">Customer Requirements:</span>
+                  &ldquo;{selectedQuote.requirements || selectedQuote.notes || selectedQuote.description}&rdquo;
+                </div>
+              )}
+
+              {Array.isArray(selectedQuote.quote_history) && selectedQuote.quote_history.length > 0 && (
+                <div className="space-y-2 max-h-36 overflow-y-auto pr-1">
+                  {selectedQuote.quote_history.map((h: any, idx: number) => (
+                    <div key={idx} className="p-2.5 bg-[#f8f9fa] rounded-xl border border-[#e7e9ee] text-xs">
+                      <div className="flex items-center justify-between text-[10px] text-[#6b7280] font-mono mb-0.5">
+                        <span className="font-bold text-[#101114]">{h.author || "Advisor"}</span>
+                        <span>{new Date(h.created_at).toLocaleString()}</span>
+                      </div>
+                      <p className="text-[#101114]">{h.text}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Add Interaction Note */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  placeholder="Add estimate notes / custom lumber or freight calculation..."
+                  className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                />
+                <button
+                  onClick={handleSaveQuoteAudit}
+                  disabled={isSaving}
+                  className="px-4 py-2.5 bg-[#101114] hover:bg-black text-white text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  {isSaving && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Save</span>
+                </button>
+              </div>
+            </div>
 
             {/* Action Bar in Modal */}
             <div className="pt-4 border-t border-[#e7e9ee] flex items-center justify-between">

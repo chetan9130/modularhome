@@ -37,11 +37,14 @@ export async function GET(
       );
     }
 
+    const pIds = collection.product_collections
+      ? collection.product_collections.map((pc: any) => pc.product_id)
+      : [];
+
     const formatted = {
       ...collection,
-      productIds: collection.product_collections
-        ? collection.product_collections.map((pc: any) => pc.product_id)
-        : [],
+      productIds: pIds,
+      productCount: pIds.length,
     };
 
     return NextResponse.json({ success: true, data: formatted });

@@ -27,6 +27,13 @@ import {
   Clock,
   Sparkles,
   User as UserIcon,
+  Image as ImageIcon,
+  Star,
+  HelpCircle,
+  CornerDownRight,
+  Shield,
+  Activity,
+  KeyRound,
 } from "lucide-react";
 
 interface AdminUser {
@@ -107,6 +114,13 @@ export default function AdminLayout({
       orders: "Blueprint Orders",
       pages: "Pages",
       sections: "Page Sections",
+      media: "Media Library",
+      reviews: "Reviews & Testimonials",
+      faqs: "FAQs",
+      redirects: "301 Redirects",
+      users: "User Roles",
+      security: "Security & 2FA",
+      logs: "Activity Logs",
       settings: "Global Settings",
       shopify: "Shopify Sync",
       videos: "YouTube Manager",
@@ -128,6 +142,10 @@ export default function AdminLayout({
     return <>{children}</>;
   }
 
+  const userRole = (user?.role || "SUPER_ADMIN").toUpperCase();
+  const isSuperAdmin = userRole === "SUPER_ADMIN" || userRole === "ADMIN";
+  const isContentAdmin = isSuperAdmin || userRole === "CONTENT_ADMIN" || userRole === "EDITOR";
+
   const navSections = [
     {
       group: "Overview",
@@ -135,38 +153,56 @@ export default function AdminLayout({
         { label: "Dashboard", href: "/admin", icon: LayoutDashboard },
       ],
     },
-    {
-      group: "Catalogue & Design",
-      items: [
-        { label: "Home Models", href: "/admin/products", icon: Home },
-        { label: "Collections & Series", href: "/admin/collections", icon: FolderOpen },
-        { label: "Floor Plans (Digital Kits)", href: "/admin/floor-plans", icon: Download },
-      ],
-    },
+    ...(isContentAdmin ? [
+      {
+        group: "Catalogue & Models",
+        items: [
+          { label: "Home Models", href: "/admin/products", icon: Home },
+          { label: "Collections & Series", href: "/admin/collections", icon: FolderOpen },
+          { label: "Floor Plans (Digital)", href: "/admin/floor-plans", icon: Download },
+        ],
+      },
+    ] : []),
     {
       group: "Transactions & Pipeline",
       items: [
-        { label: "Blueprint Orders", href: "/admin/orders", icon: ShoppingBag },
+        ...(isSuperAdmin ? [{ label: "Blueprint Orders", href: "/admin/orders", icon: ShoppingBag }] : []),
         { label: "Inbound Leads", href: "/admin/leads", icon: Users },
-        { label: "Quote Wizard Submissions", href: "/admin/quotations", icon: FileSpreadsheet },
+        { label: "Quote Wizard Pipeline", href: "/admin/quotations", icon: FileSpreadsheet },
       ],
     },
-    {
-      group: "Website CMS & Pages",
-      items: [
-        { label: "Page Manager", href: "/admin/pages", icon: FileText },
-        { label: "Section Blocks", href: "/admin/sections", icon: Layers },
-        { label: "Global Settings", href: "/admin/settings", icon: Globe },
-      ],
-    },
-    {
-      group: "Media & Integrations",
-      items: [
-        { label: "Articles & Resources", href: "/admin/blogs", icon: BookOpen },
-        { label: "YouTube Auto-Sync", href: "/admin/videos", icon: Video },
-        { label: "Shopify Migration Hub", href: "/admin/shopify", icon: RefreshCw },
-      ],
-    },
+    ...(isContentAdmin ? [
+      {
+        group: "Website CMS & Pages",
+        items: [
+          { label: "Page Manager", href: "/admin/pages", icon: FileText },
+          { label: "Section Blocks", href: "/admin/sections", icon: Layers },
+          { label: "Reviews & Testimonials", href: "/admin/reviews", icon: Star },
+          { label: "FAQs Manager", href: "/admin/faqs", icon: HelpCircle },
+          { label: "301 Redirects", href: "/admin/redirects", icon: CornerDownRight },
+          { label: "Global Settings", href: "/admin/settings", icon: Globe },
+        ],
+      },
+      {
+        group: "Media & Integrations",
+        items: [
+          { label: "Media Library", href: "/admin/media", icon: ImageIcon },
+          { label: "Articles & Resources", href: "/admin/blogs", icon: BookOpen },
+          { label: "YouTube Auto-Sync", href: "/admin/videos", icon: Video },
+          { label: "Shopify Migration", href: "/admin/shopify", icon: RefreshCw },
+        ],
+      },
+    ] : []),
+    ...(isSuperAdmin ? [
+      {
+        group: "Security & Administration",
+        items: [
+          { label: "Admin Users & Roles", href: "/admin/users", icon: Shield },
+          { label: "Security & 2FA", href: "/admin/security", icon: KeyRound },
+          { label: "Activity Logs & Audits", href: "/admin/logs", icon: Activity },
+        ],
+      },
+    ] : []),
   ];
 
   return (

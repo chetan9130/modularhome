@@ -166,7 +166,7 @@ export default function AdminCollectionsPage() {
                   )}
                   <div className="absolute top-3 right-3 flex gap-1.5">
                     <span className="px-2.5 py-1 rounded-lg bg-black/75 backdrop-blur-xs text-white text-[10px] font-bold font-mono">
-                      {coll.productCount || coll._count?.products || 0} Models
+                      {coll.productCount !== undefined ? coll.productCount : (coll.productIds?.length || 0)} Models
                     </span>
                   </div>
                 </div>

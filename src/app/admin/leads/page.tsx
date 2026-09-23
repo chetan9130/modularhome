@@ -17,6 +17,11 @@ import {
   Clock,
   Shield,
   RefreshCw,
+  Eye,
+  X,
+  UserCheck,
+  Send,
+  Plus
 } from "lucide-react";
 
 export default function AdminLeadsPage() {
@@ -25,6 +30,14 @@ export default function AdminLeadsPage() {
   const [search, setSearch] = useState("");
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [sourceFilter, setSourceFilter] = useState("ALL");
+
+  // Selected Lead Drawer
+  const [selectedLead, setSelectedLead] = useState<any | null>(null);
+  const [newNote, setNewNote] = useState("");
+  const [savingNote, setSavingNote] = useState(false);
+  const [assignee, setAssignee] = useState("");
+  const [followUpDate, setFollowUpDate] = useState("");
+  const [drawerStatusMessage, setDrawerStatusMessage] = useState<string | null>(null);
 
   const STATUSES = ["NEW", "CONTACTED", "QUALIFIED", "QUOTE_SENT", "FOLLOW_UP", "WON", "LOST"];
   const SOURCES = ["CONTACT_FORM", "AI_CHAT", "QUOTE_WIZARD", "FLOOR_PLAN_UPLOAD", "NEWSLETTER", "WEBSITE"];
@@ -53,6 +66,14 @@ export default function AdminLeadsPage() {
     fetchLeads();
   }, [statusFilter, sourceFilter]);
 
+  const openLeadDrawer = (lead: any) => {
+    setSelectedLead(lead);
+    setAssignee(lead.assigned_to || lead.assignedTo || "");
+    setFollowUpDate(lead.follow_up_date || lead.followUpDate || "");
+    setNewNote("");
+    setDrawerStatusMessage(null);
+  };
+
   const handleStatusChange = async (id: string, newStatus: string) => {
     try {
       const res = await fetch(`/api/admin/leads/${id}`, {
@@ -65,9 +86,68 @@ export default function AdminLeadsPage() {
         setLeads((prev) =>
           prev.map((l) => ((l.id === id || l._id === id) ? { ...l, status: newStatus } : l))
         );
+        if (selectedLead && (selectedLead.id === id || selectedLead._id === id)) {
+          setSelectedLead((prev: any) => ({ ...prev, status: newStatus }));
+        }
       }
     } catch (e) {
       alert("Failed to update status.");
+    }
+  };
+
+  const handleSaveLeadDetails = async () => {
+    if (!selectedLead) return;
+    const leadId = selectedLead.id || selectedLead._id;
+    setSavingNote(true);
+
+    try {
+      let updatedHistory = Array.isArray(selectedLead.lead_history)
+        ? [...selectedLead.lead_history]
+        : [];
+
+      if (newNote.trim()) {
+        updatedHistory.push({
+          id: Date.now().toString(),
+          text: newNote.trim(),
+          author: "Admin Agent",
+          created_at: new Date().toISOString(),
+        });
+      }
+
+      const res = await fetch(`/api/admin/leads/${leadId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          assignedTo: assignee,
+          followUpDate: followUpDate || null,
+          leadHistory: updatedHistory,
+          notes: newNote.trim() ? `${selectedLead.notes ? selectedLead.notes + " | " : ""}${newNote.trim()}` : selectedLead.notes,
+        }),
+      });
+
+      const json = await res.json();
+      if (json.success) {
+        setSelectedLead((prev: any) => ({
+          ...prev,
+          assigned_to: assignee,
+          follow_up_date: followUpDate,
+          lead_history: updatedHistory,
+        }));
+        setLeads((prev) =>
+          prev.map((l) =>
+            l.id === leadId || l._id === leadId
+              ? { ...l, assigned_to: assignee, follow_up_date: followUpDate, lead_history: updatedHistory }
+              : l
+          )
+        );
+        setNewNote("");
+        setDrawerStatusMessage("Lead notes & CRM parameters saved.");
+        setTimeout(() => setDrawerStatusMessage(null), 3000);
+      }
+    } catch (e) {
+      alert("Failed to save lead updates.");
+    } finally {
+      setSavingNote(false);
     }
   };
 
@@ -79,6 +159,9 @@ export default function AdminLeadsPage() {
       const json = await res.json();
       if (json.success) {
         setLeads((prev) => prev.filter((l) => l.id !== id && l._id !== id));
+        if (selectedLead && (selectedLead.id === id || selectedLead._id === id)) {
+          setSelectedLead(null);
+        }
       } else {
         alert(json.error?.message || "Failed to delete lead.");
       }
@@ -265,13 +348,22 @@ export default function AdminLeadsPage() {
                           : "N/A"}
                       </td>
                       <td className="py-4 px-5 text-right">
-                        <button
-                          onClick={() => handleDelete(leadId, lead.name)}
-                          className="p-2 rounded-xl text-[#6b7280] hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors cursor-pointer"
-                          title="Delete Lead"
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </button>
+                        <div className="flex items-center justify-end gap-1.5">
+                          <button
+                            onClick={() => openLeadDrawer(lead)}
+                            className="p-2 rounded-xl text-[#6b7280] hover:text-[#101114] hover:bg-[#f8f9fa] border border-transparent hover:border-[#d5d9e0] transition-colors cursor-pointer"
+                            title="Inspect Lead & Manage CRM"
+                          >
+                            <Eye className="w-4 h-4" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(leadId, lead.name)}
+                            className="p-2 rounded-xl text-[#6b7280] hover:text-red-600 hover:bg-red-50 border border-transparent hover:border-red-200 transition-colors cursor-pointer"
+                            title="Delete Lead"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   );
@@ -281,6 +373,192 @@ export default function AdminLeadsPage() {
           </div>
         )}
       </div>
+
+      {/* Lead CRM Detail Drawer */}
+      {selectedLead && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-[24px] border border-[#e7e9ee] shadow-2xl max-w-2xl w-full p-6 sm:p-8 max-h-[90vh] overflow-y-auto space-y-6">
+            <div className="flex items-start justify-between border-b border-[#e7e9ee] pb-4">
+              <div>
+                <div className="text-[11px] font-mono font-bold uppercase tracking-wider text-[#d97706] flex items-center gap-1.5">
+                  <UserCheck className="w-4 h-4" />
+                  <span>Lead Profile & CRM Workspace</span>
+                </div>
+                <h2 className="text-xl font-bold text-[#101114] font-serif mt-1">
+                  {selectedLead.name || "Customer Lead"}
+                </h2>
+              </div>
+              <button
+                onClick={() => setSelectedLead(null)}
+                className="p-2 rounded-full hover:bg-slate-100 text-[#6b7280] cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {drawerStatusMessage && (
+              <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>{drawerStatusMessage}</span>
+              </div>
+            )}
+
+            {/* Contact Details Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 bg-[#f8f9fa] p-4 rounded-2xl border border-[#e7e9ee] text-xs">
+              <div>
+                <span className="text-[#6b7280] block font-mono text-[10px] uppercase">Email Address</span>
+                <a
+                  href={`mailto:${selectedLead.email}`}
+                  className="font-bold text-[#101114] hover:text-[#d97706] hover:underline"
+                >
+                  {selectedLead.email || "Not Provided"}
+                </a>
+              </div>
+              <div>
+                <span className="text-[#6b7280] block font-mono text-[10px] uppercase">Phone Number</span>
+                <a
+                  href={`tel:${selectedLead.phone}`}
+                  className="font-bold text-[#101114] hover:text-[#d97706] hover:underline"
+                >
+                  {selectedLead.phone || "Not Provided"}
+                </a>
+              </div>
+              <div>
+                <span className="text-[#6b7280] block font-mono text-[10px] uppercase">Location / ZIP Code</span>
+                <span className="font-bold text-[#101114]">
+                  {selectedLead.location || selectedLead.zip || "Not Provided"}
+                </span>
+              </div>
+              <div>
+                <span className="text-[#6b7280] block font-mono text-[10px] uppercase">Intake Source</span>
+                <span className="font-mono font-bold text-[#101114]">{selectedLead.source || "WEBSITE"}</span>
+              </div>
+            </div>
+
+            {/* Customer Message / Inquiry */}
+            {(selectedLead.enquiry_details || selectedLead.enquiryDetails || selectedLead.message) && (
+              <div className="space-y-2">
+                <h3 className="text-xs font-bold text-[#101114] uppercase tracking-wider font-mono">
+                  Submitted Inquiry Details
+                </h3>
+                <div className="p-4 rounded-xl bg-amber-50/50 border border-amber-200/60 text-xs text-[#101114] leading-relaxed font-serif italic">
+                  &ldquo;{selectedLead.enquiry_details || selectedLead.enquiryDetails || selectedLead.message}&rdquo;
+                </div>
+              </div>
+            )}
+
+            {/* Lead CRM Controls (Assignee & Follow-Up Date) */}
+            <div className="p-4 rounded-2xl border border-[#e7e9ee] bg-white space-y-3">
+              <h3 className="text-xs font-bold text-[#101114] uppercase tracking-wider font-mono">
+                Sales Assignment & Next Follow-Up
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label className="block text-[#6b7280] font-mono text-[10px] uppercase mb-1">
+                    Assigned Agent / Rep
+                  </label>
+                  <input
+                    type="text"
+                    value={assignee}
+                    onChange={(e) => setAssignee(e.target.value)}
+                    placeholder="e.g. Sales Team / John Doe"
+                    className="w-full px-3 py-2 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[#6b7280] font-mono text-[10px] uppercase mb-1">
+                    Follow-Up Date Target
+                  </label>
+                  <input
+                    type="date"
+                    value={followUpDate}
+                    onChange={(e) => setFollowUpDate(e.target.value)}
+                    className="w-full px-3 py-2 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Activity / Notes History Thread */}
+            <div className="space-y-3">
+              <h3 className="text-xs font-bold text-[#101114] uppercase tracking-wider font-mono flex items-center gap-1.5">
+                <MessageSquare className="w-3.5 h-3.5 text-[#d97706]" />
+                <span>Internal Notes & Interaction History</span>
+              </h3>
+
+              {Array.isArray(selectedLead.lead_history) && selectedLead.lead_history.length > 0 ? (
+                <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+                  {selectedLead.lead_history.map((h: any, idx: number) => (
+                    <div key={idx} className="p-3 bg-[#f8f9fa] rounded-xl border border-[#e7e9ee] text-xs">
+                      <div className="flex items-center justify-between text-[10px] text-[#6b7280] font-mono mb-1">
+                        <span className="font-bold text-[#101114]">{h.author || "Admin"}</span>
+                        <span>{new Date(h.created_at).toLocaleString()}</span>
+                      </div>
+                      <p className="text-[#101114] font-sans">{h.text}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : selectedLead.notes ? (
+                <div className="p-3 bg-[#f8f9fa] rounded-xl border border-[#e7e9ee] text-xs text-[#101114]">
+                  <span className="text-[10px] text-[#6b7280] block font-mono">Existing Note:</span>
+                  {selectedLead.notes}
+                </div>
+              ) : (
+                <div className="text-[11px] text-[#6b7280] italic">
+                  No internal notes recorded for this lead yet.
+                </div>
+              )}
+
+              {/* Add Note Input */}
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={newNote}
+                  onChange={(e) => setNewNote(e.target.value)}
+                  placeholder="Add interaction note (e.g. Called customer, requested CAD floor plan)..."
+                  className="flex-1 px-3.5 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
+                />
+                <button
+                  onClick={handleSaveLeadDetails}
+                  disabled={savingNote}
+                  className="px-4 py-2.5 bg-[#101114] hover:bg-black text-white text-xs font-bold rounded-xl transition-colors cursor-pointer flex items-center gap-1.5"
+                >
+                  {savingNote && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
+                  <Send className="w-3.5 h-3.5" />
+                  <span>Save</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Modal Bottom Action Bar */}
+            <div className="pt-4 border-t border-[#e7e9ee] flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-[#6b7280] font-bold uppercase font-mono">Status:</span>
+                <select
+                  value={selectedLead.status || "NEW"}
+                  onChange={(e) =>
+                    handleStatusChange(selectedLead.id || selectedLead._id, e.target.value)
+                  }
+                  className="px-3 py-1.5 rounded-xl text-xs font-bold uppercase border bg-white cursor-pointer"
+                >
+                  {STATUSES.map((s) => (
+                    <option key={s} value={s}>
+                      {s}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <button
+                onClick={() => setSelectedLead(null)}
+                className="px-5 py-2.5 bg-[#101114] hover:bg-black text-white text-xs font-bold rounded-xl cursor-pointer"
+              >
+                Close Drawer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

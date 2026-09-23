@@ -14,6 +14,8 @@ function LoginForm() {
 
   const [email, setEmail] = useState("admin@modularhome.com");
   const [password, setPassword] = useState("");
+  const [totpCode, setTotpCode] = useState("");
+  const [require2FA, setRequire2FA] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -26,12 +28,17 @@ function LoginForm() {
       const res = await fetch("/api/admin/auth/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email, password, totpCode: require2FA ? totpCode : undefined }),
       });
 
       const data = await res.json();
 
       if (!res.ok || !data.success) {
+        if (data.require2FA) {
+          setRequire2FA(true);
+          setIsLoading(false);
+          return;
+        }
         setError(data.error?.message || "Invalid administrator credentials.");
         setIsLoading(false);
         return;
@@ -48,6 +55,8 @@ function LoginForm() {
   const handleFillDemo = () => {
     setEmail("admin@modularhome.com");
     setPassword("admin@26");
+    setRequire2FA(false);
+    setTotpCode("");
   };
 
   return (
@@ -74,57 +83,92 @@ function LoginForm() {
       )}
 
       <form className="space-y-5" onSubmit={handleSubmit}>
-        <div>
-          <label className="block text-xs font-bold text-[#101114] uppercase tracking-wider mb-2 font-mono">
-            Administrator Email
-          </label>
-          <div className="relative rounded-xl shadow-2xs">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#6b7280]">
-              <Mail className="h-4 w-4" />
+        {!require2FA ? (
+          <>
+            <div>
+              <label className="block text-xs font-bold text-[#101114] uppercase tracking-wider mb-2 font-mono">
+                Administrator Email
+              </label>
+              <div className="relative rounded-xl shadow-2xs">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#6b7280]">
+                  <Mail className="h-4 w-4" />
+                </div>
+                <input
+                  type="email"
+                  required
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="admin@modularhome.com"
+                  className="block w-full pl-10 pr-4 py-3 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-[#101114] text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fcb907] focus:bg-white transition-all font-medium"
+                />
+              </div>
             </div>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="admin@modularhome.com"
-              className="block w-full pl-10 pr-4 py-3 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-[#101114] text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fcb907] focus:bg-white transition-all font-medium"
-            />
-          </div>
-        </div>
 
-        <div>
-          <div className="flex items-center justify-between mb-2">
-            <label className="block text-xs font-bold text-[#101114] uppercase tracking-wider font-mono">
-              Master Password
-            </label>
-            <span className="text-[11px] text-[#6b7280]">1-Hour Secure Session</span>
-          </div>
-          <div className="relative rounded-xl shadow-2xs">
-            <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#6b7280]">
-              <Lock className="h-4 w-4" />
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <label className="block text-xs font-bold text-[#101114] uppercase tracking-wider font-mono">
+                  Master Password
+                </label>
+                <span className="text-[11px] text-[#6b7280]">1-Hour Secure Session</span>
+              </div>
+              <div className="relative rounded-xl shadow-2xs">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-[#6b7280]">
+                  <Lock className="h-4 w-4" />
+                </div>
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••••••"
+                  className="block w-full pl-10 pr-4 py-3 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-[#101114] text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fcb907] focus:bg-white transition-all font-medium"
+                />
+              </div>
             </div>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              placeholder="••••••••••••"
-              className="block w-full pl-10 pr-4 py-3 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-[#101114] text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#fcb907] focus:bg-white transition-all font-medium"
-            />
-          </div>
-        </div>
+          </>
+        ) : (
+          <div className="space-y-4 animate-in fade-in">
+            <div className="p-4 bg-amber-50 rounded-xl border border-amber-200 text-amber-900 text-xs">
+              <span className="font-bold flex items-center gap-1.5 mb-1">
+                <KeyRound className="w-4 h-4 text-amber-700" />
+                <span>Two-Factor Authentication Required</span>
+              </span>
+              <span>Open your authenticator app (Google Authenticator, Authy, Apple) and enter the 6-digit verification code.</span>
+            </div>
 
-        <div className="pt-2">
+            <div>
+              <label className="block text-xs font-bold text-[#101114] uppercase tracking-wider mb-2 font-mono">
+                6-Digit TOTP / Backup Code
+              </label>
+              <input
+                type="text"
+                autoFocus
+                required
+                maxLength={10}
+                value={totpCode}
+                onChange={(e) => setTotpCode(e.target.value)}
+                placeholder="e.g. 482910"
+                className="block w-full px-4 py-3 bg-[#f8f9fa] border border-[#d5d9e0] rounded-xl text-[#101114] text-lg font-mono font-black text-center tracking-[0.25em] focus:outline-none focus:ring-2 focus:ring-[#fcb907] focus:bg-white transition-all"
+              />
+            </div>
+          </div>
+        )}
+
+        <div className="pt-2 space-y-2">
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || (require2FA && !totpCode)}
             className="w-full flex items-center justify-center gap-2 py-3.5 px-4 rounded-xl shadow-md text-sm font-black text-[#101114] bg-[#fcb907] hover:bg-[#e5a706] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#fcb907] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
           >
             {isLoading ? (
               <>
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>Authenticating Secure Token...</span>
+              </>
+            ) : require2FA ? (
+              <>
+                <span>Verify Code & Sign In</span>
+                <ArrowRight className="w-4 h-4" />
               </>
             ) : (
               <>
@@ -133,6 +177,19 @@ function LoginForm() {
               </>
             )}
           </button>
+
+          {require2FA && (
+            <button
+              type="button"
+              onClick={() => {
+                setRequire2FA(false);
+                setTotpCode("");
+              }}
+              className="w-full py-2 text-xs font-bold text-[#6b7280] hover:text-[#101114] transition-colors"
+            >
+              ← Back to credentials
+            </button>
+          )}
         </div>
       </form>
 

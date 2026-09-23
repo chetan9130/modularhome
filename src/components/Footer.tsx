@@ -28,6 +28,7 @@ export default function Footer({ initialSettings, customPages = [] }: FooterProp
   const address = initialSettings?.address || "Factory Headquarters, IN & Nationwide Delivery";
   const footerText = initialSettings?.footerText || "ModularHome.com leads the American prefabricated housing movement with precision-engineered modular residences, luxury barndominiums, and rapid-deployment cabin kits.";
   const socialLinks = initialSettings?.socialLinks || {};
+  const customFooterLinks = initialSettings?.footerLinks || [];
 
   // Filter published custom pages
   const publishedPages = (customPages || []).filter((p) => {
@@ -173,13 +174,25 @@ export default function Footer({ initialSettings, customPages = [] }: FooterProp
               Quick Links
             </h4>
             <div className="space-y-2 text-sm text-[#555d69] font-medium">
-              <div><Link href="/" className="hover:text-[#d97706] transition-colors">Home</Link></div>
-              <div><Link href="/buildings" className="hover:text-[#d97706] transition-colors">Homes & Models</Link></div>
-              <div><Link href="/floor-plans" className="hover:text-[#d97706] transition-colors">Floor Plan Store</Link></div>
-              <div><Link href="/upload-floor-plan" className="hover:text-[#d97706] transition-colors">Custom Upload</Link></div>
-              <div><Link href="/videos" className="hover:text-[#d97706] transition-colors">Video Gallery</Link></div>
-              <div><Link href="/about" className="hover:text-[#d97706] transition-colors">About Us</Link></div>
-              <div><Link href="/contact" className="hover:text-[#d97706] transition-colors">Contact & Quotes</Link></div>
+              {customFooterLinks.length > 0 ? (
+                customFooterLinks.map((link, idx) => (
+                  <div key={idx}>
+                    <Link href={link.href} className="hover:text-[#d97706] transition-colors">
+                      {link.label}
+                    </Link>
+                  </div>
+                ))
+              ) : (
+                <>
+                  <div><Link href="/" className="hover:text-[#d97706] transition-colors">Home</Link></div>
+                  <div><Link href="/buildings" className="hover:text-[#d97706] transition-colors">Homes & Models</Link></div>
+                  <div><Link href="/floor-plans" className="hover:text-[#d97706] transition-colors">Floor Plan Store</Link></div>
+                  <div><Link href="/upload-floor-plan" className="hover:text-[#d97706] transition-colors">Custom Upload</Link></div>
+                  <div><Link href="/videos" className="hover:text-[#d97706] transition-colors">Video Gallery</Link></div>
+                  <div><Link href="/about" className="hover:text-[#d97706] transition-colors">About Us</Link></div>
+                  <div><Link href="/contact" className="hover:text-[#d97706] transition-colors">Contact & Quotes</Link></div>
+                </>
+              )}
             </div>
           </div>
 
