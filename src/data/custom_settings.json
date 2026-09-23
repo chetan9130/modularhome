@@ -1,74 +1,88 @@
 {
-  "companyName": "ModularHome.com",
-  "logoUrl": "/finallogo.avif",
+  "companyName": "ModularHome",
+  "logoUrl": "https://wcraqtzhvpeaoqofrwpo.supabase.co/storage/v1/object/public/media/branding/finallogo-1790147081317.avif",
   "faviconUrl": "/favicon.ico",
   "phone": "+1 (812) 595-4033",
   "email": "support@modularhome.com",
-  "address": "Factory Headquarters, IN & Nationwide Delivery",
+  "address": "100 Industrial Parkway, Austin, TX 78701",
   "socialLinks": {
+    "0": {
+      "url": "https://youtube.com/@modularhome",
+      "platform": "youtube"
+    },
+    "1": {
+      "url": "https://instagram.com/modularhome",
+      "platform": "instagram"
+    },
+    "2": {
+      "url": "https://facebook.com/modularhome",
+      "platform": "facebook"
+    },
+    "3": {
+      "url": "https://tiktok.com/@modularhome",
+      "platform": "tiktok"
+    },
     "facebook": "https://facebook.com",
     "instagram": "https://instagram.com",
     "youtube": "https://youtube.com",
-    "tiktok": "https://tiktok.com"
+    "tiktok": "https://tiktok.com",
+    "twitter": "",
+    "linkedin": ""
   },
   "announcementEnabled": true,
-  "announcementText": "Direct Factory Modular & Prefab Home Builder • 2026 Models Released",
+  "announcementText": "✨ Nationwide Factory Modular Delivery & Precision Engineering",
   "announcementLink": "/buildings",
   "navLinks": [
     {
-      "label": "Home",
-      "href": "/"
+      "href": "/",
+      "label": "Home"
     },
     {
-      "label": "Cabins",
-      "href": "/buildings?category=Cabins"
+      "href": "/buildings",
+      "label": "Models"
     },
     {
-      "label": "Barndominiums",
-      "href": "/buildings?category=Barndominiums"
+      "href": "/floor-plans",
+      "label": "Floor Plans"
     },
     {
-      "label": "Floor Plans",
-      "href": "/upload-floor-plan"
+      "href": "/videos",
+      "label": "Video Tours"
     },
     {
-      "label": "Videos",
-      "href": "/videos"
+      "href": "#quote",
+      "label": "Instant Quote"
     },
     {
-      "label": "About",
-      "href": "/about"
+      "href": "/resources",
+      "label": "Blog"
     },
     {
-      "label": "Contact",
-      "href": "/contact"
+      "href": "/contact",
+      "label": "Contact"
     }
   ],
-  "footerText": "ModularHome.com leads the American prefabricated housing movement with precision-engineered modular residences, luxury barndominiums, and rapid-deployment cabin kits.",
+  "footerText": "ModularHome is the leading precision steel-frame and modular home manufacturer delivering sustainable, energy-efficient luxury homes in record time.",
   "footerLinks": [
     {
-      "label": "Cabins",
-      "href": "/buildings?category=Cabins"
+      "href": "/privacy",
+      "label": "Privacy Policy"
     },
     {
-      "label": "Barndominiums",
-      "href": "/buildings?category=Barndominiums"
+      "href": "/terms",
+      "label": "Terms of Service"
     },
     {
-      "label": "Floor Plans",
-      "href": "/upload-floor-plan"
+      "href": "/warranty",
+      "label": "Warranty Info"
     },
     {
-      "label": "Video Gallery",
-      "href": "/videos"
-    },
-    {
-      "label": "Quote Wizard",
-      "href": "/quote"
+      "href": "/admin",
+      "label": "Admin Portal"
     }
   ],
-  "defaultSeoTitle": "ModularHome.com | Modern Homes. A Smarter Way to Build.",
-  "defaultMetaDescription": "Explore modular homes, prefab homes, cabins, ADUs, barndominiums, floor plans and custom home options.",
-  "ctaLabel": "Get Your Free Quote",
-  "ctaLink": "/quote"
+  "defaultSeoTitle": "ModularHome | Premium Precision Engineered Modular & Steel Homes",
+  "defaultMetaDescription": "Discover next-generation precision-engineered modular homes. Rapid build, engineered durability, luxury architectural finishes.",
+  "ctaLabel": "Get a Free Quote",
+  "ctaLink": "#quote"
 }
