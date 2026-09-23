@@ -2,7 +2,7 @@
   "crons": [
     {
       "path": "/api/youtube/auto-blog-sync",
-      "schedule": "0 */4 * * *"
+      "schedule": "0 6 * * *"
     }
   ]
 }
