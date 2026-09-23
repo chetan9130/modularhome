@@ -7,6 +7,7 @@ import { getPublicBlogBySlug, getPublicBlogs } from "@/lib/publicData";
 import { resolveVideoEmbedUrl } from "@/lib/videoUtils";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 interface ResourceDetailPageProps {
   params: Promise<{ slug: string }>;

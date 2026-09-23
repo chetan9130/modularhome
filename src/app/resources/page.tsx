@@ -3,6 +3,7 @@ import { getPublicBlogs } from "@/lib/publicData";
 import ResourcesClient from "./ResourcesClient";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export const metadata: Metadata = {
   title: "Modular Home Educational Resources & Guides | ModularHome.com",

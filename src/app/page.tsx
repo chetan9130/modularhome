@@ -14,6 +14,9 @@ import HomeArticlesSection from "@/components/HomeArticlesSection";
 import CTASection from "@/components/CTASection";
 import { getPublicProducts, getPublicReviews, getPublicSettings } from "@/lib/publicData";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 // Curated default models fallback matching architectural steel design
 const DEFAULT_AVAILABLE: ProductItem[] = [
   {
