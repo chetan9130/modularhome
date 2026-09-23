@@ -29,6 +29,26 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  async rewrites() {
+    return [
+      {
+        source: "/blog",
+        destination: "/resources",
+      },
+      {
+        source: "/blogs",
+        destination: "/resources",
+      },
+      {
+        source: "/blog/:slug",
+        destination: "/resources/:slug",
+      },
+      {
+        source: "/blogs/:slug",
+        destination: "/resources/:slug",
+      },
+    ];
+  },
 };
 
 export default nextConfig;

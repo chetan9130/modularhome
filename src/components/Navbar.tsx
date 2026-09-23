@@ -75,9 +75,9 @@ const CORE_MORE_OPTIONS = [
     icon: Play 
   },
   { 
-    label: "Guides & Cost Calculators", 
+    label: "Blog", 
     href: "/resources", 
-    desc: "Permits, foundation & turnkey cost guides",
+    desc: "Educational articles, tours & build guides",
     icon: BookOpen 
   },
   { 
