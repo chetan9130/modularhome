@@ -7,6 +7,9 @@ import { getPublicGlobalSettings } from "@/lib/settings";
 import { getPublicPages } from "@/lib/publicData";
 import "./globals.css";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 const playfair = Playfair_Display({
   subsets: ["latin"],
   weight: ["600", "700", "800", "900"],
@@ -22,48 +25,61 @@ const manrope = Manrope({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  metadataBase: new URL("https://modularhome.com"),
-  title: "ModularHome.com | Modern Homes. A Smarter Way to Build.",
-  description: "Explore modular homes, prefab homes, cabins, ADUs, barndominiums, floor plans and custom home options.",
-  keywords: [
-    "ModularHome.com",
-    "Modular Homes",
-    "Prefab Homes",
-    "Barndominiums",
-    "Cabins",
-    "Tiny Homes",
-    "ADUs",
-    "A-Frame Homes",
-    "Floor Plans",
-    "Factory Built Homes"
-  ],
-  icons: {
-    icon: [
-      { url: "/favicon.png?v=4", type: "image/png" },
-      { url: "/favicon-32x32.png?v=4", sizes: "32x32", type: "image/png" },
-      { url: "/favicon-16x16.png?v=4", sizes: "16x16", type: "image/png" },
-      { url: "/favicon.ico?v=4" },
+export async function generateMetadata(): Promise<Metadata> {
+  const settings = await getPublicGlobalSettings();
+  const title = settings.defaultSeoTitle || `${settings.companyName || "ModularHome.com"} | Modern Homes. A Smarter Way to Build.`;
+  const description = settings.defaultMetaDescription || "Explore modular homes, prefab homes, cabins, ADUs, barndominiums, floor plans and custom home options.";
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://modularhome.com";
+  const logoUrl = settings.logoUrl || "/finallogo.avif";
+  const faviconUrl = settings.faviconUrl || "/favicon.png?v=4";
+
+  return {
+    metadataBase: new URL(siteUrl),
+    title: {
+      default: title,
+      template: `%s | ${settings.companyName || "ModularHome.com"}`,
+    },
+    description,
+    keywords: [
+      settings.companyName || "ModularHome.com",
+      "Modular Homes",
+      "Prefab Homes",
+      "Barndominiums",
+      "Cabins",
+      "Tiny Homes",
+      "ADUs",
+      "A-Frame Homes",
+      "Floor Plans",
+      "Factory Built Homes",
     ],
-    shortcut: "/favicon.png?v=4",
-    apple: [
-      { url: "/apple-touch-icon.png?v=4", sizes: "180x180", type: "image/png" },
-    ],
-  },
-  openGraph: {
-    title: "ModularHome.com | Modern Homes. A Smarter Way to Build.",
-    description: "Explore modular homes, prefab homes, cabins, ADUs, barndominiums, floor plans and custom home options.",
-    type: "website",
-    images: [
-      {
-        url: "/finallogo.avif",
-        width: 1200,
-        height: 630,
-        alt: "ModularHome.com Logo",
-      },
-    ],
-  },
-};
+    icons: {
+      icon: [
+        { url: faviconUrl, type: "image/png" },
+        { url: "/favicon-32x32.png?v=4", sizes: "32x32", type: "image/png" },
+        { url: "/favicon-16x16.png?v=4", sizes: "16x16", type: "image/png" },
+        { url: "/favicon.ico?v=4" },
+      ],
+      shortcut: faviconUrl,
+      apple: [
+        { url: faviconUrl, sizes: "180x180", type: "image/png" },
+      ],
+    },
+    openGraph: {
+      title,
+      description,
+      type: "website",
+      siteName: settings.companyName || "ModularHome.com",
+      images: [
+        {
+          url: logoUrl,
+          width: 1200,
+          height: 630,
+          alt: `${settings.companyName || "ModularHome.com"} Logo`,
+        },
+      ],
+    },
+  };
+}
 
 export default async function RootLayout({
   children,

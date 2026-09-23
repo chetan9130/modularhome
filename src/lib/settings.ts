@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { supabase, isSupabaseConfigured } from "./supabase";
+import { supabaseAdmin, isSupabaseConfigured } from "./supabase";
 
 export interface PublicGlobalSettings {
   companyName: string;
@@ -25,7 +25,7 @@ export interface PublicGlobalSettings {
 const DATA_DIR = path.join(process.cwd(), "src", "data");
 const SETTINGS_FILE = path.join(DATA_DIR, "custom_settings.json");
 
-const DEFAULT_SETTINGS: PublicGlobalSettings = {
+export const DEFAULT_SETTINGS: PublicGlobalSettings = {
   companyName: "ModularHome.com",
   logoUrl: "/finallogo.avif",
   faviconUrl: "/favicon.ico",
@@ -37,6 +37,8 @@ const DEFAULT_SETTINGS: PublicGlobalSettings = {
     instagram: "https://instagram.com",
     youtube: "https://youtube.com",
     tiktok: "https://tiktok.com",
+    twitter: "",
+    linkedin: "",
   },
   announcementEnabled: true,
   announcementText: "Direct Factory Modular & Prefab Home Builder • 2026 Models Released",
@@ -83,7 +85,11 @@ export function readSettingsFromStore(): PublicGlobalSettings {
     }
     const data = fs.readFileSync(SETTINGS_FILE, "utf-8");
     const parsed = JSON.parse(data);
-    return { ...DEFAULT_SETTINGS, ...parsed };
+    return {
+      ...DEFAULT_SETTINGS,
+      ...parsed,
+      socialLinks: { ...DEFAULT_SETTINGS.socialLinks, ...(parsed?.socialLinks || {}) },
+    };
   } catch (error) {
     return DEFAULT_SETTINGS;
   }
@@ -93,7 +99,14 @@ export function writeSettingsToStore(settings: Partial<PublicGlobalSettings>): P
   try {
     ensureDataDirectory();
     const current = readSettingsFromStore();
-    const updated = { ...current, ...settings };
+    const updated: PublicGlobalSettings = {
+      ...current,
+      ...settings,
+      socialLinks: {
+        ...current.socialLinks,
+        ...(settings.socialLinks || {}),
+      },
+    };
     fs.writeFileSync(SETTINGS_FILE, JSON.stringify(updated, null, 2), "utf-8");
     return updated;
   } catch (error) {
@@ -110,7 +123,7 @@ export async function getPublicGlobalSettings(): Promise<PublicGlobalSettings> {
       return localSettings;
     }
 
-    const { data: raw, error } = await supabase
+    const { data: raw, error } = await supabaseAdmin
       .from("global_settings")
       .select("*")
       .eq("key", "default")
@@ -120,43 +133,47 @@ export async function getPublicGlobalSettings(): Promise<PublicGlobalSettings> {
 
     let socialLinks = localSettings.socialLinks;
     try {
-      if (raw.social_links) {
-        socialLinks = typeof raw.social_links === "string" ? JSON.parse(raw.social_links) : raw.social_links;
+      const rawSocial = raw.social_links || raw.socialLinks;
+      if (rawSocial) {
+        const parsed = typeof rawSocial === "string" ? JSON.parse(rawSocial) : rawSocial;
+        socialLinks = { ...localSettings.socialLinks, ...parsed };
       }
     } catch {}
 
     let navLinks = localSettings.navLinks;
     try {
-      if (raw.nav_links) {
-        navLinks = typeof raw.nav_links === "string" ? JSON.parse(raw.nav_links) : raw.nav_links;
+      const rawNav = raw.nav_links || raw.navLinks;
+      if (rawNav) {
+        navLinks = typeof rawNav === "string" ? JSON.parse(rawNav) : rawNav;
       }
     } catch {}
 
     let footerLinks = localSettings.footerLinks;
     try {
-      if (raw.footer_links) {
-        footerLinks = typeof raw.footer_links === "string" ? JSON.parse(raw.footer_links) : raw.footer_links;
+      const rawFoot = raw.footer_links || raw.footerLinks;
+      if (rawFoot) {
+        footerLinks = typeof rawFoot === "string" ? JSON.parse(rawFoot) : rawFoot;
       }
     } catch {}
 
     const merged: PublicGlobalSettings = {
-      companyName: raw.company_name || localSettings.companyName,
-      logoUrl: raw.logo_url || localSettings.logoUrl,
-      faviconUrl: raw.favicon_url || localSettings.faviconUrl,
+      companyName: raw.company_name || raw.companyName || localSettings.companyName,
+      logoUrl: raw.logo_url || raw.logoUrl || localSettings.logoUrl,
+      faviconUrl: raw.favicon_url || raw.faviconUrl || localSettings.faviconUrl,
       phone: raw.phone || localSettings.phone,
       email: raw.email || localSettings.email,
       address: raw.address || localSettings.address,
       socialLinks: socialLinks || localSettings.socialLinks,
-      announcementEnabled: raw.announcement_enabled ?? localSettings.announcementEnabled,
-      announcementText: raw.announcement_text || localSettings.announcementText,
-      announcementLink: raw.announcement_link || localSettings.announcementLink,
+      announcementEnabled: raw.announcement_enabled ?? raw.announcementEnabled ?? localSettings.announcementEnabled,
+      announcementText: raw.announcement_text || raw.announcementText || localSettings.announcementText,
+      announcementLink: raw.announcement_link || raw.announcementLink || localSettings.announcementLink,
       navLinks: navLinks || localSettings.navLinks,
-      footerText: raw.footer_text || localSettings.footerText,
+      footerText: raw.footer_text || raw.footerText || localSettings.footerText,
       footerLinks: footerLinks || localSettings.footerLinks,
-      defaultSeoTitle: raw.default_seo_title || localSettings.defaultSeoTitle,
-      defaultMetaDescription: raw.default_meta_description || localSettings.defaultMetaDescription,
-      ctaLabel: raw.cta_label || localSettings.ctaLabel,
-      ctaLink: raw.cta_link || localSettings.ctaLink,
+      defaultSeoTitle: raw.default_seo_title || raw.defaultSeoTitle || localSettings.defaultSeoTitle,
+      defaultMetaDescription: raw.default_meta_description || raw.defaultMetaDescription || localSettings.defaultMetaDescription,
+      ctaLabel: raw.cta_label || raw.ctaLabel || localSettings.ctaLabel,
+      ctaLink: raw.cta_link || raw.ctaLink || localSettings.ctaLink,
     };
 
     return merged;

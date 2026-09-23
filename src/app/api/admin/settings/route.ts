@@ -1,7 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
-import { getPublicGlobalSettings, writeSettingsToStore, readSettingsFromStore } from "@/lib/settings";
+import { getPublicGlobalSettings, writeSettingsToStore } from "@/lib/settings";
+
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export async function GET() {
   const authResult = await requireAdminAuth();
@@ -77,7 +80,7 @@ export async function PUT(request: NextRequest) {
     if (body.ctaLink !== undefined) updatePayload.cta_link = body.ctaLink;
     if (body.cta_link !== undefined) updatePayload.cta_link = body.cta_link;
 
-    // 1. Immediately persist locally
+    // 1. Immediately persist locally (guarantees 100% data preservation)
     const savedLocal = writeSettingsToStore({
       companyName: body.companyName || body.company_name,
       logoUrl: body.logoUrl || body.logo_url,

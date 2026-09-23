@@ -294,9 +294,9 @@ function NavbarContent({ initialSettings, customPages = [] }: NavbarContentProps
                 )}
 
                 {/* TikTok */}
-                {socialLinks.tiktok !== "" && (
+                {socialLinks.tiktok && (
                   <a
-                    href={socialLinks.tiktok || "https://www.tiktok.com"}
+                    href={socialLinks.tiktok}
                     target="_blank"
                     rel="noreferrer"
                     aria-label="Follow us on TikTok"
@@ -304,6 +304,36 @@ function NavbarContent({ initialSettings, customPages = [] }: NavbarContentProps
                   >
                     <svg className="w-3 h-3 fill-current" viewBox="0 0 24 24" aria-hidden="true">
                       <path d="M12.525.02c1.31-.02 2.61-.01 3.91-.02.08 1.53.63 3.09 1.75 4.17 1.12 1.11 2.7 1.62 4.24 1.79v4.03c-1.44-.05-2.89-.35-4.2-.97-.57-.26-1.1-.59-1.62-1.01-.01 2.92.01 5.84-.02 8.75-.08 1.4-.54 2.79-1.35 3.94-1.31 1.92-3.58 3.17-5.91 3.21-1.43.08-2.86-.31-4.08-1.03-2.02-1.19-3.44-3.37-3.65-5.71-.02-.5-.03-1-.01-1.49.18-1.9 1.12-3.72 2.58-4.96 1.66-1.44 3.98-2.13 6.15-1.72.02 1.48-.04 2.96-.04 4.44-.99-.32-2.15-.23-3.02.37-.63.41-1.11 1.04-1.36 1.75-.21.51-.24 1.07-.14 1.61.24 1.16 1.18 2.09 2.35 2.3 1.05.21 2.18-.08 2.96-.8.61-.53.97-1.3 1.01-2.11.05-3.87.02-7.74.03-11.61z" />
+                    </svg>
+                  </a>
+                )}
+
+                {/* Twitter / X */}
+                {(socialLinks.twitter || socialLinks.x) && (
+                  <a
+                    href={socialLinks.twitter || socialLinks.x}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Follow us on X"
+                    className="w-[22px] h-[22px] rounded-full bg-white/10 text-white hover:bg-[#fcb907] hover:text-[#101114] flex items-center justify-center hover:scale-110 transition-all"
+                  >
+                    <svg className="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
+                    </svg>
+                  </a>
+                )}
+
+                {/* LinkedIn */}
+                {socialLinks.linkedin && (
+                  <a
+                    href={socialLinks.linkedin}
+                    target="_blank"
+                    rel="noreferrer"
+                    aria-label="Follow us on LinkedIn"
+                    className="w-[22px] h-[22px] rounded-full bg-white/10 text-white hover:bg-[#fcb907] hover:text-[#101114] flex items-center justify-center hover:scale-110 transition-all"
+                  >
+                    <svg className="w-2.5 h-2.5 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                      <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 8.76c.97 0 1.76-.79 1.76-1.76s-.79-1.76-1.76-1.76-1.76.79-1.76 1.76.79 1.76 1.76 1.76m1.39 9.74v-8.37H5.07v8.37h2.78z" />
                     </svg>
                   </a>
                 )}

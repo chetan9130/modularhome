@@ -21,6 +21,7 @@ import { BUILDING_MODELS, BuildingModel } from "@/data/models";
 import BuildingCard from "@/components/BuildingCard";
 import ModelDetailClient from "./ModelDetailClient";
 import { getPublicProductBySlug, getPublicProducts } from "@/lib/publicData";
+import { getPublicGlobalSettings } from "@/lib/settings";
 
 export const dynamic = "force-dynamic";
 
@@ -51,12 +52,24 @@ export default async function ModelDetailPage({
     notFound();
   }
 
-  const allProducts = await getPublicProducts();
+  const [allProducts, settings] = await Promise.all([
+    getPublicProducts(),
+    getPublicGlobalSettings(),
+  ]);
+
   const relatedModels = allProducts
     .filter(
       (m) => m.id !== model.id && (m.category === model.category || m.series === model.series)
     )
     .slice(0, 3);
 
-  return <ModelDetailClient model={model} relatedModels={relatedModels} />;
+  return (
+    <ModelDetailClient
+      model={model}
+      relatedModels={relatedModels}
+      phone={settings.phone}
+      companyName={settings.companyName}
+    />
+  );
 }
+

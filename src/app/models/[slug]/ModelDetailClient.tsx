@@ -24,9 +24,15 @@ import { formatPrice } from "@/utils/currency";
 interface ModelDetailClientProps {
   model: BuildingModel;
   relatedModels: BuildingModel[];
+  phone?: string;
+  companyName?: string;
 }
 
-export default function ModelDetailClient({ model, relatedModels = [] }: ModelDetailClientProps) {
+export default function ModelDetailClient({
+  model,
+  relatedModels = [],
+  phone = "+1 (812) 595-4033",
+}: ModelDetailClientProps) {
   const primaryImg = model?.primaryImage || model?.image || (model?.gallery && model.gallery[0]) || "/finallogo.avif";
   const [activeImage, setActiveImage] = useState<string>(primaryImg);
   const [selectedOptions, setSelectedOptions] = useState<string[]>([]);
@@ -437,11 +443,11 @@ export default function ModelDetailClient({ model, relatedModels = [] }: ModelDe
                   </Link>
 
                   <a
-                    href="tel:+18125954033"
+                    href={`tel:${phone.replace(/[^0-9+]/g, "")}`}
                     className="btn-outline w-full py-2.5 text-xs font-bold rounded-[11px] flex items-center justify-center gap-2"
                   >
                     <Phone className="w-3.5 h-3.5 text-[#d97706]" />
-                    <span>Call +1-812-595-4033</span>
+                    <span>Call {phone}</span>
                   </a>
                 </div>
               </div>

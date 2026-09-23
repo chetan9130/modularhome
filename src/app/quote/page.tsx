@@ -1,12 +1,18 @@
 import { ShieldCheck, Clock, Award } from "lucide-react";
 import QuoteWizard from "@/components/QuoteWizard";
+import { getPublicGlobalSettings } from "@/lib/settings";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Instant Building Quote Calculator | ModularHome.com",
   description: "Calculate custom estimates for your modular home, prefab, tiny home, barndominium, or cabin. Customize square footage and options for transparent pricing.",
 };
 
-export default function QuotePage() {
+export default async function QuotePage() {
+  const settings = await getPublicGlobalSettings();
+  const phone = settings.phone || "+1 (812) 595-4033";
+
   return (
     <div className="min-h-screen bg-white pt-24 pb-20 text-[#101114]">
       <div className="wrap">
@@ -48,8 +54,8 @@ export default function QuotePage() {
         {/* Assistive footer callout */}
         <div className="mt-14 text-center text-xs text-[#6b7280]">
           Prefer to speak directly with an estimator? Call us at{" "}
-          <a href="tel:+18125954033" className="text-[#d97706] font-bold hover:underline">
-            +1-812-595-4033
+          <a href={`tel:${phone.replace(/[^0-9+]/g, "")}`} className="text-[#d97706] font-bold hover:underline">
+            {phone}
           </a>{" "}
           (Monday–Friday 7am–6pm EST).
         </div>
@@ -57,3 +63,4 @@ export default function QuotePage() {
     </div>
   );
 }
+
