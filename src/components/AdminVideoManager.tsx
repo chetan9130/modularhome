@@ -15,13 +15,9 @@ import {
   Video as VideoIcon, 
   Sparkles, 
   Search,
-  Filter,
-  Clock,
-  ShieldCheck,
-  X,
-  Play
+  X
 } from "lucide-react";
-import { VideoItem, SyncStats, VideoCategory } from "@/types/video";
+import { VideoItem, SyncStats } from "@/types/video";
 
 export default function AdminVideoManager() {
   const [videos, setVideos] = useState<VideoItem[]>([]);
@@ -30,28 +26,16 @@ export default function AdminVideoManager() {
   const [isSyncing, setIsSyncing] = useState(false);
   const [syncMessage, setSyncMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
 
-  // Filters
+  // Search Filter
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
 
   // Modal for Add YouTube Video by URL
   const [addModalOpen, setAddModalOpen] = useState(false);
   const [pastedUrl, setPastedUrl] = useState("");
   const [isFetchingUrl, setIsFetchingUrl] = useState(false);
   const [fetchedVideo, setFetchedVideo] = useState<Partial<VideoItem> | null>(null);
-  const [manualCategory, setManualCategory] = useState<VideoCategory>("Building Tours");
   const [manualPublish, setManualPublish] = useState(true);
   const [fetchError, setFetchError] = useState("");
-
-  const categoriesList: VideoCategory[] = [
-    "Building Tours",
-    "Construction",
-    "Delivery",
-    "Interior",
-    "Customer Stories",
-    "Barndominiums",
-    "General",
-  ];
 
   const fetchAdminVideos = async () => {
     setIsLoading(true);
@@ -98,28 +82,6 @@ export default function AdminVideoManager() {
       });
     } finally {
       setIsSyncing(false);
-    }
-  };
-
-  const handleCategoryChange = async (id: string, newCategory: VideoCategory) => {
-    try {
-      const res = await fetch("/api/admin/videos", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          action: "updateCategory",
-          id,
-          category: newCategory,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) {
-        setVideos((prev) =>
-          prev.map((v) => (v.id === id ? { ...v, category: newCategory } : v))
-        );
-      }
-    } catch (err) {
-      console.error("Error updating category:", err);
     }
   };
 
@@ -197,7 +159,7 @@ export default function AdminVideoManager() {
     try {
       const payload = {
         ...fetchedVideo,
-        category: manualCategory,
+        category: "Building Tours" as const,
         isPublished: manualPublish,
       };
 
@@ -222,9 +184,13 @@ export default function AdminVideoManager() {
   };
 
   const filteredVideos = videos.filter((v) => {
-    const matchesCategory = selectedCategory === "All" || v.category.toLowerCase() === selectedCategory.toLowerCase();
-    const matchesQuery = searchQuery === "" || v.title.toLowerCase().includes(searchQuery.toLowerCase()) || v.youtubeVideoId.toLowerCase().includes(searchQuery.toLowerCase());
-    return matchesCategory && matchesQuery;
+    const q = searchQuery.toLowerCase().trim();
+    if (!q) return true;
+    return (
+      v.title.toLowerCase().includes(q) ||
+      v.youtubeVideoId.toLowerCase().includes(q) ||
+      (v.description && v.description.toLowerCase().includes(q))
+    );
   });
 
   return (
@@ -241,7 +207,7 @@ export default function AdminVideoManager() {
               YouTube Video Manager
             </h1>
             <p className="text-xs sm:text-sm text-white/70 mt-1 max-w-2xl font-sans">
-              Automatically sync videos from your YouTube channel directly to your website. Videos uploaded on YouTube appear automatically without manual website post creation.
+              Automatically sync full-length videos from your YouTube channel directly to your website. Main video uploads appear automatically without manual website post creation.
             </p>
           </div>
 
@@ -317,23 +283,10 @@ export default function AdminVideoManager() {
         </div>
       </div>
 
-      {/* 3. FILTER & SEARCH STRIP */}
-      <div className="p-5 bg-white border border-[#e7e9ee] rounded-[18px] flex flex-col sm:flex-row items-center justify-between gap-4 shadow-[0_12px_35px_rgba(16,24,40,0.04)]">
-        <div className="flex items-center gap-3 w-full sm:w-auto">
-          <Filter className="w-4 h-4 text-[#d97706]" />
-          <span className="text-xs font-bold uppercase tracking-wider text-[#101114]">Category:</span>
-          <select
-            value={selectedCategory}
-            onChange={(e) => setSelectedCategory(e.target.value)}
-            className="bg-[#f6f7f9] border border-[#d5d9e0] px-3.5 py-2.5 text-xs text-[#101114] font-bold rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] cursor-pointer"
-          >
-            <option value="All">All Categories ({videos.length})</option>
-            {categoriesList.map((cat) => (
-              <option key={cat} value={cat}>
-                {cat}
-              </option>
-            ))}
-          </select>
+      {/* 3. SEARCH STRIP */}
+      <div className="p-5 bg-white border border-[#e7e9ee] rounded-[18px] flex items-center justify-between gap-4 shadow-[0_12px_35px_rgba(16,24,40,0.04)]">
+        <div className="text-xs font-bold text-[#101114]">
+          Video Catalog ({filteredVideos.length} {filteredVideos.length === 1 ? "video" : "videos"})
         </div>
 
         <div className="relative w-full sm:w-80">
@@ -365,12 +318,11 @@ export default function AdminVideoManager() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs border-collapse min-w-[750px]">
+            <table className="w-full text-left text-xs border-collapse min-w-[700px]">
               <thead>
                 <tr className="bg-[#f6f7f9] border-b border-[#e7e9ee] text-[#6b7280] uppercase text-[10px] font-bold tracking-wider">
                   <th className="py-3.5 px-4">Video</th>
                   <th className="py-3.5 px-4">YouTube ID</th>
-                  <th className="py-3.5 px-4">Category</th>
                   <th className="py-3.5 px-4">Published Date</th>
                   <th className="py-3.5 px-4 text-center">Website Visibility</th>
                   <th className="py-3.5 px-4 text-right">Actions</th>
@@ -407,22 +359,6 @@ export default function AdminVideoManager() {
 
                       <td className="py-3.5 px-4 font-mono text-xs text-[#101114]">
                         {video.youtubeVideoId}
-                      </td>
-
-                      <td className="py-3.5 px-4">
-                        <select
-                          value={video.category}
-                          onChange={(e) =>
-                            handleCategoryChange(vId, e.target.value as VideoCategory)
-                          }
-                          className="bg-[#f6f7f9] border border-[#d5d9e0] px-3 py-1.5 text-xs text-[#101114] rounded-xl focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907] font-bold cursor-pointer"
-                        >
-                          {categoriesList.map((cat) => (
-                            <option key={cat} value={cat}>
-                              {cat}
-                            </option>
-                          ))}
-                        </select>
                       </td>
 
                       <td className="py-3.5 px-4 text-[#6b7280] text-[11px]">
@@ -566,40 +502,21 @@ export default function AdminVideoManager() {
                   </div>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#e7e9ee]">
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-[#101114] mb-1">
-                      Website Category
-                    </label>
-                    <select
-                      value={manualCategory}
-                      onChange={(e) => setManualCategory(e.target.value as VideoCategory)}
-                      className="w-full bg-white border border-[#d5d9e0] px-3 py-1.5 text-xs text-[#101114] font-bold rounded-xl focus:outline-none focus:ring-2 focus:ring-[#fcb907] cursor-pointer"
-                    >
-                      {categoriesList.map((cat) => (
-                        <option key={cat} value={cat}>
-                          {cat}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  <div>
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-[#101114] mb-1">
-                      Website Visibility
-                    </label>
-                    <button
-                      type="button"
-                      onClick={() => setManualPublish(!manualPublish)}
-                      className={`w-full py-1.5 text-xs font-bold uppercase tracking-wider rounded-xl border transition-colors cursor-pointer ${
-                        manualPublish
-                          ? "bg-[#fcb907] text-[#101114] border-[#fcb907]"
-                          : "bg-white text-[#6b7280] border-[#d5d9e0]"
-                      }`}
-                    >
-                      {manualPublish ? "Published" : "Hidden (Draft)"}
-                    </button>
-                  </div>
+                <div className="pt-2 border-t border-[#e7e9ee]">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-[#101114] mb-1">
+                    Website Visibility
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setManualPublish(!manualPublish)}
+                    className={`w-full py-2 text-xs font-bold uppercase tracking-wider rounded-xl border transition-colors cursor-pointer ${
+                      manualPublish
+                        ? "bg-[#fcb907] text-[#101114] border-[#fcb907]"
+                        : "bg-white text-[#6b7280] border-[#d5d9e0]"
+                    }`}
+                  >
+                    {manualPublish ? "Published" : "Hidden (Draft)"}
+                  </button>
                 </div>
               </div>
             )}
