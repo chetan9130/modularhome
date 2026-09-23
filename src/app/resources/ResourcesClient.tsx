@@ -4,7 +4,6 @@ import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Clock, Search, BookOpen, Sparkles } from "lucide-react";
-import { RESOURCE_CATEGORIES } from "@/data/resources";
 
 interface ResourcesClientProps {
   initialArticles: any[];
@@ -12,20 +11,16 @@ interface ResourcesClientProps {
 
 export default function ResourcesClient({ initialArticles }: ResourcesClientProps) {
   const [articles] = useState<any[]>(initialArticles);
-  const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const filteredArticles = articles.filter((art) => {
-    const matchesCategory =
-      selectedCategory === "All" ||
-      (art.category || "").toLowerCase() === selectedCategory.toLowerCase();
-    const matchesSearch =
-      searchQuery === "" ||
-      (art.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (art.excerpt || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-      (art.category || "").toLowerCase().includes(searchQuery.toLowerCase());
-
-    return matchesCategory && matchesSearch;
+    if (!searchQuery.trim()) return true;
+    const q = searchQuery.toLowerCase();
+    return (
+      (art.title || "").toLowerCase().includes(q) ||
+      (art.excerpt || "").toLowerCase().includes(q) ||
+      (art.category || "").toLowerCase().includes(q)
+    );
   });
 
   return (
@@ -47,8 +42,8 @@ export default function ResourcesClient({ initialArticles }: ResourcesClientProp
             Everything you need to know about factory modular housing, costs, timelines, financing, land preparation, and floor plan customization.
           </p>
 
-          {/* Search & Filter Bar */}
-          <div className="mt-8 space-y-4">
+          {/* Search Bar */}
+          <div className="mt-8">
             <div className="relative max-w-md mx-auto">
               <Search className="w-4 h-4 text-[#6b7280] absolute left-4 top-1/2 -translate-y-1/2" />
               <input
@@ -59,23 +54,6 @@ export default function ResourcesClient({ initialArticles }: ResourcesClientProp
                 className="w-full bg-[#f8f9fa] border border-[#d5d9e0] pl-11 pr-4 py-3 text-xs text-[#101114] rounded-full focus:outline-none focus:border-[#fcb907] focus:bg-white shadow-xs transition-all"
               />
             </div>
-
-            {/* Category Pills */}
-            <div className="flex flex-wrap items-center justify-center gap-2">
-              {RESOURCE_CATEGORIES.map((cat) => (
-                <button
-                  key={cat}
-                  onClick={() => setSelectedCategory(cat)}
-                  className={`px-3.5 py-1.5 text-xs font-bold uppercase tracking-wider rounded-full transition-all duration-200 cursor-pointer ${
-                    selectedCategory === cat
-                      ? "bg-[#101114] text-white shadow-sm"
-                      : "bg-[#f4f5f7] text-[#555d69] hover:bg-[#e7e9ee] hover:text-[#101114] border border-transparent"
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
-            </div>
           </div>
         </div>
 
@@ -85,16 +63,13 @@ export default function ResourcesClient({ initialArticles }: ResourcesClientProp
             <BookOpen className="w-8 h-8 mx-auto text-[#6b7280]/40" />
             <div className="font-bold text-[#101114]">No articles matched your search.</div>
             <p className="text-xs text-[#6b7280]">
-              Try searching with different terms or selecting another category.
+              Try searching with different terms.
             </p>
             <button
-              onClick={() => {
-                setSelectedCategory("All");
-                setSearchQuery("");
-              }}
+              onClick={() => setSearchQuery("")}
               className="text-xs font-bold text-[#d97706] hover:underline cursor-pointer"
             >
-              Reset Filters
+              Clear Search
             </button>
           </div>
         ) : (
