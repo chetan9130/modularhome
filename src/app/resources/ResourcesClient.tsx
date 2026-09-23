@@ -3,8 +3,8 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowRight, Clock, Search, BookOpen, Sparkles, Filter } from "lucide-react";
-import { RESOURCE_CATEGORIES, ResourceArticle } from "@/data/resources";
+import { ArrowRight, Clock, Search, BookOpen, Sparkles } from "lucide-react";
+import { RESOURCE_CATEGORIES } from "@/data/resources";
 
 interface ResourcesClientProps {
   initialArticles: any[];
@@ -27,10 +27,6 @@ export default function ResourcesClient({ initialArticles }: ResourcesClientProp
 
     return matchesCategory && matchesSearch;
   });
-
-  const featuredArticle = articles[0];
-  const isDefaultView = selectedCategory === "All" && searchQuery === "";
-  const gridArticles = isDefaultView ? filteredArticles.slice(1) : filteredArticles;
 
   return (
     <div className="min-h-screen bg-white pt-24 pb-28 text-[#101114]">
@@ -83,63 +79,6 @@ export default function ResourcesClient({ initialArticles }: ResourcesClientProp
           </div>
         </div>
 
-        {/* Featured Article Spotlight (shown when in All category and no search) */}
-        {isDefaultView && featuredArticle && (
-          <div className="mb-14">
-            <Link
-              href={`/resources/${featuredArticle.slug}`}
-              className="card group overflow-hidden relative rounded-[24px] bg-[#101114] text-white border border-[#e7e9ee] hover:border-[#fcb907] transition-all duration-300 shadow-xl grid grid-cols-1 lg:grid-cols-12 block"
-            >
-              <div className="relative aspect-[16/10] lg:aspect-auto lg:col-span-7 overflow-hidden min-h-[280px] sm:min-h-[360px]">
-                <Image
-                  src={featuredArticle.image}
-                  alt={featuredArticle.title}
-                  fill
-                  priority
-                  sizes="(max-width: 1024px) 100vw, 60vw"
-                  className="object-cover group-hover:scale-105 transition-transform duration-700"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent lg:hidden" />
-              </div>
-
-              <div className="p-7 sm:p-10 lg:col-span-5 flex flex-col justify-between space-y-6">
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <span className="px-3 py-1 text-[10px] font-black uppercase tracking-wider bg-[#fcb907] text-[#101114] rounded-full">
-                      Featured Guide
-                    </span>
-                    <span className="text-xs text-white/70 font-medium">
-                      {featuredArticle.category}
-                    </span>
-                  </div>
-
-                  <h2 className="text-2xl sm:text-3xl font-black uppercase tracking-tight text-white font-display leading-tight group-hover:text-[#fcb907] transition-colors">
-                    {featuredArticle.title}
-                  </h2>
-
-                  <p className="text-xs sm:text-sm text-white/75 leading-relaxed line-clamp-3 font-body">
-                    {featuredArticle.excerpt}
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-white/10 flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-xs text-white/70">
-                    <Clock className="w-3.5 h-3.5 text-[#fcb907]" />
-                    <span>{featuredArticle.readTime}</span>
-                    <span>•</span>
-                    <span>{featuredArticle.date}</span>
-                  </div>
-
-                  <span className="inline-flex items-center gap-1.5 text-xs font-black uppercase tracking-wider text-[#fcb907] group-hover:underline">
-                    <span>Read Guide</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </span>
-                </div>
-              </div>
-            </Link>
-          </div>
-        )}
-
         {/* Articles Grid */}
         {filteredArticles.length === 0 ? (
           <div className="p-16 text-center text-xs text-[#6b7280] space-y-3 bg-[#f8f9fa] rounded-[20px] border border-[#e7e9ee]">
@@ -160,7 +99,7 @@ export default function ResourcesClient({ initialArticles }: ResourcesClientProp
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-7">
-            {gridArticles.map((article: any) => (
+            {filteredArticles.map((article: any) => (
               <Link
                 key={article.id || article.slug}
                 href={`/resources/${article.slug}`}
