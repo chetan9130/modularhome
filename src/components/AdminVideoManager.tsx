@@ -37,6 +37,29 @@ export default function AdminVideoManager() {
   const [manualPublish, setManualPublish] = useState(true);
   const [fetchError, setFetchError] = useState("");
 
+  useEffect(() => {
+    let isMounted = true;
+    const load = async () => {
+      setIsLoading(true);
+      try {
+        const res = await fetch("/api/admin/videos");
+        const data = await res.json();
+        if (isMounted && data.success) {
+          setVideos(data.videos || []);
+          setStats(data.stats || null);
+        }
+      } catch (err) {
+        console.error("Failed to load admin videos:", err);
+      } finally {
+        if (isMounted) setIsLoading(false);
+      }
+    };
+    load();
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
   const fetchAdminVideos = async () => {
     setIsLoading(true);
     try {
@@ -52,10 +75,6 @@ export default function AdminVideoManager() {
       setIsLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchAdminVideos();
-  }, []);
 
   const handleManualSync = async () => {
     setIsSyncing(true);

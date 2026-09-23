@@ -49,6 +49,7 @@ export default function AdminLayout({
   const isLoginPage = pathname === "/admin/login";
 
   useEffect(() => {
+    let isMounted = true;
     if (!isLoginPage) {
       fetch("/api/admin/auth/me")
         .then((res) => {
@@ -56,6 +57,7 @@ export default function AdminLayout({
           throw new Error("Unauthorized");
         })
         .then((data) => {
+          if (!isMounted) return;
           if (data.success && data.user) {
             setUser(data.user);
           } else {
@@ -63,37 +65,19 @@ export default function AdminLayout({
           }
         })
         .catch(async () => {
+          if (!isMounted) return;
           try {
             await fetch("/api/admin/auth/logout", { method: "POST" });
           } catch {}
-          router.push(`/admin/login?redirect=${encodeURIComponent(pathname || "/admin")}&reason=unauthorized`);
+          if (isMounted) {
+            router.push(`/admin/login?redirect=${encodeURIComponent(pathname || "/admin")}&reason=unauthorized`);
+          }
         });
     }
-  }, [pathname, isLoginPage, router]);
-
-  // Global 401 interceptor: if any sub-request returns 401 unauthorized, log out and redirect
-  useEffect(() => {
-    if (isLoginPage || typeof window === "undefined") return;
-
-    const originalFetch = window.fetch;
-    window.fetch = async (...args) => {
-      const response = await originalFetch(...args);
-      if (response.status === 401) {
-        const urlStr = typeof args[0] === "string" ? args[0] : (args[0] as Request)?.url || "";
-        if (urlStr.includes("/api/admin") && !urlStr.includes("/api/admin/auth/login")) {
-          try {
-            await originalFetch("/api/admin/auth/logout", { method: "POST" });
-          } catch {}
-          router.push(`/admin/login?redirect=${encodeURIComponent(window.location.pathname)}&reason=session_expired`);
-        }
-      }
-      return response;
-    };
-
     return () => {
-      window.fetch = originalFetch;
+      isMounted = false;
     };
-  }, [isLoginPage, router]);
+  }, [pathname, isLoginPage, router]);
 
   const handleLogout = async () => {
     try {

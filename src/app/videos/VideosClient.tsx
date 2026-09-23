@@ -14,25 +14,33 @@ export default function VideosClient() {
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
   useEffect(() => {
+    let isMounted = true;
     async function loadSyncedVideos() {
       setIsLoading(true);
       try {
         const res = await fetch("/api/videos");
         const data = await res.json();
+        if (!isMounted) return;
         if (data.success && Array.isArray(data.videos) && data.videos.length > 0) {
           setVideos(data.videos);
         } else {
-          // Fallback to initial seed data
           setVideos(VIDEOS_DATA as unknown as VideoItem[]);
         }
       } catch (err) {
         console.error("Failed to fetch synced videos, using fallback:", err);
-        setVideos(VIDEOS_DATA as unknown as VideoItem[]);
+        if (isMounted) {
+          setVideos(VIDEOS_DATA as unknown as VideoItem[]);
+        }
       } finally {
-        setIsLoading(false);
+        if (isMounted) {
+          setIsLoading(false);
+        }
       }
     }
     loadSyncedVideos();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const filteredVideos = videos.filter((v) => {

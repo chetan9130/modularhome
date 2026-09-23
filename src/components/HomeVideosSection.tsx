@@ -16,12 +16,13 @@ export default function HomeVideosSection({ videos }: HomeVideosSectionProps) {
   const [selectedVideo, setSelectedVideo] = useState<VideoItem | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
     async function loadVideos() {
       try {
         const res = await fetch("/api/videos");
         if (res.ok) {
           const data = await res.json();
-          if (data.success && Array.isArray(data.videos) && data.videos.length > 0) {
+          if (isMounted && data.success && Array.isArray(data.videos) && data.videos.length > 0) {
             setVideoList(data.videos);
           }
         }
@@ -30,6 +31,9 @@ export default function HomeVideosSection({ videos }: HomeVideosSectionProps) {
       }
     }
     loadVideos();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const displayVideos = videoList.length >= 5 ? videoList.slice(0, 5) : (videoList.length > 0 ? videoList : VIDEOS_DATA);
