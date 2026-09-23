@@ -1,5 +1,19 @@
 import { VideoItem, YouTubeSyncResult, SyncStats } from "@/types/video";
-import { batchUpsertVideos, readVideosFromStore, saveSyncStats, upsertVideo } from "./videoStore";
+import { batchUpsertVideos, readVideosFromStore, writeVideosToStore, saveSyncStats, upsertVideo } from "./videoStore";
+
+// Helper to convert ISO 8601 duration (e.g. PT5M12S) to seconds
+export function parseISO8601DurationInSeconds(isoDuration: string): number {
+  if (!isoDuration) return 0;
+  const regex = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
+  const matches = isoDuration.match(regex);
+  if (!matches) return 0;
+
+  const hours = parseInt(matches[1] || "0", 10);
+  const minutes = parseInt(matches[2] || "0", 10);
+  const seconds = parseInt(matches[3] || "0", 10);
+
+  return hours * 3600 + minutes * 60 + seconds;
+}
 
 // Helper to convert ISO 8601 duration (e.g. PT5M12S) to human readable (5:12)
 export function parseISO8601Duration(isoDuration: string): string {
@@ -22,6 +36,50 @@ export function parseISO8601Duration(isoDuration: string): string {
   return `${minutes}:${formattedSeconds}`;
 }
 
+// Helper to detect if a video is a YouTube Short
+export function isYouTubeShort(
+  durationInSeconds: number,
+  title?: string,
+  description?: string,
+  urlOrId?: string
+): boolean {
+  // If URL explicitly has /shorts/
+  if (urlOrId && /youtube\.com\/shorts\//i.test(urlOrId)) {
+    return true;
+  }
+
+  // Official YouTube Shorts are <= 60 seconds (or zero/missing duration flagged as non-main)
+  if (durationInSeconds > 0 && durationInSeconds <= 60) {
+    return true;
+  }
+
+  // Short duration tagged with #shorts
+  const titleLower = (title || "").toLowerCase();
+  const descLower = (description || "").toLowerCase();
+  if (
+    durationInSeconds <= 90 &&
+    (titleLower.includes("#shorts") ||
+      titleLower.includes("#short") ||
+      descLower.includes("#shorts") ||
+      descLower.includes("#short"))
+  ) {
+    return true;
+  }
+
+  return false;
+}
+
+// Known demo IDs to purge
+export const KNOWN_DEMO_VIDEO_IDS = new Set([
+  "dQw4w9WgXcQ",
+  "L_LUpnjgPso",
+  "4ie-LR2JDPE",
+  "vid-1",
+  "vid-2",
+  "vid-3",
+  "vid-4",
+]);
+
 // Helper to extract YouTube Video ID from any URL format
 export function extractYouTubeId(urlOrId: string): string | null {
   if (!urlOrId) return null;
@@ -34,8 +92,8 @@ export function extractYouTubeId(urlOrId: string): string | null {
 
   // Regex patterns for youtube URLs
   const patterns = [
-    (/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]{11})/i),
-    (/youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/i),
+    /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/v\/)([a-zA-Z0-9_-]{11})/i,
+    /youtube\.com\/shorts\/([a-zA-Z0-9_-]{11})/i,
   ];
 
   for (const pattern of patterns) {
@@ -54,24 +112,20 @@ export async function fetchYouTubeVideoByUrl(urlOrId: string): Promise<Partial<V
     throw new Error("Invalid YouTube URL or Video ID format.");
   }
 
+  // Reject known demo IDs
+  if (KNOWN_DEMO_VIDEO_IDS.has(videoId)) {
+    throw new Error("Demo placeholder videos cannot be imported.");
+  }
+
+  // Reject explicit shorts URL
+  if (/youtube\.com\/shorts\//i.test(urlOrId)) {
+    throw new Error("YouTube Shorts are excluded. Please provide a full-length YouTube video URL.");
+  }
+
   const apiKey = process.env.YOUTUBE_API_KEY;
 
   if (!apiKey) {
-    // Return structured mock object if API key is not yet set
-    return {
-      youtubeVideoId: videoId,
-      title: `Custom YouTube Video (${videoId})`,
-      category: "Building Tours",
-      duration: "4:30",
-      description: "Imported YouTube video walkthrough. Add your YOUTUBE_API_KEY in .env.local for automatic metadata extraction.",
-      thumbnail: `https://img.youtube.com/vi/${videoId}/hqdefault.jpg`,
-      views: "1.2K views",
-      date: "Just now",
-      publishedAt: new Date().toISOString(),
-      youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`,
-      embedUrl: `https://www.youtube.com/embed/${videoId}`,
-      isPublished: true,
-    };
+    throw new Error("YOUTUBE_API_KEY is not configured in environment.");
   }
 
   try {
@@ -89,6 +143,11 @@ export async function fetchYouTubeVideoByUrl(urlOrId: string): Promise<Partial<V
     const snippet = item.snippet;
     const contentDetails = item.contentDetails;
     const statistics = item.statistics;
+
+    const durationSec = parseISO8601DurationInSeconds(contentDetails?.duration || "");
+    if (isYouTubeShort(durationSec, snippet.title, snippet.description, urlOrId)) {
+      throw new Error("This video is a YouTube Short (<= 60s). Only full-length main videos are supported.");
+    }
 
     const thumbnail =
       snippet.thumbnails?.maxres?.url ||
@@ -109,9 +168,15 @@ export async function fetchYouTubeVideoByUrl(urlOrId: string): Promise<Partial<V
       duration: parseISO8601Duration(contentDetails?.duration),
       publishedAt: snippet.publishedAt || new Date().toISOString(),
       views: viewCount,
-      date: snippet.publishedAt ? new Date(snippet.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "Recent",
+      date: snippet.publishedAt
+        ? new Date(snippet.publishedAt).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          })
+        : "Recent",
       youtubeUrl: `https://www.youtube.com/watch?v=${videoId}`,
-      embedUrl: `https://www.youtube.com/embed/${videoId}`,
+      embedUrl: `https://www.youtube-nocookie.com/embed/${videoId}`,
       channelId: snippet.channelId,
       channelTitle: snippet.channelTitle,
       category: "Building Tours",
@@ -127,59 +192,8 @@ export async function syncYouTubeChannel(): Promise<YouTubeSyncResult> {
   const apiKey = process.env.YOUTUBE_API_KEY;
   const channelId = process.env.YOUTUBE_CHANNEL_ID;
 
-  // Fallback demo sync if credentials are not configured yet
   if (!apiKey || !channelId) {
-    const mockUpdates: Partial<VideoItem>[] = [
-      {
-        youtubeVideoId: "dQw4w9WgXcQ",
-        title: "2026 Amish Handcrafted Luxury Cabin Showcase",
-        category: "Building Tours",
-        duration: "5:45",
-        description: "Explore our latest handcrafted Amish cabin with cathedral lofts, rigid-frame structural integrity, and solid oak finishes.",
-        thumbnail: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
-        views: "245K views",
-        date: "Just now",
-        publishedAt: new Date().toISOString(),
-        youtubeUrl: "https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-        embedUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-        isPublished: true,
-      },
-      {
-        youtubeVideoId: "L_LUpnjgPso",
-        title: "Heavy-Duty Barndominium Frame Erection & Tour",
-        category: "Construction",
-        duration: "7:12",
-        description: "Step-by-step video footage of assembling clear-span steel rafters and tongue-and-groove exterior cladding.",
-        thumbnail: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
-        views: "112K views",
-        date: "Today",
-        publishedAt: new Date(Date.now() - 3600000).toISOString(),
-        youtubeUrl: "https://www.youtube.com/watch?v=L_LUpnjgPso",
-        embedUrl: "https://www.youtube.com/embed/L_LUpnjgPso",
-        isPublished: true,
-      }
-    ];
-
-    const { newCount, updatedCount } = batchUpsertVideos(mockUpdates);
-    const allVideos = readVideosFromStore();
-
-    const stats: SyncStats = {
-      lastSyncAt: new Date().toISOString(),
-      totalFound: allVideos.length,
-      newVideosAdded: newCount,
-      updatedVideos: updatedCount,
-      status: "success",
-    };
-    saveSyncStats(stats);
-
-    return {
-      success: true,
-      message: "Sync completed using demo data (configure YOUTUBE_API_KEY and YOUTUBE_CHANNEL_ID in .env.local for live API sync).",
-      checkedCount: mockUpdates.length,
-      newVideosCount: newCount,
-      updatedVideosCount: updatedCount,
-      stats,
-    };
+    throw new Error("YOUTUBE_API_KEY and YOUTUBE_CHANNEL_ID must be configured in environment variables.");
   }
 
   try {
@@ -199,18 +213,31 @@ export async function syncYouTubeChannel(): Promise<YouTubeSyncResult> {
       throw new Error(`Uploads playlist not found for channel ${channelId}`);
     }
 
-    // 2. Fetch playlist items (latest 50 videos)
-    const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=${uploadsPlaylistId}&maxResults=50&key=${apiKey}`;
-    const playlistRes = await fetch(playlistUrl);
-    if (!playlistRes.ok) {
-      throw new Error(`YouTube Playlist API returned ${playlistRes.status}`);
+    // 2. Fetch playlist items across pages (up to 300 videos to capture all main uploads)
+    let allPlaylistItems: any[] = [];
+    let pageToken = "";
+
+    for (let page = 0; page < 6; page++) {
+      const pageParam = pageToken ? `&pageToken=${pageToken}` : "";
+      const playlistUrl = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet,contentDetails&playlistId=${uploadsPlaylistId}&maxResults=50${pageParam}&key=${apiKey}`;
+      const playlistRes = await fetch(playlistUrl);
+      if (!playlistRes.ok) {
+        break;
+      }
+      const playlistData = await playlistRes.json();
+      if (!playlistData.items || playlistData.items.length === 0) {
+        break;
+      }
+      allPlaylistItems.push(...playlistData.items);
+      pageToken = playlistData.nextPageToken || "";
+      if (!pageToken) break;
     }
-    const playlistData = await playlistRes.json();
-    const items = playlistData.items || [];
-    if (items.length === 0) {
+
+    if (allPlaylistItems.length === 0) {
+      const currentVideos = readVideosFromStore();
       const stats: SyncStats = {
         lastSyncAt: new Date().toISOString(),
-        totalFound: readVideosFromStore().length,
+        totalFound: currentVideos.length,
         newVideosAdded: 0,
         updatedVideos: 0,
         status: "success",
@@ -226,63 +253,112 @@ export async function syncYouTubeChannel(): Promise<YouTubeSyncResult> {
       };
     }
 
-    const videoIds = items
+    const videoIds = allPlaylistItems
       .map((item: any) => item.contentDetails?.videoId)
-      .filter(Boolean)
-      .join(",");
+      .filter(Boolean);
 
-    // 3. Fetch full video metadata (durations, statistics, maxres thumbnails)
-    const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${videoIds}&key=${apiKey}`;
-    const videosRes = await fetch(videosUrl);
-    if (!videosRes.ok) {
-      throw new Error(`YouTube Videos API returned ${videosRes.status}`);
+    // 3. Batch fetch detailed metadata (durations, statistics, maxres thumbnails) in chunks of 50
+    let detailedItems: any[] = [];
+    for (let i = 0; i < videoIds.length; i += 50) {
+      const batchIds = videoIds.slice(i, i + 50).join(",");
+      const videosUrl = `https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails,statistics&id=${batchIds}&key=${apiKey}`;
+      const videosRes = await fetch(videosUrl);
+      if (videosRes.ok) {
+        const videosData = await videosRes.json();
+        if (videosData.items) {
+          detailedItems.push(...videosData.items);
+        }
+      }
     }
-    const videosData = await videosRes.json();
-    const detailedItems = videosData.items || [];
 
-    const parsedVideos: Partial<VideoItem>[] = detailedItems.map((item: any) => {
+    // 4. Strictly filter out Shorts and Demo videos: Only keep MAIN videos (> 60s)
+    const mainVideos: Partial<VideoItem>[] = [];
+
+    for (const item of detailedItems) {
       const vId = item.id;
       const snippet = item.snippet;
       const contentDetails = item.contentDetails;
       const statistics = item.statistics;
 
+      // Exclude known demo IDs
+      if (KNOWN_DEMO_VIDEO_IDS.has(vId)) {
+        continue;
+      }
+
+      // Check duration and shorts indicators
+      const durationSec = parseISO8601DurationInSeconds(contentDetails?.duration || "");
+      if (isYouTubeShort(durationSec, snippet?.title, snippet?.description)) {
+        // Skip all shorts
+        continue;
+      }
+
       const thumbnail =
-        snippet.thumbnails?.maxres?.url ||
-        snippet.thumbnails?.standard?.url ||
-        snippet.thumbnails?.high?.url ||
-        snippet.thumbnails?.medium?.url ||
+        snippet?.thumbnails?.maxres?.url ||
+        snippet?.thumbnails?.standard?.url ||
+        snippet?.thumbnails?.high?.url ||
+        snippet?.thumbnails?.medium?.url ||
         `https://img.youtube.com/vi/${vId}/hqdefault.jpg`;
 
       const viewCount = statistics?.viewCount
         ? `${parseInt(statistics.viewCount, 10).toLocaleString()} views`
         : "Recent Tour";
 
-      return {
+      mainVideos.push({
         youtubeVideoId: vId,
-        title: snippet.title || "YouTube Video",
-        description: snippet.description || "",
+        title: snippet?.title || "Modular Home & Cabin Tour",
+        description: snippet?.description || "",
         thumbnail,
         duration: parseISO8601Duration(contentDetails?.duration),
-        publishedAt: snippet.publishedAt || new Date().toISOString(),
+        publishedAt: snippet?.publishedAt || new Date().toISOString(),
         views: viewCount,
-        date: snippet.publishedAt
-          ? new Date(snippet.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+        date: snippet?.publishedAt
+          ? new Date(snippet.publishedAt).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            })
           : "Recent",
         youtubeUrl: `https://www.youtube.com/watch?v=${vId}`,
-        embedUrl: `https://www.youtube.com/embed/${vId}`,
-        channelId: snippet.channelId,
-        channelTitle: snippet.channelTitle,
+        embedUrl: `https://www.youtube-nocookie.com/embed/${vId}`,
+        videoUrl: `https://www.youtube-nocookie.com/embed/${vId}`,
+        channelId: snippet?.channelId || channelId,
+        channelTitle: snippet?.channelTitle || "Amish Built Cabins, Modular Cabins, Modular Homes",
         category: "Building Tours",
         isPublished: true,
-      };
+      });
+    }
+
+    // 5. Clean existing store: Remove all demo videos and remove any existing shorts
+    const existingStore = readVideosFromStore();
+    const cleanedStore = existingStore.filter((v) => {
+      if (KNOWN_DEMO_VIDEO_IDS.has(v.youtubeVideoId) || KNOWN_DEMO_VIDEO_IDS.has(v.id)) {
+        return false;
+      }
+      // Check if duration is <= 60s
+      if (v.duration) {
+        const parts = v.duration.split(":").map((p) => parseInt(p, 10));
+        let totalSec = 0;
+        if (parts.length === 2) {
+          totalSec = (parts[0] || 0) * 60 + (parts[1] || 0);
+        } else if (parts.length === 3) {
+          totalSec = (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+        }
+        if (totalSec > 0 && totalSec <= 60) {
+          return false;
+        }
+      }
+      return true;
     });
 
-    const { newCount, updatedCount } = batchUpsertVideos(parsedVideos);
-    const totalStored = readVideosFromStore().length;
+    writeVideosToStore(cleanedStore);
+
+    // 6. Upsert the genuine main videos
+    const { newCount, updatedCount } = batchUpsertVideos(mainVideos);
+    const finalStored = readVideosFromStore();
 
     const stats: SyncStats = {
       lastSyncAt: new Date().toISOString(),
-      totalFound: totalStored,
+      totalFound: finalStored.length,
       newVideosAdded: newCount,
       updatedVideos: updatedCount,
       status: "success",
@@ -291,8 +367,8 @@ export async function syncYouTubeChannel(): Promise<YouTubeSyncResult> {
 
     return {
       success: true,
-      message: `Successfully synchronized ${parsedVideos.length} videos from YouTube channel.`,
-      checkedCount: parsedVideos.length,
+      message: `Successfully synchronized ${mainVideos.length} main videos from YouTube channel (all Shorts and demo videos excluded).`,
+      checkedCount: detailedItems.length,
       newVideosCount: newCount,
       updatedVideosCount: updatedCount,
       stats,

@@ -2,6 +2,7 @@ import { generateSeoBlogFromVideo, VideoMetadataInput } from "./seoBlogGenerator
 import { fetchYouTubeChannelRss } from "./youtubeRss";
 import { saveCustomBlog, readBlogsFromStore } from "./blogStore";
 import { upsertVideo, readVideosFromStore } from "./videoStore";
+import { isYouTubeShort, KNOWN_DEMO_VIDEO_IDS } from "./youtubeService";
 import { supabaseAdmin, isSupabaseConfigured } from "./supabase";
 
 // In-memory sync lock to prevent duplicate runs in same node instance
@@ -16,6 +17,18 @@ export interface AutoBlogSyncResult {
   newBlogsCreated: number;
   createdSlugs: string[];
   durationMs: number;
+}
+
+function parseDurationStringSeconds(durationStr?: string): number {
+  if (!durationStr) return 0;
+  const parts = durationStr.split(":").map((p) => parseInt(p, 10));
+  if (parts.length === 2) {
+    return (parts[0] || 0) * 60 + (parts[1] || 0);
+  }
+  if (parts.length === 3) {
+    return (parts[0] || 0) * 3600 + (parts[1] || 0) * 60 + (parts[2] || 0);
+  }
+  return 0;
 }
 
 /**
@@ -50,13 +63,13 @@ export async function runAutoBlogSync(options?: { force?: boolean }): Promise<Au
   lastSyncTimestamp = Date.now();
 
   try {
-    const channelId = process.env.YOUTUBE_CHANNEL_ID || "UCu_Q38VwYk6_kR1Y2sQcM1A"; // fallback default channel
+    const channelId = process.env.YOUTUBE_CHANNEL_ID;
     const apiKey = process.env.YOUTUBE_API_KEY;
 
     let candidateVideos: VideoMetadataInput[] = [];
 
     // 1. Try YouTube Data API v3 if API key is provided
-    if (apiKey && process.env.YOUTUBE_CHANNEL_ID) {
+    if (apiKey && channelId) {
       try {
         const { syncYouTubeChannel } = await import("./youtubeService");
         const apiResult = await syncYouTubeChannel();
@@ -84,7 +97,7 @@ export async function runAutoBlogSync(options?: { force?: boolean }): Promise<Au
       candidateVideos = await fetchYouTubeChannelRss(channelId);
     }
 
-    // 3. Fallback to known video library seeds if RSS/API are offline or channel is blank
+    // 3. Fallback to known video library seeds if RSS/API are offline
     if (candidateVideos.length === 0) {
       const stored = readVideosFromStore();
       candidateVideos = stored.map((v) => ({
@@ -93,12 +106,24 @@ export async function runAutoBlogSync(options?: { force?: boolean }): Promise<Au
         description: v.description,
         publishedAt: v.publishedAt,
         thumbnail: v.thumbnail,
-        channelTitle: v.channelTitle || "ModularHome Engineering",
+        channelTitle: v.channelTitle || "Amish Built Cabins",
         duration: v.duration,
         views: v.views,
         category: v.category,
       }));
     }
+
+    // Filter candidate videos: Remove demo videos and remove Shorts (duration <= 60s or short titles)
+    candidateVideos = candidateVideos.filter((v) => {
+      if (!v.youtubeVideoId || KNOWN_DEMO_VIDEO_IDS.has(v.youtubeVideoId)) {
+        return false;
+      }
+      const durSec = parseDurationStringSeconds(v.duration);
+      if (isYouTubeShort(durSec, v.title, v.description)) {
+        return false;
+      }
+      return true;
+    });
 
     if (candidateVideos.length === 0) {
       return {
@@ -218,7 +243,7 @@ export async function runAutoBlogSync(options?: { force?: boolean }): Promise<Au
 
     return {
       success: true,
-      message: `Auto blog sync complete. Evaluated ${candidateVideos.length} videos, created ${createdSlugs.length} new SEO blogs.`,
+      message: `Auto blog sync complete. Evaluated ${candidateVideos.length} main videos, created ${createdSlugs.length} new SEO blogs.`,
       checkedCount: candidateVideos.length,
       newBlogsCreated: createdSlugs.length,
       createdSlugs,
