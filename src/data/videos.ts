@@ -1,15 +1,6 @@
-export interface VideoItem {
-  id: string;
-  title: string;
-  category: "Building Tours" | "Construction" | "Delivery" | "Interior" | "Customer Stories";
-  duration: string;
-  description: string;
-  thumbnail: string;
-  modelSlug?: string;
-  views: string;
-  date: string;
-  videoUrl: string;
-}
+import { VideoItem as BaseVideoItem } from "@/types/video";
+
+export type VideoItem = BaseVideoItem;
 
 export const VIDEO_CATEGORIES = [
   "All",
@@ -18,52 +9,93 @@ export const VIDEO_CATEGORIES = [
   "Delivery",
   "Interior",
   "Customer Stories",
+  "Barndominiums",
 ] as const;
 
 export const VIDEOS_DATA: VideoItem[] = [
   {
-    id: "vid-1",
-    title: "Beautiful Cabin Tour",
+    id: "vid-FFSiyvRYhlw",
+    youtubeVideoId: "FFSiyvRYhlw",
+    title: "Only $79k Cabin?! Big Bertha Modular & Prefab Cabin Tour",
     category: "Building Tours",
-    duration: "5:12",
-    description: "Take a closer look at our handcrafted log cabin designs and custom timber finishes.",
+    duration: "4:26",
+    description: "Take a closer look at our handcrafted modular cabin designs, heavy steel chassis, and custom timber finishes built for nationwide delivery.",
     thumbnail: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
-    modelSlug: "the-oakridge",
+    modelSlug: "the-aspen",
     views: "184K views",
     date: "2 weeks ago",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    publishedAt: "2026-09-22T02:27:59Z",
+    youtubeUrl: "https://www.youtube.com/watch?v=FFSiyvRYhlw",
+    embedUrl: "https://www.youtube-nocookie.com/embed/FFSiyvRYhlw",
+    videoUrl: "https://www.youtube-nocookie.com/embed/FFSiyvRYhlw",
+    isPublished: true,
   },
   {
-    id: "vid-2",
-    title: "Barndominium Build Process",
+    id: "vid-khpn9AD35Rk",
+    youtubeVideoId: "khpn9AD35Rk",
+    title: "Barndominium & Prefab Cabin Construction Walkthrough",
     category: "Construction",
-    duration: "6:24",
-    description: "Watch our step-by-step construction process from site preparation to final walkthrough.",
+    duration: "5:14",
+    description: "Watch our step-by-step modular construction process from factory framing to crane placement and foundation anchor installation.",
     thumbnail: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+    modelSlug: "the-meadow",
     views: "92K views",
     date: "1 month ago",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    publishedAt: "2026-09-22T02:33:10Z",
+    youtubeUrl: "https://www.youtube.com/watch?v=khpn9AD35Rk",
+    embedUrl: "https://www.youtube-nocookie.com/embed/khpn9AD35Rk",
+    videoUrl: "https://www.youtube-nocookie.com/embed/khpn9AD35Rk",
+    isPublished: true,
   },
   {
-    id: "vid-3",
-    title: "Customer Story",
+    id: "vid-PWRw7b74l-Y",
+    youtubeVideoId: "PWRw7b74l-Y",
+    title: "Customer Build Story: Living in a Precision Modular Home",
     category: "Customer Stories",
     duration: "6:15",
-    description: "Hear from real homeowners about their experience building with ModularHome.com.",
+    description: "Hear from real homeowners about their journey from ordering floor plans to site delivery and energy savings living off-grid.",
     thumbnail: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=80",
+    modelSlug: "the-elmwood",
     views: "64K views",
     date: "3 weeks ago",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    publishedAt: "2026-09-22T02:34:40Z",
+    youtubeUrl: "https://www.youtube.com/watch?v=PWRw7b74l-Y",
+    embedUrl: "https://www.youtube-nocookie.com/embed/PWRw7b74l-Y",
+    videoUrl: "https://www.youtube-nocookie.com/embed/PWRw7b74l-Y",
+    isPublished: true,
   },
   {
-    id: "vid-4",
-    title: "Inside a Lofted Cabin",
+    id: "vid-MHgfO4-fyoA",
+    youtubeVideoId: "MHgfO4-fyoA",
+    title: "Inside a Luxury Lofted Cabin & Modern Kitchen Layout",
     category: "Interior",
     duration: "4:27",
-    description: "Explore the interior layout, loft space, and custom woodwork inside our lofted cabins.",
+    description: "Explore cathedral ceilings, custom butcher-block counters, open loft master bedrooms, and energy-efficient double pane window packages.",
     thumbnail: "https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=1200&q=80",
+    modelSlug: "the-ridgeview",
     views: "210K views",
     date: "2 weeks ago",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
+    publishedAt: "2026-09-22T02:35:05Z",
+    youtubeUrl: "https://www.youtube.com/watch?v=MHgfO4-fyoA",
+    embedUrl: "https://www.youtube-nocookie.com/embed/MHgfO4-fyoA",
+    videoUrl: "https://www.youtube-nocookie.com/embed/MHgfO4-fyoA",
+    isPublished: true,
+  },
+  {
+    id: "vid-eSTibAUkk1M",
+    youtubeVideoId: "eSTibAUkk1M",
+    title: "Modular Home Crane Set Day: Delivery & Foundation Placement",
+    category: "Delivery",
+    duration: "5:40",
+    description: "Experience the exciting logistics of set day—how modular sections are lifted into place on engineered foundations in under 24 hours.",
+    thumbnail: "https://images.unsplash.com/photo-1541888946425-d0fbb18f15f6?auto=format&fit=crop&w=1200&q=80",
+    modelSlug: "the-clearwater",
+    views: "135K views",
+    date: "1 month ago",
+    publishedAt: "2026-09-22T02:35:30Z",
+    youtubeUrl: "https://www.youtube.com/watch?v=eSTibAUkk1M",
+    embedUrl: "https://www.youtube-nocookie.com/embed/eSTibAUkk1M",
+    videoUrl: "https://www.youtube-nocookie.com/embed/eSTibAUkk1M",
+    isPublished: true,
   },
 ];

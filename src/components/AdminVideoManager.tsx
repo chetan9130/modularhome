@@ -426,16 +426,18 @@ export default function AdminVideoManager() {
                       </td>
 
                       <td className="py-3.5 px-4 text-[#6b7280] text-[11px]">
-                        {new Date(video.publishedAt).toLocaleDateString("en-US", {
-                          year: "numeric",
-                          month: "short",
-                          day: "numeric",
-                        })}
+                        {video.publishedAt
+                          ? new Date(video.publishedAt).toLocaleDateString("en-US", {
+                              year: "numeric",
+                              month: "short",
+                              day: "numeric",
+                            })
+                          : "Recent"}
                       </td>
 
                       <td className="py-3.5 px-4 text-center">
                         <button
-                          onClick={() => handleTogglePublish(vId, video.isPublished)}
+                          onClick={() => handleTogglePublish(vId, !!video.isPublished)}
                           className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider inline-flex items-center gap-1.5 transition-colors cursor-pointer ${
                             video.isPublished
                               ? "bg-emerald-50 text-emerald-800 border border-emerald-200 hover:bg-emerald-100"

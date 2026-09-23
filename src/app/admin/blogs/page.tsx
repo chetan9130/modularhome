@@ -191,13 +191,17 @@ export default function AdminBlogsPage() {
                         {blog.author}
                       </td>
                       <td className="py-4 px-5 text-[#6b7280] text-[11px] whitespace-nowrap">
-                        {blog.publishedAt
-                          ? new Date(blog.publishedAt).toLocaleDateString("en-US", {
-                              month: "short",
-                              day: "numeric",
-                              year: "numeric",
-                            })
-                          : "Draft"}
+                        {(() => {
+                          if (!blog.publishedAt) return "Draft";
+                          const d = new Date(blog.publishedAt);
+                          return !isNaN(d.getTime())
+                            ? d.toLocaleDateString("en-US", {
+                                month: "short",
+                                day: "numeric",
+                                year: "numeric",
+                              })
+                            : blog.publishedAt;
+                        })()}
                       </td>
                       <td className="py-4 px-5">
                         <button
@@ -212,7 +216,15 @@ export default function AdminBlogsPage() {
                           <span>{blog.status}</span>
                         </button>
                       </td>
-                      <td className="py-4 px-5 text-right space-x-2">
+                      <td className="py-4 px-5 text-right space-x-1.5">
+                        <Link
+                          href={`/resources/${blog.slug}`}
+                          target="_blank"
+                          className="p-2 rounded-xl text-[#6b7280] hover:text-[#d97706] hover:bg-white hover:border-[#d5d9e0] border border-transparent inline-block transition-all shadow-2xs cursor-pointer"
+                          title="View Live Article"
+                        >
+                          <Eye className="w-4 h-4" />
+                        </Link>
                         <Link
                           href={`/admin/blogs/${bId}`}
                           className="p-2 rounded-xl text-[#101114] hover:bg-white hover:border-[#d5d9e0] border border-transparent inline-block transition-all shadow-2xs cursor-pointer"

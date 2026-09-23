@@ -80,6 +80,9 @@ export function formatProduct(p: any): BuildingModel {
     gallery: galleryImgs,
     floorPlanImage: p.floor_plan_image || p.floorPlanImage || "",
     floorPlan: p.floor_plan_image || p.floorPlanImage || "",
+    videoUrl: p.video_url || p.videoUrl || p.video || "",
+    videoDuration: p.video_duration || p.videoDuration || "",
+    videoTitle: p.video_title || p.videoTitle || "",
     features: Array.isArray(p.features) ? p.features : [
       "Heavy-Gauge Galvanized Steel Chassis",
       "Architectural Grade Insulated Wall Panels",
@@ -291,54 +294,218 @@ export async function getPublicProductBySlug(slug: string): Promise<BuildingMode
  */
 export async function getPublicBlogs(params?: { category?: string; search?: string }) {
   try {
-    if (!isSupabaseConfigured()) {
-      return RESOURCE_ARTICLES;
+    let blogsList: any[] = [];
+
+    // 1. Read local custom blogs created in Admin
+    const localBlogs = (await import("./blogStore")).readBlogsFromStore();
+    const publishedLocal = localBlogs.filter((b) => b.status === "PUBLISHED" || !b.status);
+    for (const lb of publishedLocal) {
+      blogsList.push({
+        id: lb.id,
+        title: lb.title,
+        slug: lb.slug,
+        excerpt: lb.excerpt || lb.metaDescription || lb.meta_description || "",
+        content: Array.isArray(lb.content) ? lb.content : [lb.content],
+        category: lb.category || (Array.isArray(lb.categories) ? lb.categories[0] : "Building Guides"),
+        readTime: lb.readTime || "5 min read",
+        date: lb.date || "Recent",
+        image: lb.featuredImage || lb.featured_image || lb.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+        author: lb.author || lb.author_name || "ModularHome Engineering Team",
+        embeddedVideoUrl: lb.embeddedVideoUrl || lb.embedded_video_url,
+        seoTitle: lb.seoTitle || lb.seo_title,
+        metaDescription: lb.metaDescription || lb.meta_description,
+        tags: Array.isArray(lb.tags) ? lb.tags : [],
+        keyTakeaways: Array.isArray(lb.keyTakeaways) ? lb.keyTakeaways : (Array.isArray(lb.key_takeaways) ? lb.key_takeaways : undefined),
+      });
     }
 
-    let query = supabaseAdmin
-      .from("blogs")
-      .select("*")
-      .eq("status", "PUBLISHED")
-      .order("display_order", { ascending: true })
-      .order("created_at", { ascending: false });
+    // 2. Read from Supabase if configured
+    if (isSupabaseConfigured()) {
+      try {
+        let query = supabaseAdmin
+          .from("blogs")
+          .select("*")
+          .eq("status", "PUBLISHED")
+          .order("display_order", { ascending: true })
+          .order("created_at", { ascending: false });
 
-    if (params?.category && params.category !== "ALL") {
-      query = query.eq("category", params.category);
-    }
+        if (params?.category && params.category !== "ALL" && params.category !== "All") {
+          query = query.eq("category", params.category);
+        }
 
-    const { data: blogs, error } = await query;
-    if (error || !blogs || blogs.length === 0) {
-      return RESOURCE_ARTICLES;
-    }
-
-    const mapped = blogs.map((b: any) => {
-      let formattedDate = "Recent";
-      if (b.published_at) {
-        try {
-          const d = new Date(b.published_at);
-          if (!isNaN(d.getTime())) {
-            const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-            formattedDate = `${months[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+        const { data: blogs, error } = await query;
+        if (!error && blogs && blogs.length > 0) {
+          const existingIds = new Set(blogsList.map((b) => b.slug.toLowerCase()));
+          for (const b of blogs) {
+            if (!existingIds.has((b.slug || "").toLowerCase())) {
+              let formattedDate = "Recent";
+              if (b.published_at) {
+                try {
+                  const d = new Date(b.published_at);
+                  if (!isNaN(d.getTime())) {
+                    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+                    formattedDate = `${months[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+                  }
+                } catch {}
+              }
+              blogsList.push({
+                id: b.id,
+                title: b.title,
+                slug: b.slug,
+                excerpt: b.excerpt || b.meta_description || "",
+                content: Array.isArray(b.content) ? b.content : (typeof b.content === "string" ? [b.content] : []),
+                category: b.category || (Array.isArray(b.categories) ? b.categories[0] : "Building Guides"),
+                readTime: b.read_time || "5 min read",
+                date: formattedDate,
+                image: b.featured_image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+                author: b.author_name || b.author || "ModularHome Engineering Team",
+                embeddedVideoUrl: b.embedded_video_url,
+                seoTitle: b.seo_title,
+                metaDescription: b.meta_description,
+                tags: Array.isArray(b.tags) ? b.tags : [],
+                keyTakeaways: Array.isArray(b.key_takeaways) ? b.key_takeaways : undefined,
+              });
+            }
           }
-        } catch {}
+        }
+      } catch (err) {
+        console.warn("Supabase fetch blogs warning:", err);
       }
-      return {
-        id: b.id,
-        title: b.title,
-        slug: b.slug,
-        excerpt: b.excerpt || b.meta_description || "",
-        content: Array.isArray(b.content) ? b.content : (typeof b.content === "string" ? [b.content] : []),
-        category: b.category || "Building Guides",
-        readTime: b.read_time || "5 min read",
-        date: formattedDate,
-        image: b.featured_image || "/finallogo.avif",
-        author: b.author_name || "ModularHome Engineering Team",
-      };
-    });
+    }
 
-    return mapped;
+    // 3. Merge with static RESOURCE_ARTICLES so full educational hub is always populated
+    const existingSlugs = new Set(blogsList.map((b) => b.slug.toLowerCase()));
+    const merged = [...blogsList];
+    for (const resArt of RESOURCE_ARTICLES) {
+      if (!existingSlugs.has(resArt.slug.toLowerCase())) {
+        merged.push(resArt);
+      }
+    }
+
+    let filtered = merged;
+    if (params?.category && params.category !== "ALL" && params.category !== "All") {
+      filtered = filtered.filter(
+        (a) => (a.category || "").toLowerCase() === params.category!.toLowerCase()
+      );
+    }
+    if (params?.search && params.search.trim()) {
+      const q = params.search.toLowerCase().trim();
+      filtered = filtered.filter(
+        (a) =>
+          (a.title || "").toLowerCase().includes(q) ||
+          (a.excerpt || "").toLowerCase().includes(q) ||
+          (a.category || "").toLowerCase().includes(q)
+      );
+    }
+
+    return filtered;
   } catch (e) {
-    return RESOURCE_ARTICLES;
+    return filterResourceArticles(RESOURCE_ARTICLES, params);
+  }
+}
+
+function filterResourceArticles(articles: any[], params?: { category?: string; search?: string }) {
+  let res = articles;
+  if (params?.category && params.category !== "ALL" && params.category !== "All") {
+    res = res.filter((a) => (a.category || "").toLowerCase() === params.category!.toLowerCase());
+  }
+  if (params?.search && params.search.trim()) {
+    const q = params.search.toLowerCase().trim();
+    res = res.filter(
+      (a) =>
+        (a.title || "").toLowerCase().includes(q) ||
+        (a.excerpt || "").toLowerCase().includes(q) ||
+        (a.category || "").toLowerCase().includes(q)
+    );
+  }
+  return res;
+}
+
+/**
+ * Fetches a single published article / blog by slug or ID
+ */
+export async function getPublicBlogBySlug(slugParam: string) {
+  if (!slugParam) return null;
+  const cleanSlug = decodeURIComponent(slugParam).toLowerCase().trim().replace(/^\/+|\/+$/g, "");
+
+  try {
+    // 1. Check local persistent store
+    const localBlog = (await import("./blogStore")).getCustomBlogByIdOrSlug(cleanSlug);
+    if (localBlog) {
+      return {
+        id: localBlog.id,
+        title: localBlog.title,
+        slug: localBlog.slug,
+        excerpt: localBlog.excerpt || localBlog.metaDescription || localBlog.meta_description || "",
+        content: Array.isArray(localBlog.content) ? localBlog.content : [localBlog.content],
+        category: localBlog.category || (Array.isArray(localBlog.categories) ? localBlog.categories[0] : "Building Guides"),
+        readTime: localBlog.readTime || "5 min read",
+        date: localBlog.date || "Recent",
+        image: localBlog.featuredImage || localBlog.featured_image || localBlog.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+        author: localBlog.author || localBlog.author_name || "ModularHome Engineering Team",
+        embeddedVideoUrl: localBlog.embeddedVideoUrl || localBlog.embedded_video_url,
+        seoTitle: localBlog.seoTitle || localBlog.seo_title || `${localBlog.title} | ModularHome.com Guide`,
+        metaDescription: localBlog.metaDescription || localBlog.meta_description || localBlog.excerpt,
+        tags: Array.isArray(localBlog.tags) ? localBlog.tags : [],
+        keyTakeaways: Array.isArray(localBlog.keyTakeaways) ? localBlog.keyTakeaways : (Array.isArray(localBlog.key_takeaways) ? localBlog.key_takeaways : undefined),
+      };
+    }
+
+    // 2. Check Supabase
+    if (isSupabaseConfigured()) {
+      const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cleanSlug);
+      const orFilter = isUuid
+        ? `slug.eq.${cleanSlug},id.eq.${cleanSlug}`
+        : `slug.eq.${cleanSlug}`;
+
+      const { data: blog, error } = await supabaseAdmin
+        .from("blogs")
+        .select("*")
+        .or(orFilter)
+        .eq("status", "PUBLISHED")
+        .maybeSingle();
+
+      if (!error && blog) {
+        let formattedDate = "Recent";
+        if (blog.published_at) {
+          try {
+            const d = new Date(blog.published_at);
+            if (!isNaN(d.getTime())) {
+              const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+              formattedDate = `${months[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()}`;
+            }
+          } catch {}
+        }
+        return {
+          id: blog.id,
+          title: blog.title,
+          slug: blog.slug,
+          excerpt: blog.excerpt || blog.meta_description || "",
+          content: Array.isArray(blog.content) ? blog.content : (typeof blog.content === "string" ? [blog.content] : []),
+          category: blog.category || (Array.isArray(blog.categories) ? blog.categories[0] : "Building Guides"),
+          readTime: blog.read_time || "5 min read",
+          date: formattedDate,
+          image: blog.featured_image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
+          author: blog.author_name || blog.author || "ModularHome Engineering Team",
+          embeddedVideoUrl: blog.embedded_video_url,
+          seoTitle: blog.seo_title || `${blog.title} | ModularHome.com Guide`,
+          metaDescription: blog.meta_description || blog.excerpt,
+          tags: Array.isArray(blog.tags) ? blog.tags : [],
+          keyTakeaways: Array.isArray(blog.key_takeaways) ? blog.key_takeaways : undefined,
+        };
+      }
+    }
+
+    // 3. Check static RESOURCE_ARTICLES
+    const found = RESOURCE_ARTICLES.find(
+      (a) => a.slug.toLowerCase() === cleanSlug || a.id.toLowerCase() === cleanSlug
+    );
+    return found || null;
+  } catch (e) {
+    const found = RESOURCE_ARTICLES.find(
+      (a) => a.slug.toLowerCase() === cleanSlug || a.id.toLowerCase() === cleanSlug
+    );
+    return found || null;
   }
 }
 

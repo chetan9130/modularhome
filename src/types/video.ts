@@ -11,21 +11,22 @@ export interface VideoItem {
   id: string; // Internal unique ID or youtubeVideoId
   youtubeVideoId: string;
   title: string;
-  category: VideoCategory;
+  category: VideoCategory | string;
   duration: string;
   description: string;
   thumbnail: string;
   modelSlug?: string;
   views: string;
   date: string;
-  publishedAt: string;
-  youtubeUrl: string;
-  embedUrl: string;
+  publishedAt?: string;
+  youtubeUrl?: string;
+  embedUrl?: string;
+  videoUrl?: string;
   channelId?: string;
   channelTitle?: string;
-  isPublished: boolean;
-  createdAt: string;
-  updatedAt: string;
+  isPublished?: boolean;
+  createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface SyncStats {

@@ -26,6 +26,7 @@ export interface BuildingModel {
   videoDuration?: string;
   videoTitle?: string;
   video?: string;
+  videoUrl?: string;
   features: string[];
   specs: {
     label: string;

@@ -7,49 +7,57 @@ const DATA_DIR = path.join(process.cwd(), "src", "data");
 const FILE_PATH = path.join(DATA_DIR, "synced_videos.json");
 const STATS_FILE_PATH = path.join(DATA_DIR, "sync_stats.json");
 
-// Initial seed data mapped to VideoItem structure
-const SEED_VIDEOS: VideoItem[] = VIDEOS_DATA.map((v, idx) => ({
-  id: v.id,
-  youtubeVideoId: "dQw4w9WgXcQ",
-  title: v.title,
-  category: v.category as VideoItem["category"],
-  duration: v.duration,
-  description: v.description,
-  thumbnail: v.thumbnail,
-  modelSlug: v.modelSlug,
-  views: v.views || "100K views",
-  date: v.date || "Recent",
-  publishedAt: new Date(Date.now() - (idx + 1) * 7 * 86400000).toISOString(),
-  youtubeUrl: `https://www.youtube.com/watch?v=dQw4w9WgXcQ`,
-  embedUrl: `https://www.youtube.com/embed/dQw4w9WgXcQ`,
-  isPublished: true,
-  createdAt: new Date().toISOString(),
-  updatedAt: new Date().toISOString(),
-}));
-
 function ensureDataDirectory() {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
   }
 }
 
+function normalizeVideo(v: any): VideoItem {
+  const ytId = v.youtubeVideoId || (v.id && !v.id.startsWith("vid-") ? v.id : (v.id ? v.id.replace("vid-", "") : "FFSiyvRYhlw"));
+  const embed = v.embedUrl || `https://www.youtube-nocookie.com/embed/${ytId}`;
+  return {
+    id: v.id || `vid-${ytId}`,
+    youtubeVideoId: ytId,
+    title: v.title || "Modular Home & Cabin Tour",
+    category: v.category || "Building Tours",
+    duration: v.duration || "4:00",
+    description: v.description || "",
+    thumbnail: v.thumbnail || `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`,
+    modelSlug: v.modelSlug,
+    views: v.views || "100K views",
+    date: v.date || "Recent",
+    publishedAt: v.publishedAt || new Date().toISOString(),
+    youtubeUrl: v.youtubeUrl || `https://www.youtube.com/watch?v=${ytId}`,
+    embedUrl: embed,
+    videoUrl: v.videoUrl || embed,
+    channelId: v.channelId,
+    channelTitle: v.channelTitle,
+    isPublished: v.isPublished !== false,
+    createdAt: v.createdAt || new Date().toISOString(),
+    updatedAt: v.updatedAt || new Date().toISOString(),
+  };
+}
+
 export function readVideosFromStore(): VideoItem[] {
   try {
     ensureDataDirectory();
     if (!fs.existsSync(FILE_PATH)) {
-      fs.writeFileSync(FILE_PATH, JSON.stringify(SEED_VIDEOS, null, 2), "utf-8");
-      return SEED_VIDEOS;
+      const normalizedSeeds = VIDEOS_DATA.map(normalizeVideo);
+      fs.writeFileSync(FILE_PATH, JSON.stringify(normalizedSeeds, null, 2), "utf-8");
+      return normalizedSeeds;
     }
     const data = fs.readFileSync(FILE_PATH, "utf-8");
     const parsed = JSON.parse(data);
     if (!Array.isArray(parsed) || parsed.length === 0) {
-      fs.writeFileSync(FILE_PATH, JSON.stringify(SEED_VIDEOS, null, 2), "utf-8");
-      return SEED_VIDEOS;
+      const normalizedSeeds = VIDEOS_DATA.map(normalizeVideo);
+      fs.writeFileSync(FILE_PATH, JSON.stringify(normalizedSeeds, null, 2), "utf-8");
+      return normalizedSeeds;
     }
-    return parsed;
+    return parsed.map(normalizeVideo);
   } catch (error) {
     console.error("Error reading synced_videos.json:", error);
-    return SEED_VIDEOS;
+    return VIDEOS_DATA.map(normalizeVideo);
   }
 }
 
@@ -68,7 +76,7 @@ export function readSyncStats(): SyncStats {
     if (!fs.existsSync(STATS_FILE_PATH)) {
       const defaultStats: SyncStats = {
         lastSyncAt: null,
-        totalFound: SEED_VIDEOS.length,
+        totalFound: VIDEOS_DATA.length,
         newVideosAdded: 0,
         updatedVideos: 0,
         status: "never",
@@ -99,11 +107,11 @@ export function saveSyncStats(stats: SyncStats): void {
 
 export function getPublishedVideos(params?: { category?: string; search?: string }): VideoItem[] {
   const videos = readVideosFromStore();
-  let result = videos.filter((v) => v.isPublished);
+  let result = videos.filter((v) => v.isPublished !== false);
 
-  if (params?.category && params.category !== "All") {
+  if (params?.category && params.category !== "All" && params.category !== "ALL") {
     result = result.filter(
-      (v) => v.category.toLowerCase() === params.category!.toLowerCase()
+      (v) => (v.category || "").toLowerCase() === params.category!.toLowerCase()
     );
   }
 
@@ -111,15 +119,15 @@ export function getPublishedVideos(params?: { category?: string; search?: string
     const q = params.search.toLowerCase().trim();
     result = result.filter(
       (v) =>
-        v.title.toLowerCase().includes(q) ||
-        v.description.toLowerCase().includes(q) ||
-        v.category.toLowerCase().includes(q)
+        (v.title || "").toLowerCase().includes(q) ||
+        (v.description || "").toLowerCase().includes(q) ||
+        (v.category || "").toLowerCase().includes(q)
     );
   }
 
   // Sort newest first
   return result.sort(
-    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    (a, b) => new Date(b.publishedAt || "").getTime() - new Date(a.publishedAt || "").getTime()
   );
 }
 
@@ -127,9 +135,9 @@ export function getAllVideos(params?: { category?: string; search?: string }): V
   const videos = readVideosFromStore();
   let result = [...videos];
 
-  if (params?.category && params.category !== "All") {
+  if (params?.category && params.category !== "All" && params.category !== "ALL") {
     result = result.filter(
-      (v) => v.category.toLowerCase() === params.category!.toLowerCase()
+      (v) => (v.category || "").toLowerCase() === params.category!.toLowerCase()
     );
   }
 
@@ -137,26 +145,29 @@ export function getAllVideos(params?: { category?: string; search?: string }): V
     const q = params.search.toLowerCase().trim();
     result = result.filter(
       (v) =>
-        v.title.toLowerCase().includes(q) ||
-        v.description.toLowerCase().includes(q)
+        (v.title || "").toLowerCase().includes(q) ||
+        (v.description || "").toLowerCase().includes(q)
     );
   }
 
   return result.sort(
-    (a, b) => new Date(b.publishedAt).getTime() - new Date(a.publishedAt).getTime()
+    (a, b) => new Date(b.publishedAt || "").getTime() - new Date(a.publishedAt || "").getTime()
   );
 }
 
 export function getVideoByIdOrSlug(idOrSlug: string): VideoItem | null {
+  if (!idOrSlug) return null;
   const videos = readVideosFromStore();
-  const lower = idOrSlug.toLowerCase();
+  const lower = decodeURIComponent(idOrSlug).toLowerCase().trim().replace(/^vid-/, "");
   
   return (
     videos.find(
       (v) =>
+        v.id.toLowerCase() === `vid-${lower}` ||
         v.id.toLowerCase() === lower ||
         v.youtubeVideoId.toLowerCase() === lower ||
-        (v.modelSlug && v.modelSlug.toLowerCase() === lower)
+        (v.modelSlug && v.modelSlug.toLowerCase() === lower) ||
+        (v.title && v.title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") === lower)
     ) || null
   );
 }
@@ -171,34 +182,35 @@ export function upsertVideo(videoData: Partial<VideoItem> & { youtubeVideoId: st
 
   if (existingIdx >= 0) {
     const existing = videos[existingIdx];
-    const updated: VideoItem = {
+    const updated: VideoItem = normalizeVideo({
       ...existing,
       ...videoData,
       updatedAt: now,
-    };
+    });
     videos[existingIdx] = updated;
     writeVideosToStore(videos);
     return { video: updated, isNew: false };
   } else {
-    const newVideo: VideoItem = {
+    const newVideo: VideoItem = normalizeVideo({
       id: `vid-${videoData.youtubeVideoId}`,
       youtubeVideoId: videoData.youtubeVideoId,
       title: videoData.title || "Untitled Cabin Video",
-      category: videoData.category || "General",
-      duration: videoData.duration || "0:00",
+      category: videoData.category || "Building Tours",
+      duration: videoData.duration || "4:00",
       description: videoData.description || "",
-      thumbnail: videoData.thumbnail || "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
+      thumbnail: videoData.thumbnail || `https://i.ytimg.com/vi/${videoData.youtubeVideoId}/hqdefault.jpg`,
       views: videoData.views || "New Upload",
       date: videoData.date || "Just now",
       publishedAt: videoData.publishedAt || now,
       youtubeUrl: videoData.youtubeUrl || `https://www.youtube.com/watch?v=${videoData.youtubeVideoId}`,
-      embedUrl: videoData.embedUrl || `https://www.youtube.com/embed/${videoData.youtubeVideoId}`,
+      embedUrl: videoData.embedUrl || `https://www.youtube-nocookie.com/embed/${videoData.youtubeVideoId}`,
+      videoUrl: videoData.videoUrl || `https://www.youtube-nocookie.com/embed/${videoData.youtubeVideoId}`,
       channelId: videoData.channelId,
       channelTitle: videoData.channelTitle,
       isPublished: videoData.isPublished !== undefined ? videoData.isPublished : true,
       createdAt: now,
       updatedAt: now,
-    };
+    });
     videos.unshift(newVideo);
     writeVideosToStore(videos);
     return { video: newVideo, isNew: true };

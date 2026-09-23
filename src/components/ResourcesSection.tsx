@@ -86,7 +86,7 @@ export default function ResourcesSection() {
 
               <div className="p-5 pt-0">
                 <Link
-                  href="/resources"
+                  href={`/resources/${article.slug}`}
                   className="inline-flex items-center gap-1.5 text-xs font-bold text-[var(--r)] hover:text-[var(--r-dark)] transition-colors"
                 >
                   <span>Read Full Guide</span>
