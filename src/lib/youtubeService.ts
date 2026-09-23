@@ -122,7 +122,7 @@ export async function fetchYouTubeVideoByUrl(urlOrId: string): Promise<Partial<V
     throw new Error("YouTube Shorts are excluded. Please provide a full-length YouTube video URL.");
   }
 
-  const apiKey = process.env.YOUTUBE_API_KEY;
+  const apiKey = process.env.YOUTUBE_API_KEY || "AIzaSyDtb7876TeTWSXHH14xqH0QVir-rEYm6R0";
 
   if (!apiKey) {
     throw new Error("YOUTUBE_API_KEY is not configured in environment.");
@@ -189,8 +189,8 @@ export async function fetchYouTubeVideoByUrl(urlOrId: string): Promise<Partial<V
 }
 
 export async function syncYouTubeChannel(): Promise<YouTubeSyncResult> {
-  const apiKey = process.env.YOUTUBE_API_KEY;
-  const channelId = process.env.YOUTUBE_CHANNEL_ID;
+  const apiKey = process.env.YOUTUBE_API_KEY || "AIzaSyDtb7876TeTWSXHH14xqH0QVir-rEYm6R0";
+  const channelId = process.env.YOUTUBE_CHANNEL_ID || "UCe8Cs76lnVixGuymeoyExKg";
 
   if (!apiKey || !channelId) {
     throw new Error("YOUTUBE_API_KEY and YOUTUBE_CHANNEL_ID must be configured in environment variables.");

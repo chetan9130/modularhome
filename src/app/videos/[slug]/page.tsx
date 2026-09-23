@@ -8,6 +8,9 @@ interface VideoDetailPageProps {
   params: Promise<{ slug: string }>;
 }
 
+export const dynamic = "force-dynamic";
+export const dynamicParams = true;
+
 export async function generateMetadata({ params }: VideoDetailPageProps) {
   const { slug } = await params;
   const video = getVideoByIdOrSlug(slug);

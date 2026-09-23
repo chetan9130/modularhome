@@ -9,6 +9,9 @@ import {
 } from "@/lib/videoStore";
 import { requireAdminAuth } from "@/lib/auth";
 
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
+
 export async function GET(request: NextRequest) {
   const authResult = await requireAdminAuth();
   if (authResult instanceof NextResponse) return authResult;
@@ -20,12 +23,19 @@ export async function GET(request: NextRequest) {
     const videos = getAllVideos({ category, search });
     const stats = readSyncStats();
 
-    return NextResponse.json({
-      success: true,
-      stats,
-      count: videos.length,
-      videos,
-    });
+    return NextResponse.json(
+      {
+        success: true,
+        stats,
+        count: videos.length,
+        videos,
+      },
+      {
+        headers: {
+          "Cache-Control": "no-store, no-cache, must-revalidate, proxy-revalidate",
+        },
+      }
+    );
   } catch (error: any) {
     return NextResponse.json(
       { success: false, message: error.message || "Failed to fetch admin videos" },

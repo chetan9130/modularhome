@@ -61,10 +61,10 @@ export default function ModelDetailClient({
     );
   };
   const handleOpenVideo = () => {
-    const vidUrl = model?.videoUrl || "https://www.youtube-nocookie.com/embed/FFSiyvRYhlw";
+    const vidUrl = model?.videoUrl || "https://www.youtube-nocookie.com/embed/MHWHDE87Pp4";
     setActiveVideo({
       id: `vid-${model?.id || "preview"}`,
-      youtubeVideoId: "FFSiyvRYhlw",
+      youtubeVideoId: "MHWHDE87Pp4",
       title: model?.videoTitle || `${model?.name || "Model"} Architectural Walkthrough`,
       category: "Building Tours",
       duration: model?.videoDuration || "4:30 min",
