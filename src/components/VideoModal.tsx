@@ -10,57 +10,8 @@ interface VideoModalProps {
   onClose: () => void;
 }
 
-export function extractYouTubeId(urlOrId?: string): string | null {
-  if (!urlOrId) return null;
-  const str = urlOrId.trim();
-
-  // If it's already an 11-char YouTube ID
-  if (/^[a-zA-Z0-9_-]{11}$/.test(str)) {
-    return str;
-  }
-
-  // Match youtube.com/watch?v=..., youtu.be/..., youtube.com/embed/..., youtube.com/shorts/...
-  const patterns = [
-    /(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=|shorts\/))([\w-]{11})/,
-    /youtube-nocookie\.com\/embed\/([\w-]{11})/,
-  ];
-
-  for (const regex of patterns) {
-    const match = str.match(regex);
-    if (match && match[1]) {
-      return match[1];
-    }
-  }
-
-  return null;
-}
-
-export function resolveVideoEmbedUrl(video: Partial<VideoItem> | null): string {
-  if (!video) return "";
-
-  // Check youtubeVideoId first
-  if (video.youtubeVideoId) {
-    return `https://www.youtube-nocookie.com/embed/${video.youtubeVideoId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
-  }
-
-  const rawUrl = video.embedUrl || video.videoUrl || video.youtubeUrl || "";
-  if (!rawUrl) return "";
-
-  const ytId = extractYouTubeId(rawUrl);
-  if (ytId) {
-    return `https://www.youtube-nocookie.com/embed/${ytId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
-  }
-
-  // Fallback to rawUrl
-  if (rawUrl.includes("youtube.com") || rawUrl.includes("youtu.be")) {
-    const fallbackId = extractYouTubeId(rawUrl);
-    if (fallbackId) {
-      return `https://www.youtube-nocookie.com/embed/${fallbackId}?autoplay=1&rel=0&modestbranding=1&playsinline=1`;
-    }
-  }
-
-  return rawUrl;
-}
+import { extractYouTubeId, resolveVideoEmbedUrl } from "@/lib/videoUtils";
+export { extractYouTubeId, resolveVideoEmbedUrl };
 
 export default function VideoModal({ video, onClose }: VideoModalProps) {
   useEffect(() => {

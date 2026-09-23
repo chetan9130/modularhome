@@ -294,6 +294,12 @@ export async function getPublicProductBySlug(slug: string): Promise<BuildingMode
  */
 export async function getPublicBlogs(params?: { category?: string; search?: string }) {
   try {
+    // 0. Non-blocking automated background sync check
+    try {
+      const { triggerBackgroundAutoSync } = await import("./autoBlogSync");
+      triggerBackgroundAutoSync();
+    } catch {}
+
     let blogsList: any[] = [];
 
     // 1. Read local custom blogs created in Admin
@@ -794,3 +800,29 @@ export async function getPublicPages(): Promise<CmsPage[]> {
     return localPages;
   }
 }
+
+/**
+ * Fetches published videos (merging DB and local store)
+ */
+export async function getPublicVideos(params?: { category?: string; search?: string }) {
+  try {
+    const { getPublishedVideos } = await import("./videoStore");
+    return getPublishedVideos(params);
+  } catch (error) {
+    console.error("Error fetching public videos:", error);
+    return [];
+  }
+}
+
+/**
+ * Fetches single video by ID or model slug
+ */
+export async function getPublicVideoBySlug(idOrSlug: string) {
+  try {
+    const { getVideoByIdOrSlug } = await import("./videoStore");
+    return getVideoByIdOrSlug(idOrSlug);
+  } catch (error) {
+    return null;
+  }
+}
+

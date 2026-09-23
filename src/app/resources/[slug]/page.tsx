@@ -4,7 +4,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, BookOpen, Calendar, Clock, CheckCircle2, Share2, Tag, User } from "lucide-react";
 import { getPublicBlogBySlug, getPublicBlogs } from "@/lib/publicData";
-import { resolveVideoEmbedUrl } from "@/components/VideoModal";
+import { resolveVideoEmbedUrl } from "@/lib/videoUtils";
 
 export const dynamic = "force-dynamic";
 

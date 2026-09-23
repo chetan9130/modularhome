@@ -2,20 +2,32 @@ import fs from "fs";
 import path from "path";
 import { VideoItem, SyncStats } from "@/types/video";
 import { VIDEOS_DATA } from "@/data/videos";
+import { supabaseAdmin, isSupabaseConfigured } from "./supabase";
 
 const DATA_DIR = path.join(process.cwd(), "src", "data");
 const FILE_PATH = path.join(DATA_DIR, "synced_videos.json");
 const STATS_FILE_PATH = path.join(DATA_DIR, "sync_stats.json");
 
+// In-memory fallback cache for serverless environments (e.g. Vercel) where disk is read-only
+let memoryVideosCache: VideoItem[] | null = null;
+let memoryStatsCache: SyncStats | null = null;
+
 function ensureDataDirectory() {
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+  } catch (err) {
+    // Expected on read-only serverless filesystems (e.g., Vercel AWS Lambda)
   }
 }
 
-function normalizeVideo(v: any): VideoItem {
-  const ytId = v.youtubeVideoId || (v.id && !v.id.startsWith("vid-") ? v.id : (v.id ? v.id.replace("vid-", "") : "FFSiyvRYhlw"));
-  const embed = v.embedUrl || `https://www.youtube-nocookie.com/embed/${ytId}`;
+export function normalizeVideo(v: any): VideoItem {
+  const ytId =
+    v.youtubeVideoId ||
+    v.youtube_video_id ||
+    (v.id && !v.id.startsWith("vid-") ? v.id : v.id ? v.id.replace("vid-", "") : "FFSiyvRYhlw");
+  const embed = v.embedUrl || v.embed_url || `https://www.youtube-nocookie.com/embed/${ytId}`;
   return {
     id: v.id || `vid-${ytId}`,
     youtubeVideoId: ytId,
@@ -24,85 +36,84 @@ function normalizeVideo(v: any): VideoItem {
     duration: v.duration || "4:00",
     description: v.description || "",
     thumbnail: v.thumbnail || `https://i.ytimg.com/vi/${ytId}/hqdefault.jpg`,
-    modelSlug: v.modelSlug,
+    modelSlug: v.modelSlug || v.model_slug,
     views: v.views || "100K views",
     date: v.date || "Recent",
-    publishedAt: v.publishedAt || new Date().toISOString(),
-    youtubeUrl: v.youtubeUrl || `https://www.youtube.com/watch?v=${ytId}`,
+    publishedAt: v.publishedAt || v.published_at || new Date().toISOString(),
+    youtubeUrl: v.youtubeUrl || v.youtube_url || `https://www.youtube.com/watch?v=${ytId}`,
     embedUrl: embed,
-    videoUrl: v.videoUrl || embed,
-    channelId: v.channelId,
-    channelTitle: v.channelTitle,
-    isPublished: v.isPublished !== false,
-    createdAt: v.createdAt || new Date().toISOString(),
-    updatedAt: v.updatedAt || new Date().toISOString(),
+    videoUrl: v.videoUrl || v.video_url || embed,
+    channelId: v.channelId || v.channel_id,
+    channelTitle: v.channelTitle || v.channel_title,
+    isPublished: v.isPublished !== undefined ? v.isPublished : v.is_published !== false,
+    createdAt: v.createdAt || v.created_at || new Date().toISOString(),
+    updatedAt: v.updatedAt || v.updated_at || new Date().toISOString(),
   };
 }
 
 export function readVideosFromStore(): VideoItem[] {
+  if (memoryVideosCache && memoryVideosCache.length > 0) {
+    return memoryVideosCache;
+  }
+
   try {
     ensureDataDirectory();
-    if (!fs.existsSync(FILE_PATH)) {
-      const normalizedSeeds = VIDEOS_DATA.map(normalizeVideo);
-      fs.writeFileSync(FILE_PATH, JSON.stringify(normalizedSeeds, null, 2), "utf-8");
-      return normalizedSeeds;
+    if (fs.existsSync(FILE_PATH)) {
+      const data = fs.readFileSync(FILE_PATH, "utf-8");
+      const parsed = JSON.parse(data);
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        memoryVideosCache = parsed.map(normalizeVideo);
+        return memoryVideosCache;
+      }
     }
-    const data = fs.readFileSync(FILE_PATH, "utf-8");
-    const parsed = JSON.parse(data);
-    if (!Array.isArray(parsed) || parsed.length === 0) {
-      const normalizedSeeds = VIDEOS_DATA.map(normalizeVideo);
-      fs.writeFileSync(FILE_PATH, JSON.stringify(normalizedSeeds, null, 2), "utf-8");
-      return normalizedSeeds;
-    }
-    return parsed.map(normalizeVideo);
   } catch (error) {
-    console.error("Error reading synced_videos.json:", error);
-    return VIDEOS_DATA.map(normalizeVideo);
+    // Silently fallback to seed data on read errors
   }
+
+  const normalizedSeeds = VIDEOS_DATA.map(normalizeVideo);
+  memoryVideosCache = normalizedSeeds;
+  return normalizedSeeds;
 }
 
 export function writeVideosToStore(videos: VideoItem[]): void {
+  memoryVideosCache = videos;
   try {
     ensureDataDirectory();
     fs.writeFileSync(FILE_PATH, JSON.stringify(videos, null, 2), "utf-8");
   } catch (error) {
-    console.error("Error writing to synced_videos.json:", error);
+    // In Vercel serverless environment, local writes fail gracefully without crashing
   }
 }
 
 export function readSyncStats(): SyncStats {
+  if (memoryStatsCache) return memoryStatsCache;
+
   try {
     ensureDataDirectory();
-    if (!fs.existsSync(STATS_FILE_PATH)) {
-      const defaultStats: SyncStats = {
-        lastSyncAt: null,
-        totalFound: VIDEOS_DATA.length,
-        newVideosAdded: 0,
-        updatedVideos: 0,
-        status: "never",
-      };
-      return defaultStats;
+    if (fs.existsSync(STATS_FILE_PATH)) {
+      const data = fs.readFileSync(STATS_FILE_PATH, "utf-8");
+      memoryStatsCache = JSON.parse(data);
+      return memoryStatsCache!;
     }
-    const data = fs.readFileSync(STATS_FILE_PATH, "utf-8");
-    return JSON.parse(data);
-  } catch (error) {
-    return {
-      lastSyncAt: null,
-      totalFound: 0,
-      newVideosAdded: 0,
-      updatedVideos: 0,
-      status: "never",
-    };
-  }
+  } catch (error) {}
+
+  const defaultStats: SyncStats = {
+    lastSyncAt: null,
+    totalFound: VIDEOS_DATA.length,
+    newVideosAdded: 0,
+    updatedVideos: 0,
+    status: "never",
+  };
+  memoryStatsCache = defaultStats;
+  return defaultStats;
 }
 
 export function saveSyncStats(stats: SyncStats): void {
+  memoryStatsCache = stats;
   try {
     ensureDataDirectory();
     fs.writeFileSync(STATS_FILE_PATH, JSON.stringify(stats, null, 2), "utf-8");
-  } catch (error) {
-    console.error("Error saving sync stats:", error);
-  }
+  } catch (error) {}
 }
 
 export function getPublishedVideos(params?: { category?: string; search?: string }): VideoItem[] {
@@ -159,7 +170,7 @@ export function getVideoByIdOrSlug(idOrSlug: string): VideoItem | null {
   if (!idOrSlug) return null;
   const videos = readVideosFromStore();
   const lower = decodeURIComponent(idOrSlug).toLowerCase().trim().replace(/^vid-/, "");
-  
+
   return (
     videos.find(
       (v) =>
@@ -180,18 +191,20 @@ export function upsertVideo(videoData: Partial<VideoItem> & { youtubeVideoId: st
   const existingIdx = videos.findIndex((v) => v.youtubeVideoId === videoData.youtubeVideoId);
   const now = new Date().toISOString();
 
+  let finalVideo: VideoItem;
+  let isNew = false;
+
   if (existingIdx >= 0) {
     const existing = videos[existingIdx];
-    const updated: VideoItem = normalizeVideo({
+    finalVideo = normalizeVideo({
       ...existing,
       ...videoData,
       updatedAt: now,
     });
-    videos[existingIdx] = updated;
-    writeVideosToStore(videos);
-    return { video: updated, isNew: false };
+    videos[existingIdx] = finalVideo;
+    isNew = false;
   } else {
-    const newVideo: VideoItem = normalizeVideo({
+    finalVideo = normalizeVideo({
       id: `vid-${videoData.youtubeVideoId}`,
       youtubeVideoId: videoData.youtubeVideoId,
       title: videoData.title || "Untitled Cabin Video",
@@ -211,10 +224,44 @@ export function upsertVideo(videoData: Partial<VideoItem> & { youtubeVideoId: st
       createdAt: now,
       updatedAt: now,
     });
-    videos.unshift(newVideo);
-    writeVideosToStore(videos);
-    return { video: newVideo, isNew: true };
+    videos.unshift(finalVideo);
+    isNew = true;
   }
+
+  writeVideosToStore(videos);
+
+  // Background sync to Supabase `videos` table if configured
+  if (isSupabaseConfigured()) {
+    (async () => {
+      try {
+        await supabaseAdmin.from("videos").upsert(
+          {
+            id: finalVideo.id,
+            youtube_video_id: finalVideo.youtubeVideoId,
+            title: finalVideo.title,
+            category: finalVideo.category,
+            duration: finalVideo.duration,
+            description: finalVideo.description,
+            thumbnail: finalVideo.thumbnail,
+            views: finalVideo.views,
+            date: finalVideo.date,
+            published_at: finalVideo.publishedAt,
+            youtube_url: finalVideo.youtubeUrl,
+            embed_url: finalVideo.embedUrl,
+            video_url: finalVideo.videoUrl,
+            channel_id: finalVideo.channelId,
+            channel_title: finalVideo.channelTitle,
+            is_published: finalVideo.isPublished,
+            created_at: finalVideo.createdAt,
+            updated_at: finalVideo.updatedAt,
+          },
+          { onConflict: "youtube_video_id" }
+        );
+      } catch (e) {}
+    })();
+  }
+
+  return { video: finalVideo, isNew };
 }
 
 export function batchUpsertVideos(videosData: Partial<VideoItem>[]): {
@@ -244,6 +291,18 @@ export function updateVideoCategory(id: string, category: VideoItem["category"])
   videos[idx].category = category;
   videos[idx].updatedAt = new Date().toISOString();
   writeVideosToStore(videos);
+
+  if (isSupabaseConfigured()) {
+    (async () => {
+      try {
+        await supabaseAdmin
+          .from("videos")
+          .update({ category, updated_at: videos[idx].updatedAt })
+          .eq("id", videos[idx].id);
+      } catch (e) {}
+    })();
+  }
+
   return true;
 }
 
@@ -254,6 +313,18 @@ export function toggleVideoPublish(id: string, isPublished?: boolean): boolean {
   videos[idx].isPublished = isPublished !== undefined ? isPublished : !videos[idx].isPublished;
   videos[idx].updatedAt = new Date().toISOString();
   writeVideosToStore(videos);
+
+  if (isSupabaseConfigured()) {
+    (async () => {
+      try {
+        await supabaseAdmin
+          .from("videos")
+          .update({ is_published: videos[idx].isPublished, updated_at: videos[idx].updatedAt })
+          .eq("id", videos[idx].id);
+      } catch (e) {}
+    })();
+  }
+
   return true;
 }
 
@@ -262,5 +333,17 @@ export function deleteLocalVideo(id: string): boolean {
   const filtered = videos.filter((v) => v.id !== id && v.youtubeVideoId !== id);
   if (filtered.length === videos.length) return false;
   writeVideosToStore(filtered);
+
+  if (isSupabaseConfigured()) {
+    (async () => {
+      try {
+        await supabaseAdmin
+          .from("videos")
+          .delete()
+          .or(`id.eq.${id},youtube_video_id.eq.${id}`);
+      } catch (e) {}
+    })();
+  }
+
   return true;
 }
