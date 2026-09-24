@@ -16,11 +16,17 @@ import {
   ArrowRight,
   ExternalLink,
   Loader2,
-  RefreshCw,
-  HelpCircle,
+  Sparkles,
+  Layers,
+  LayoutDashboard,
+  Calendar,
+  Lock,
+  ChevronRight,
+  HeadphonesIcon,
 } from "lucide-react";
 
 export default function CustomerDashboardPage() {
+  const [activeTab, setActiveTab] = useState<"overview" | "downloads" | "orders" | "profile">("overview");
   const [profile, setProfile] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -81,7 +87,7 @@ export default function CustomerDashboardPage() {
       });
       const data = await res.json();
       if (data.success) {
-        setProfileMessage("Profile updated successfully.");
+        setProfileMessage("Profile details updated successfully.");
         setProfile((prev: any) => ({ ...prev, name, phone }));
       } else {
         throw new Error(data.error?.message || "Failed to update profile.");
@@ -112,7 +118,7 @@ export default function CustomerDashboardPage() {
       <div className="py-24 flex flex-col items-center justify-center text-gray-500 space-y-3">
         <Loader2 className="w-8 h-8 animate-spin text-[#fcb907]" />
         <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#101114]">
-          Loading Customer Portal...
+          Loading Client Portal...
         </span>
       </div>
     );
@@ -139,366 +145,552 @@ export default function CustomerDashboardPage() {
     .reduce((sum, o) => sum + Number(o.total_amount || 0), 0);
 
   return (
-    <div className="space-y-8">
-      {/* Welcome Banner */}
-      <div className="bg-[#101114] text-white rounded-3xl p-6 sm:p-8 relative overflow-hidden shadow-xl border border-white/10">
-        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-mono font-bold uppercase tracking-wider text-[#fcb907]">
-                Customer Account
+    <div className="space-y-8 animate-in fade-in duration-300">
+      {/* Luxury Hero Banner */}
+      <div className="bg-gradient-to-br from-[#101114] via-[#16181f] to-[#0b0d11] text-white rounded-3xl p-6 sm:p-10 relative overflow-hidden shadow-2xl border border-white/10">
+        <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+          <div className="space-y-3 max-w-2xl">
+            <div className="flex flex-wrap items-center gap-2">
+              <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#fcb907]/15 text-[#fcb907] text-[11px] font-mono font-bold tracking-wider uppercase border border-[#fcb907]/30">
+                <Sparkles className="w-3 h-3" />
+                Verified Client Account
               </span>
               {profile?.email_verified ? (
-                <span className="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-emerald-500/30">
-                  <CheckCircle2 className="w-3 h-3" />
-                  Verified
+                <span className="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
+                  <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                  Email Verified
                 </span>
               ) : (
-                <span className="inline-flex items-center gap-1 bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2 py-0.5 rounded-full border border-amber-500/30">
-                  <AlertCircle className="w-3 h-3" />
-                  Unverified Email
+                <span className="inline-flex items-center gap-1 bg-amber-500/20 text-amber-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-amber-500/30">
+                  <AlertCircle className="w-3 h-3 text-amber-400" />
+                  Action Required: Verify Email
                 </span>
               )}
             </div>
-            <h1 className="text-2xl sm:text-3xl font-black tracking-tight">
-              Welcome back, {profile?.name || "Homeowner"}!
+
+            <h1 className="text-2xl sm:text-4xl font-black font-serif tracking-tight leading-tight">
+              Welcome back, <span className="text-[#fcb907]">{profile?.name || "Homeowner"}</span>
             </h1>
-            <p className="text-xs sm:text-sm text-gray-400 max-w-xl">
-              Access your licensed CAD &amp; PDF blueprints, track previous quotation requests, download invoices, and connect with engineering advisors.
+
+            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed font-sans">
+              Manage your licensed architectural blueprints, instant CAD/PDF downloads, tax invoices, and connect directly with factory building advisors.
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3">
+          {/* Quick Action CTAs */}
+          <div className="flex flex-wrap lg:flex-col sm:flex-row items-stretch gap-2.5 shrink-0">
             <Link
               href="/floor-plans"
-              className="bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] font-black text-xs px-5 py-3 rounded-xl shadow-md transition-all flex items-center gap-1.5"
+              className="bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] font-black text-xs px-5 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2 text-center"
             >
               <ShoppingBag className="w-4 h-4" />
-              <span>Browse Catalog</span>
+              <span>Browse Floor Plans</span>
             </Link>
             <Link
               href="/quote"
-              className="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-5 py-3 rounded-xl transition-all border border-white/20"
+              className="bg-white/10 hover:bg-white/15 text-white font-bold text-xs px-5 py-3 rounded-xl transition-all border border-white/20 flex items-center justify-center gap-1.5 text-center"
             >
-              Request Custom Quote
+              <span>Request Turnkey Quote</span>
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         </div>
 
-        {/* Decorative background glow */}
-        <div className="absolute right-0 top-0 w-96 h-96 bg-[#fcb907]/10 rounded-full blur-3xl pointer-events-none" />
+        {/* Shimmer glow */}
+        <div className="absolute -right-20 -top-20 w-96 h-96 bg-[#fcb907]/15 rounded-full blur-3xl pointer-events-none" />
       </div>
 
-      {/* Unverified Email Alert */}
+      {/* Unverified Email Alert Box */}
       {!profile?.email_verified && (
-        <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
           <div className="flex items-start gap-3">
-            <AlertCircle className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="p-2 rounded-xl bg-amber-100 text-amber-700 shrink-0 mt-0.5">
+              <AlertCircle className="w-4 h-4" />
+            </div>
             <div>
-              <h4 className="text-sm font-bold text-amber-900">Email Verification Required</h4>
-              <p className="text-xs text-amber-700 mt-0.5">
-                Please verify your email address to ensure full lifetime access to future blueprint updates and engineering revisions.
+              <h4 className="text-sm font-bold text-amber-900">Please Verify Your Email Address</h4>
+              <p className="text-xs text-amber-800/90 mt-0.5 leading-relaxed">
+                Verification ensures permanent license recovery, notification of engineering revision updates, and priority support.
               </p>
               {resendMsg && (
-                <p className="text-xs font-bold text-emerald-700 mt-1">{resendMsg}</p>
+                <p className="text-xs font-bold text-emerald-700 mt-1.5 flex items-center gap-1">
+                  <CheckCircle2 className="w-3.5 h-3.5" />
+                  {resendMsg}
+                </p>
               )}
             </div>
           </div>
           <button
             onClick={handleResendVerification}
             disabled={isResending}
-            className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2 rounded-xl transition-colors cursor-pointer shrink-0 disabled:opacity-50"
+            className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors cursor-pointer shrink-0 disabled:opacity-50 shadow-xs"
           >
             {isResending ? "Sending..." : "Resend Verification Email"}
           </button>
         </div>
       )}
 
-      {/* Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-xs space-y-1">
-          <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Orders</div>
-          <div className="text-2xl font-black text-[#101114]">{orders.length}</div>
-          <div className="text-[11px] text-gray-400">Architectural blueprint purchases</div>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-xs space-y-1">
-          <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Licensed Blueprints</div>
-          <div className="text-2xl font-black text-[#d97706]">{downloads.length}</div>
-          <div className="text-[11px] text-gray-400">Ready for instant CAD/PDF download</div>
-        </div>
-        <div className="bg-white rounded-2xl p-5 border border-gray-200 shadow-xs space-y-1">
-          <div className="text-xs font-bold text-gray-500 uppercase tracking-wider">Total Investment</div>
-          <div className="text-2xl font-black text-[#101114]">${totalSpent.toLocaleString()} USD</div>
-          <div className="text-[11px] text-gray-400">Paid engineering &amp; plan packages</div>
-        </div>
+      {/* Modern Navigation Pill Tabs */}
+      <div className="flex items-center gap-1.5 p-1.5 bg-stone-200/60 rounded-2xl w-full sm:w-max overflow-x-auto">
+        <button
+          onClick={() => setActiveTab("overview")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === "overview"
+              ? "bg-[#101114] text-white shadow-md"
+              : "text-stone-700 hover:text-[#101114] hover:bg-white/60"
+          }`}
+        >
+          <LayoutDashboard className="w-3.5 h-3.5 text-[#fcb907]" />
+          <span>Dashboard Overview</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("downloads")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === "downloads"
+              ? "bg-[#101114] text-white shadow-md"
+              : "text-stone-700 hover:text-[#101114] hover:bg-white/60"
+          }`}
+        >
+          <Download className="w-3.5 h-3.5 text-[#fcb907]" />
+          <span>Purchased Blueprints ({downloads.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("orders")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === "orders"
+              ? "bg-[#101114] text-white shadow-md"
+              : "text-stone-700 hover:text-[#101114] hover:bg-white/60"
+          }`}
+        >
+          <ShoppingBag className="w-3.5 h-3.5 text-[#fcb907]" />
+          <span>Orders &amp; Invoices ({orders.length})</span>
+        </button>
+
+        <button
+          onClick={() => setActiveTab("profile")}
+          className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+            activeTab === "profile"
+              ? "bg-[#101114] text-white shadow-md"
+              : "text-stone-700 hover:text-[#101114] hover:bg-white/60"
+          }`}
+        >
+          <User className="w-3.5 h-3.5 text-[#fcb907]" />
+          <span>Profile Settings</span>
+        </button>
       </div>
 
-      {/* Purchased Blueprints & Downloads */}
-      <section id="downloads" className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Download className="w-5 h-5 text-[#fcb907]" />
-            <h2 className="text-lg font-black text-[#101114] tracking-tight">
-              Purchased Architectural Plans &amp; CAD Kits
-            </h2>
-          </div>
-        </div>
+      {/* TAB 1: OVERVIEW */}
+      {activeTab === "overview" && (
+        <div className="space-y-8 animate-in fade-in duration-200">
+          {/* Key Metric Highlights */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-2">
+              <div className="flex items-center justify-between text-stone-400">
+                <span className="text-[11px] font-bold uppercase tracking-wider font-mono">Licensed Blueprints</span>
+                <div className="p-2 rounded-xl bg-amber-50 text-[#d97706]">
+                  <Download className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-3xl font-black text-stone-900">{downloads.length}</div>
+              <div className="text-xs text-stone-500">Ready for CAD/DWG &amp; stamped PDF download</div>
+            </div>
 
-        {downloads.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 border border-gray-200 text-center space-y-3">
-            <Download className="w-8 h-8 text-gray-300 mx-auto" />
-            <h3 className="text-sm font-bold text-[#101114]">No blueprint downloads yet</h3>
-            <p className="text-xs text-gray-500 max-w-sm mx-auto">
-              When you purchase a downloadable construction floor plan, your secure license and CAD files will appear here with unlimited 7-day direct downloads.
-            </p>
+            <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-2">
+              <div className="flex items-center justify-between text-stone-400">
+                <span className="text-[11px] font-bold uppercase tracking-wider font-mono">Completed Orders</span>
+                <div className="p-2 rounded-xl bg-blue-50 text-blue-600">
+                  <ShoppingBag className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-3xl font-black text-stone-900">{orders.length}</div>
+              <div className="text-xs text-stone-500">Verified transactions on file</div>
+            </div>
+
+            <div className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm space-y-2">
+              <div className="flex items-center justify-between text-stone-400">
+                <span className="text-[11px] font-bold uppercase tracking-wider font-mono">Total Investment</span>
+                <div className="p-2 rounded-xl bg-emerald-50 text-emerald-600">
+                  <ShieldCheck className="w-4 h-4" />
+                </div>
+              </div>
+              <div className="text-3xl font-black text-stone-900">${totalSpent.toLocaleString()} <span className="text-xs font-normal text-stone-400">USD</span></div>
+              <div className="text-xs text-stone-500">Total architectural blueprints purchased</div>
+            </div>
+          </div>
+
+          {/* Quick Access to Recent Blueprints */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h2 className="text-lg font-black text-stone-900 font-serif">Recent Blueprint Licenses</h2>
+                <p className="text-xs text-stone-500">Instant access to your structural blueprints and engineering sets.</p>
+              </div>
+              {downloads.length > 0 && (
+                <button
+                  onClick={() => setActiveTab("downloads")}
+                  className="text-xs font-bold text-[#d97706] hover:underline inline-flex items-center gap-1 cursor-pointer"
+                >
+                  <span>View all ({downloads.length})</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
+            {downloads.length === 0 ? (
+              <div className="bg-white rounded-3xl p-10 border border-stone-200 text-center space-y-4 shadow-sm">
+                <div className="w-14 h-14 rounded-2xl bg-amber-50 text-[#d97706] flex items-center justify-center mx-auto">
+                  <Layers className="w-7 h-7" />
+                </div>
+                <div className="max-w-md mx-auto space-y-1">
+                  <h3 className="text-base font-bold text-stone-900">No blueprint sets licensed yet</h3>
+                  <p className="text-xs text-stone-500">
+                    Explore our engineered catalog of cabins, ADUs, modern modular homes, and barndominiums ready for building permit submittals.
+                  </p>
+                </div>
+                <Link
+                  href="/floor-plans"
+                  className="inline-flex items-center gap-2 bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] font-black text-xs px-6 py-3 rounded-xl shadow-md transition-all"
+                >
+                  <ShoppingBag className="w-4 h-4" />
+                  <span>Browse Available Plans</span>
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {downloads.slice(0, 4).map((dl) => {
+                  const isExpired = new Date(dl.expires_at) < new Date();
+                  const title = dl.orderItems[0]?.title || "Architectural Blueprint Construction Set";
+
+                  return (
+                    <div
+                      key={dl.id}
+                      className="bg-white rounded-3xl p-6 border border-stone-200 shadow-sm flex flex-col justify-between space-y-4 hover:border-[#fcb907] transition-all group"
+                    >
+                      <div className="space-y-2">
+                        <div className="flex items-start justify-between gap-2">
+                          <h4 className="text-sm font-black text-stone-900 group-hover:text-[#d97706] transition-colors">
+                            {title}
+                          </h4>
+                          <span className="bg-amber-50 text-[#b45309] text-[10px] font-mono font-bold px-2.5 py-0.5 rounded-full border border-amber-200 shrink-0">
+                            {dl.orderNumber}
+                          </span>
+                        </div>
+                        <div className="text-xs text-stone-500 flex items-center gap-2">
+                          <Clock className="w-3.5 h-3.5 text-stone-400" />
+                          <span>Purchased {new Date(dl.orderDate).toLocaleDateString()}</span>
+                        </div>
+                      </div>
+
+                      <div className="pt-3 border-t border-stone-100 flex items-center justify-between">
+                        <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-lg">
+                          <ShieldCheck className="w-3.5 h-3.5" />
+                          Single-Build License
+                        </span>
+                        <a
+                          href={`/api/downloads/${dl.download_token}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-1.5 bg-[#101114] hover:bg-black text-white text-xs font-bold px-4 py-2 rounded-xl transition-all shadow-sm"
+                        >
+                          <Download className="w-3.5 h-3.5 text-[#fcb907]" />
+                          <span>Download ZIP</span>
+                        </a>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+
+          {/* Housing Advisor Support Box */}
+          <div className="p-6 rounded-3xl bg-stone-900 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-4 border border-stone-800">
+            <div className="space-y-1">
+              <div className="text-xs font-mono font-bold uppercase tracking-wider text-[#fcb907]">Need Builder Assistance?</div>
+              <h3 className="text-base font-bold font-serif">Have questions about local permitting or turn-key fabrication?</h3>
+              <p className="text-xs text-stone-300">Our engineering and construction specialists can help coordinate site work, foundation engineering, and modular delivery.</p>
+            </div>
             <Link
-              href="/floor-plans"
-              className="inline-block bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] font-bold text-xs px-5 py-2.5 rounded-xl shadow-xs transition-all"
+              href="/contact"
+              className="bg-white/10 hover:bg-white/20 text-white font-bold text-xs px-5 py-3 rounded-xl transition-all border border-white/20 whitespace-nowrap text-center shrink-0"
             >
-              Explore Floor Plans Catalog →
+              Contact Engineering Team
             </Link>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {downloads.map((dl) => {
-              const isExpired = new Date(dl.expires_at) < new Date();
-              const remaining = Math.max(0, (dl.max_downloads || 5) - (dl.download_count || 0));
-              const title = dl.orderItems[0]?.title || "Architectural Blueprint Construction Set";
-
-              return (
-                <div
-                  key={dl.id}
-                  className="bg-white rounded-2xl p-5 border border-gray-200 shadow-xs flex flex-col justify-between space-y-4 hover:border-[#fcb907] transition-all"
-                >
-                  <div className="space-y-2">
-                    <div className="flex items-start justify-between gap-2">
-                      <h4 className="text-sm font-black text-[#101114] leading-snug">{title}</h4>
-                      <span className="bg-amber-50 text-[#b45309] text-[10px] font-mono font-bold px-2 py-0.5 rounded-full border border-amber-200 shrink-0">
-                        {dl.orderNumber}
-                      </span>
-                    </div>
-                    <div className="text-xs text-gray-500 flex items-center gap-2">
-                      <Clock className="w-3.5 h-3.5 text-gray-400" />
-                      <span>
-                        Purchased on {new Date(dl.orderDate).toLocaleDateString()}
-                      </span>
-                    </div>
-                    <div className="text-xs text-gray-600 bg-gray-50 p-2.5 rounded-xl border border-gray-100 flex items-center justify-between">
-                      <span>Download Attempts:</span>
-                      <span className="font-bold text-[#101114]">
-                        {dl.download_count || 0} / {dl.max_downloads || 5} used
-                      </span>
-                    </div>
-                  </div>
-
-                  <div className="pt-2 border-t border-gray-100 flex items-center justify-between gap-3">
-                    <div className="text-[11px] text-gray-400">
-                      {isExpired ? (
-                        <span className="text-red-500 font-bold">Link Expired</span>
-                      ) : (
-                        <span className="text-emerald-600 font-bold">Active License</span>
-                      )}
-                    </div>
-                    <a
-                      href={`/api/downloads/${dl.download_token}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className={`inline-flex items-center gap-1.5 font-bold text-xs px-4 py-2 rounded-xl shadow-xs transition-all ${
-                        isExpired
-                          ? "bg-gray-100 text-gray-400 pointer-events-none"
-                          : "bg-[#fcb907] hover:bg-[#e5a706] text-[#101114]"
-                      }`}
-                    >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Download Blueprint PDF/CAD</span>
-                    </a>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        )}
-      </section>
-
-      {/* Order History */}
-      <section id="orders" className="space-y-4">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <ShoppingBag className="w-5 h-5 text-[#fcb907]" />
-            <h2 className="text-lg font-black text-[#101114] tracking-tight">Order History &amp; Receipts</h2>
-          </div>
         </div>
+      )}
 
-        {orders.length === 0 ? (
-          <div className="bg-white rounded-2xl p-8 border border-gray-200 text-center text-xs text-gray-500">
-            No orders found.
+      {/* TAB 2: DOWNLOADS */}
+      {activeTab === "downloads" && (
+        <div className="space-y-6 animate-in fade-in duration-200">
+          <div>
+            <h2 className="text-xl font-black text-stone-900 font-serif">Licensed Architectural Blueprints &amp; CAD Sets</h2>
+            <p className="text-xs text-stone-500">Every plan includes full architectural sheets, steel framing details, and vector CAD files.</p>
           </div>
-        ) : (
-          <div className="bg-white rounded-2xl border border-gray-200 shadow-xs overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left text-xs">
-                <thead className="bg-gray-50 text-gray-500 uppercase font-mono text-[10px] tracking-wider border-b border-gray-200">
-                  <tr>
-                    <th className="px-5 py-3">Order Number</th>
-                    <th className="px-5 py-3">Date</th>
-                    <th className="px-5 py-3">Blueprint Package</th>
-                    <th className="px-5 py-3">Total</th>
-                    <th className="px-5 py-3">Status</th>
-                    <th className="px-5 py-3 text-right">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  {orders.map((ord) => (
-                    <tr key={ord.id} className="hover:bg-gray-50/80 transition-colors">
-                      <td className="px-5 py-3.5 font-mono font-bold text-[#101114]">
-                        {ord.order_number}
-                      </td>
-                      <td className="px-5 py-3.5 text-gray-500">
-                        {new Date(ord.created_at).toLocaleDateString()}
-                      </td>
-                      <td className="px-5 py-3.5 font-bold text-[#101114]">
-                        {ord.order_items?.[0]?.title || "Blueprint Set"}
-                        {ord.order_items?.length > 1 ? ` (+${ord.order_items.length - 1} more)` : ""}
-                      </td>
-                      <td className="px-5 py-3.5 font-black text-[#101114]">
-                        ${Number(ord.total_amount).toLocaleString()} USD
-                      </td>
-                      <td className="px-5 py-3.5">
-                        {ord.payment_status === "PAID" ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
-                            <CheckCircle2 className="w-3 h-3" /> Paid
-                          </span>
-                        ) : ord.payment_status === "REFUNDED" ? (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded-full border border-purple-200">
-                            Refunded
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
-                            Pending
-                          </span>
-                        )}
-                      </td>
-                      <td className="px-5 py-3.5 text-right space-x-2 whitespace-nowrap">
-                        <Link
-                          href={`/account/orders/${ord.id}`}
-                          className="inline-flex items-center gap-1 font-bold text-[#d97706] hover:underline"
-                        >
-                          View Order →
-                        </Link>
-                        <Link
-                          href={`/account/invoices/${ord.id}`}
-                          target="_blank"
-                          className="inline-flex items-center gap-1 text-gray-500 hover:text-[#101114]"
-                          title="View Tax Invoice"
-                        >
-                          <FileText className="w-3.5 h-3.5" />
-                        </Link>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+
+          {downloads.length === 0 ? (
+            <div className="bg-white rounded-3xl p-12 border border-stone-200 text-center space-y-4">
+              <Download className="w-10 h-10 text-stone-300 mx-auto" />
+              <h3 className="text-base font-bold text-stone-900">No blueprint licenses yet</h3>
+              <p className="text-xs text-stone-500 max-w-md mx-auto">
+                Purchased floor plans include lifetime license entitlement and direct instant downloads.
+              </p>
+              <Link
+                href="/floor-plans"
+                className="inline-block bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] font-bold text-xs px-6 py-3 rounded-xl shadow-md transition-all"
+              >
+                Explore Floor Plans Catalog →
+              </Link>
             </div>
-          </div>
-        )}
-      </section>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {downloads.map((dl) => {
+                const isExpired = new Date(dl.expires_at) < new Date();
+                const title = dl.orderItems[0]?.title || "Architectural Construction Blueprint Package";
 
-      {/* Profile & Settings */}
-      <section id="profile" className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-1 space-y-2">
-          <div className="flex items-center gap-2">
-            <User className="w-5 h-5 text-[#fcb907]" />
-            <h2 className="text-lg font-black text-[#101114] tracking-tight">Account Details</h2>
-          </div>
-          <p className="text-xs text-gray-500 leading-relaxed">
-            Update your contact preferences used for blueprint licensing stamps and project coordination.
-          </p>
-        </div>
+                return (
+                  <div
+                    key={dl.id}
+                    className="bg-white rounded-3xl p-6 sm:p-7 border border-stone-200 shadow-sm flex flex-col justify-between space-y-5 hover:border-[#fcb907] transition-all"
+                  >
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between gap-2">
+                        <div>
+                          <span className="text-[10px] font-mono font-bold uppercase tracking-wider text-[#d97706]">
+                            Single-Build Licensed Plan
+                          </span>
+                          <h3 className="text-base font-black text-stone-900 leading-snug mt-0.5">
+                            {title}
+                          </h3>
+                        </div>
+                        <span className="bg-stone-100 text-stone-700 text-[10px] font-mono font-bold px-2.5 py-1 rounded-full border border-stone-200 shrink-0">
+                          {dl.orderNumber}
+                        </span>
+                      </div>
 
-        <div className="md:col-span-2 bg-white rounded-2xl p-6 border border-gray-200 shadow-xs space-y-4">
-          {profileMessage && (
-            <div className="p-3.5 rounded-xl bg-gray-50 border border-gray-200 text-xs font-bold text-[#101114]">
-              {profileMessage}
+                      <div className="grid grid-cols-2 gap-2 text-xs text-stone-600 bg-stone-50 p-3.5 rounded-2xl border border-stone-100">
+                        <div>
+                          <span className="text-[10px] uppercase font-mono text-stone-400 block">Purchased On</span>
+                          <span className="font-bold text-stone-800">{new Date(dl.orderDate).toLocaleDateString()}</span>
+                        </div>
+                        <div>
+                          <span className="text-[10px] uppercase font-mono text-stone-400 block">Download Count</span>
+                          <span className="font-bold text-stone-800">{dl.download_count || 0} of {dl.max_downloads || 5} used</span>
+                        </div>
+                      </div>
+
+                      <div className="text-xs text-stone-500 flex items-center justify-between">
+                        <span>Includes: Full DWG CAD + Stamped PDF Set</span>
+                        <span className={isExpired ? "text-red-500 font-bold" : "text-emerald-600 font-bold"}>
+                          {isExpired ? "Expired" : "Active License"}
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="pt-3 border-t border-stone-100 flex items-center justify-between gap-3">
+                      <Link
+                        href={`/account/orders/${dl.orderId}`}
+                        className="text-xs font-bold text-stone-600 hover:text-[#d97706]"
+                      >
+                        View Order Details
+                      </Link>
+
+                      <a
+                        href={`/api/downloads/${dl.download_token}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`inline-flex items-center gap-2 font-bold text-xs px-5 py-2.5 rounded-xl shadow-md transition-all ${
+                          isExpired
+                            ? "bg-stone-100 text-stone-400 pointer-events-none"
+                            : "bg-[#fcb907] hover:bg-[#e5a706] text-[#101114]"
+                        }`}
+                      >
+                        <Download className="w-4 h-4" />
+                        <span>Download Blueprint ZIP</span>
+                      </a>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           )}
-
-          <form onSubmit={handleUpdateProfile} className="space-y-4">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                  Full Name
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-[#101114] focus:bg-white focus:outline-none focus:border-[#fcb907]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                  Phone Number
-                </label>
-                <input
-                  type="tel"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="+1 (555) 000-0000"
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-[#101114] focus:bg-white focus:outline-none focus:border-[#fcb907]"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">
-                Email Address (Authentication)
-              </label>
-              <input
-                type="email"
-                disabled
-                value={profile?.email || ""}
-                className="w-full bg-gray-100 border border-gray-200 rounded-xl px-3.5 py-2.5 text-xs text-gray-500 cursor-not-allowed"
-              />
-              <p className="text-[11px] text-gray-400 mt-1">
-                To update your security email address, contact support at support@modularhome.com.
-              </p>
-            </div>
-
-            <div className="pt-2 flex justify-end">
-              <button
-                type="submit"
-                disabled={isUpdatingProfile}
-                className="bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] font-black text-xs px-6 py-2.5 rounded-xl shadow-xs transition-all cursor-pointer disabled:opacity-50"
-              >
-                {isUpdatingProfile ? "Saving Changes..." : "Save Profile Details"}
-              </button>
-            </div>
-          </form>
         </div>
-      </section>
+      )}
 
-      {/* Customer Support Helper */}
-      <div className="bg-gray-100 rounded-2xl p-6 border border-gray-200 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center text-[#fcb907] shadow-xs">
-            <HelpCircle className="w-5 h-5" />
-          </div>
+      {/* TAB 3: ORDERS */}
+      {activeTab === "orders" && (
+        <div className="space-y-6 animate-in fade-in duration-200">
           <div>
-            <h4 className="text-sm font-bold text-[#101114]">Need Engineering Assistance?</h4>
-            <p className="text-xs text-gray-500">
-              Our architectural specialists can assist with foundation engineering stamps and builder customization.
+            <h2 className="text-xl font-black text-stone-900 font-serif">Order History &amp; Official Invoices</h2>
+            <p className="text-xs text-stone-500">Access full transaction receipts and printable municipal tax invoices.</p>
+          </div>
+
+          {orders.length === 0 ? (
+            <div className="bg-white rounded-3xl p-12 border border-stone-200 text-center text-xs text-stone-500">
+              No orders found in your account history.
+            </div>
+          ) : (
+            <div className="bg-white rounded-3xl border border-stone-200 shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-stone-50 text-stone-500 uppercase font-mono text-[10px] tracking-wider border-b border-stone-200">
+                    <tr>
+                      <th className="px-6 py-4">Order Number</th>
+                      <th className="px-6 py-4">Date</th>
+                      <th className="px-6 py-4">Items / Plan Packages</th>
+                      <th className="px-6 py-4">Amount</th>
+                      <th className="px-6 py-4">Status</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-stone-100">
+                    {orders.map((ord) => (
+                      <tr key={ord.id} className="hover:bg-stone-50/80 transition-colors">
+                        <td className="px-6 py-4 font-mono font-bold text-stone-900">
+                          {ord.order_number}
+                        </td>
+                        <td className="px-6 py-4 text-stone-500">
+                          {new Date(ord.created_at).toLocaleDateString("en-US", {
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                          })}
+                        </td>
+                        <td className="px-6 py-4 font-bold text-stone-900">
+                          {ord.order_items?.[0]?.title || "Architectural Blueprint Package"}
+                          {ord.order_items?.length > 1 ? ` (+${ord.order_items.length - 1} more)` : ""}
+                        </td>
+                        <td className="px-6 py-4 font-black text-stone-900 font-serif text-sm">
+                          ${Number(ord.total_amount).toLocaleString()} <span className="text-[10px] font-mono text-stone-400">USD</span>
+                        </td>
+                        <td className="px-6 py-4">
+                          {ord.payment_status === "PAID" ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full border border-emerald-200">
+                              <CheckCircle2 className="w-3 h-3" /> Paid
+                            </span>
+                          ) : ord.payment_status === "REFUNDED" ? (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-purple-700 bg-purple-50 px-2.5 py-0.5 rounded-full border border-purple-200">
+                              Refunded
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-700 bg-amber-50 px-2.5 py-0.5 rounded-full border border-amber-200">
+                              Pending
+                            </span>
+                          )}
+                        </td>
+                        <td className="px-6 py-4 text-right space-x-3 whitespace-nowrap">
+                          <Link
+                            href={`/account/orders/${ord.id}`}
+                            className="inline-flex items-center gap-1 font-bold text-[#d97706] hover:underline text-xs"
+                          >
+                            Details →
+                          </Link>
+                          <Link
+                            href={`/account/invoices/${ord.id}`}
+                            target="_blank"
+                            className="inline-flex items-center gap-1 text-stone-600 hover:text-stone-900 font-semibold"
+                            title="Open Official Tax Invoice"
+                          >
+                            <FileText className="w-3.5 h-3.5 text-stone-400" />
+                            <span>Invoice</span>
+                          </Link>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 4: PROFILE SETTINGS */}
+      {activeTab === "profile" && (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 animate-in fade-in duration-200">
+          <div className="space-y-2">
+            <h2 className="text-xl font-black text-stone-900 font-serif">Contact &amp; Account Settings</h2>
+            <p className="text-xs text-stone-500 leading-relaxed">
+              Your registered details are attached to your architectural licensing certificates and municipal permit documents.
             </p>
           </div>
+
+          <div className="md:col-span-2 bg-white rounded-3xl p-6 sm:p-8 border border-stone-200 shadow-sm space-y-6">
+            {profileMessage && (
+              <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-xs font-bold text-emerald-800 flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                <span>{profileMessage}</span>
+              </div>
+            )}
+
+            <form onSubmit={handleUpdateProfile} className="space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
+                    Full Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-xs text-stone-900 focus:bg-white focus:outline-none focus:border-[#fcb907] focus:ring-1 focus:ring-[#fcb907]"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
+                    Phone Number
+                  </label>
+                  <input
+                    type="tel"
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    placeholder="+1 (555) 000-0000"
+                    className="w-full bg-stone-50 border border-stone-200 rounded-xl px-4 py-2.5 text-xs text-stone-900 focus:bg-white focus:outline-none focus:border-[#fcb907] focus:ring-1 focus:ring-[#fcb907]"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-stone-700 uppercase tracking-wider mb-1.5">
+                  Email Address
+                </label>
+                <div className="relative">
+                  <input
+                    type="email"
+                    disabled
+                    value={profile?.email || ""}
+                    className="w-full bg-stone-100 border border-stone-200 rounded-xl px-4 py-2.5 text-xs text-stone-500 cursor-not-allowed"
+                  />
+                  {profile?.email_verified ? (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-emerald-700 bg-emerald-100 px-2 py-0.5 rounded-md">
+                      Verified
+                    </span>
+                  ) : (
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-bold text-amber-700 bg-amber-100 px-2 py-0.5 rounded-md">
+                      Unverified
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="pt-2 flex justify-end">
+                <button
+                  type="submit"
+                  disabled={isUpdatingProfile}
+                  className="bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] font-black text-xs px-6 py-3 rounded-xl shadow-md transition-all cursor-pointer disabled:opacity-50 flex items-center gap-1.5"
+                >
+                  {isUpdatingProfile ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                  <span>Save Profile Changes</span>
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
-        <Link
-          href="/contact"
-          className="bg-white hover:bg-gray-50 text-[#101114] font-bold text-xs px-4 py-2.5 rounded-xl border border-gray-300 transition-colors shrink-0 text-center"
-        >
-          Contact Architectural Support
-        </Link>
-      </div>
+      )}
     </div>
   );
 }
