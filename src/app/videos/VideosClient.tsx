@@ -58,16 +58,14 @@ export default function VideosClient() {
       <div className="wrap">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-10">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-50 text-[var(--r)] text-xs font-bold uppercase tracking-wider mb-3">
-            <span className="w-2 h-2 rounded-full bg-[var(--r)] animate-pulse"></span>
-            <span>Official YouTube Channel Sync</span>
-          </div>
-          <h1 className="text-4xl sm:text-6xl md:text-7xl font-black uppercase tracking-tight text-[var(--ink)] font-display leading-[0.95]">
-            See Our Buildings <br />
-            <span className="text-[var(--r)]">Come To Life.</span>
+          <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-tight text-[var(--ink)] font-display leading-[1.05]">
+            Modular Home Videos &amp; Tours
           </h1>
           <p className="mt-4 text-sm sm:text-base text-[var(--muted)] leading-relaxed font-body">
-            Watch complete architectural walkthroughs, steel frame erection time-lapses, luxury interior detailing, and genuine homeowner build stories automatically synced from our YouTube channel.
+            Explore modular homes, prefab homes, cabins, barndominiums, and modern home designs through our latest videos and walkthroughs.
+          </p>
+          <p className="mt-2 text-sm sm:text-base text-[var(--muted)] leading-relaxed font-body">
+            See real home designs, floor plans, interiors, construction details, and building ideas to help inspire your next home.
           </p>
 
           {/* Search Bar */}
