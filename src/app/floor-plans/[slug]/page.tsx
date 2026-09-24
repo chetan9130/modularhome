@@ -19,12 +19,15 @@ import {
   Share2,
   Sparkles,
   Zap,
+  ShoppingBag,
 } from "lucide-react";
+import { useCart } from "@/context/CartContext";
 
 export default function FloorPlanDetailPage() {
   const params = useParams();
   const router = useRouter();
   const slug = params?.slug as string;
+  const { addItem } = useCart();
 
   const [plan, setPlan] = useState<FloorPlan | null>(null);
   const [selectedImage, setSelectedImage] = useState<string>("");
@@ -310,15 +313,37 @@ export default function FloorPlanDetailPage() {
                 </div>
               </div>
 
-              {/* Instant Buy CTA */}
-              <button
-                type="button"
-                onClick={() => setIsCheckoutOpen(true)}
-                className="w-full py-4 px-6 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-base shadow-xl shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer group"
-              >
-                <Download className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
-                Buy Floor Plan & Download Now
-              </button>
+              {/* Action Buttons: Add to Cart + Instant Buy CTA */}
+              <div className="space-y-2.5">
+                <button
+                  type="button"
+                  onClick={() => setIsCheckoutOpen(true)}
+                  className="w-full py-4 px-6 rounded-2xl bg-orange-600 hover:bg-orange-700 text-white font-extrabold text-base shadow-xl shadow-orange-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer group"
+                >
+                  <Download className="w-5 h-5 group-hover:-translate-y-0.5 transition-transform" />
+                  Buy Floor Plan & Download Now
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    addItem({
+                      id: plan.id,
+                      slug: plan.slug,
+                      title: plan.title,
+                      price: plan.salePrice || plan.price,
+                      previewImage: plan.previewImage,
+                      category: plan.category,
+                      sqft: plan.squareFeet,
+                      dimensions: plan.dimensions,
+                    })
+                  }
+                  className="w-full py-3 px-6 rounded-2xl bg-stone-100 hover:bg-stone-200 text-stone-900 font-bold text-sm transition-all flex items-center justify-center gap-2 cursor-pointer border border-stone-300"
+                >
+                  <ShoppingBag className="w-4 h-4 text-stone-700" />
+                  Add to Cart
+                </button>
+              </div>
 
               {/* Value Props Bullet List */}
               <div className="space-y-3 pt-2 text-xs text-stone-600">

@@ -34,6 +34,9 @@ import {
   Shield,
   Activity,
   KeyRound,
+  TrendingUp,
+  BarChart3,
+  UsersRound,
 } from "lucide-react";
 
 interface AdminUser {
@@ -112,6 +115,9 @@ export default function AdminLayout({
       leads: "Leads & Prospects",
       quotations: "Quotations",
       orders: "Blueprint Orders",
+      customers: "Customer CRM",
+      analytics: "Sales & Analytics",
+      reports: "Reports & Financials",
       pages: "Pages",
       sections: "Page Sections",
       media: "Media Library",
@@ -144,6 +150,7 @@ export default function AdminLayout({
 
   const userRole = (user?.role || "SUPER_ADMIN").toUpperCase();
   const isSuperAdmin = userRole === "SUPER_ADMIN" || userRole === "ADMIN";
+  const isSales = isSuperAdmin || userRole === "SALES";
   const isContentAdmin = isSuperAdmin || userRole === "CONTENT_ADMIN" || userRole === "EDITOR";
 
   const navSections = [
@@ -166,11 +173,21 @@ export default function AdminLayout({
     {
       group: "Transactions & Pipeline",
       items: [
-        ...(isSuperAdmin ? [{ label: "Blueprint Orders", href: "/admin/orders", icon: ShoppingBag }] : []),
+        ...(isSuperAdmin || isSales ? [{ label: "Blueprint Orders", href: "/admin/orders", icon: ShoppingBag }] : []),
+        ...(isSuperAdmin || isSales ? [{ label: "Customer CRM", href: "/admin/customers", icon: UsersRound }] : []),
         { label: "Inbound Leads", href: "/admin/leads", icon: Users },
         { label: "Quote Wizard Pipeline", href: "/admin/quotations", icon: FileSpreadsheet },
       ],
     },
+    ...(isSuperAdmin || isSales ? [
+      {
+        group: "Analytics & Intelligence",
+        items: [
+          { label: "Sales & Analytics", href: "/admin/analytics", icon: TrendingUp },
+          { label: "Financial Reports", href: "/admin/reports", icon: BarChart3 },
+        ],
+      },
+    ] : []),
     ...(isContentAdmin ? [
       {
         group: "Website CMS & Pages",

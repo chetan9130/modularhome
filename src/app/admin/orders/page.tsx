@@ -126,6 +126,38 @@ export default function AdminOrdersPage() {
     }
   };
 
+  const [isRefunding, setIsRefunding] = useState(false);
+  const [refundReason, setRefundReason] = useState("");
+
+  const handleRefundOrder = async () => {
+    if (!selectedOrderId) return;
+    const confirmRefund = window.confirm(
+      `Are you sure you want to process a refund for Order #${orderDetail?.order_number || selectedOrderId}? This will immediately revoke customer download access and issue a credit via Stripe.`
+    );
+    if (!confirmRefund) return;
+
+    setIsRefunding(true);
+    try {
+      const res = await fetch(`/api/admin/orders/${selectedOrderId}/refund`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ reason: refundReason || "Requested by customer" }),
+      });
+      const data = await res.json();
+      if (data.success) {
+        setStatusMessage("Stripe refund processed & digital licenses revoked successfully!");
+        fetchOrderDetail(selectedOrderId);
+        fetchOrders();
+      } else {
+        alert(data.error?.message || "Failed to process refund.");
+      }
+    } catch {
+      alert("An unexpected error occurred during refund processing.");
+    } finally {
+      setIsRefunding(false);
+    }
+  };
+
   useEffect(() => {
     fetchOrders();
   }, []);
@@ -403,6 +435,35 @@ export default function AdminOrdersPage() {
                     </div>
                   </div>
                 </div>
+
+                {/* Stripe Refund Processing Action */}
+                {orderDetail.payment_status === "PAID" && (
+                  <div className="p-4 rounded-2xl border border-red-200 bg-red-50/50 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2 text-red-800 font-bold font-mono text-[11px] uppercase">
+                        <AlertCircle className="w-4 h-4 text-red-600" />
+                        <span>Stripe Payment Refund & Revocation</span>
+                      </div>
+                    </div>
+                    <div className="flex flex-col sm:flex-row gap-2">
+                      <input
+                        type="text"
+                        placeholder="Reason for refund (optional)..."
+                        value={refundReason}
+                        onChange={(e) => setRefundReason(e.target.value)}
+                        className="flex-1 bg-white border border-red-200 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-red-400"
+                      />
+                      <button
+                        onClick={handleRefundOrder}
+                        disabled={isRefunding}
+                        className="bg-red-600 hover:bg-red-700 text-white font-bold text-xs px-4 py-2 rounded-xl transition-colors cursor-pointer shrink-0 disabled:opacity-50 flex items-center justify-center gap-1.5"
+                      >
+                        {isRefunding ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : null}
+                        <span>Issue Stripe Refund</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
 
                 {/* Purchased Items */}
                 <div className="space-y-2">

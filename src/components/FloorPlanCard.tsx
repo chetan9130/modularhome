@@ -4,7 +4,8 @@ import React from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { FloorPlan } from "@/data/floorPlans";
-import { Bed, Bath, Maximize2, Layers, Download, CheckCircle, ArrowRight } from "lucide-react";
+import { useCart } from "@/context/CartContext";
+import { Bed, Bath, Maximize2, Layers, Download, CheckCircle, ArrowRight, ShoppingBag } from "lucide-react";
 
 interface FloorPlanCardProps {
   plan: FloorPlan;
@@ -12,6 +13,7 @@ interface FloorPlanCardProps {
 }
 
 export default function FloorPlanCard({ plan, onInstantBuy }: FloorPlanCardProps) {
+  const { addItem } = useCart();
   const discountPercent =
     plan.salePrice && plan.price > plan.salePrice
       ? Math.round(((plan.price - plan.salePrice) / plan.price) * 100)
@@ -102,22 +104,43 @@ export default function FloorPlanCard({ plan, onInstantBuy }: FloorPlanCardProps
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1.5">
             <Link
               href={`/floor-plans/${plan.slug}`}
-              className="px-3 py-2 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors inline-flex items-center gap-1"
+              className="px-2.5 py-2 text-xs font-semibold text-stone-700 bg-stone-100 hover:bg-stone-200 rounded-xl transition-colors inline-flex items-center gap-1"
             >
               Details
               <ArrowRight className="w-3 h-3" />
             </Link>
+
+            <button
+              type="button"
+              onClick={() =>
+                addItem({
+                  id: plan.id,
+                  slug: plan.slug,
+                  title: plan.title,
+                  price: plan.salePrice || plan.price,
+                  previewImage: plan.previewImage,
+                  category: plan.category,
+                  sqft: plan.squareFeet,
+                  dimensions: plan.dimensions,
+                })
+              }
+              title="Add blueprint to cart"
+              className="p-2 text-stone-700 bg-stone-100 hover:bg-stone-200 hover:text-orange-600 rounded-xl transition-colors cursor-pointer"
+            >
+              <ShoppingBag className="w-4 h-4" />
+            </button>
+
             {onInstantBuy && (
               <button
                 type="button"
                 onClick={() => onInstantBuy(plan)}
-                className="px-3.5 py-2 text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 rounded-xl shadow-sm hover:shadow-orange-600/20 transition-all inline-flex items-center gap-1.5 cursor-pointer"
+                className="px-3 py-2 text-xs font-bold text-white bg-orange-600 hover:bg-orange-700 rounded-xl shadow-sm hover:shadow-orange-600/20 transition-all inline-flex items-center gap-1 cursor-pointer"
               >
                 <Download className="w-3.5 h-3.5" />
-                Buy Plan
+                Buy
               </button>
             )}
           </div>

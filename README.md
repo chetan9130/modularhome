@@ -1,40 +1,65 @@
 # MODULARHOME / STEELWEB
 
-## ADMIN COMPLETION + SECURITY HARDENING IMPLEMENTATION PROMPT
+# REMAINING CUSTOMER ECOMMERCE + REPORTING + CUSTOMER ACCOUNT IMPLEMENTATION PROMPT
+
+## PROJECT CONTEXT
 
 You are working on the existing **ModularHome / SteelWeb** project.
 
-The current project already has a functioning admin dashboard, Supabase backend, Stripe integration, Shopify migration tooling, floor-plan e-commerce, CMS structure, and public frontend.
+The project already contains a substantial Admin CMS, public storefront, Supabase backend, Stripe payment integration, secure floor-plan downloads, Shopify migration, SEO/redirects, YouTube synchronization, CRM, security controls, RBAC, 2FA, activity logging, content versioning, and CMS functionality.
 
-The client has reviewed the admin and wants the existing structure completed before considering the Admin Backend finished.
+The purpose of this task is **NOT to rebuild the existing Admin CMS**.
 
-### PRIMARY OBJECTIVE
+The goal is to complete the remaining requirements from the **Final Master Developer Specification**, specifically:
 
-Complete the existing admin system so that the client has **full operational control of the website without needing developer/code changes for normal website management**.
-
-Do NOT redesign the admin dashboard from scratch.
-
-The current admin design and structure are acceptable. Focus on:
-
-* Completing missing functionality
-* Connecting admin controls to the live frontend
-* Correct CRUD operations
-* Proper relationships between entities
-* Role-based permissions
-* Security
-* Auditability
-* Version/recovery capability
-* End-to-end testing
-
-Do not implement Phase 3 AI functionality unless it is required for an existing admin integration.
+1. Customer Ecommerce
+2. Customer Accounts
+3. Customer Account Administration
+4. Ecommerce Reporting & Analytics
+5. Data Export
+6. Remaining Payment/Order operational features
+7. Mobile Ecommerce QA
+8. Complete End-to-End Ecommerce QA
+9. Final documentation and handover
 
 ---
 
-# 1. EXISTING TECHNOLOGY — DO NOT CHANGE UNNECESSARILY
+# 1. CRITICAL RULE — INSPECT BEFORE IMPLEMENTING
 
-Use the existing architecture:
+Before writing code:
 
-* Next.js 16 App Router
+1. Inspect the complete existing SteelWeb codebase.
+2. Inspect the current Supabase schema.
+3. Inspect existing Stripe integration.
+4. Inspect existing authentication.
+5. Inspect existing Admin roles and permissions.
+6. Inspect existing order/payment/download implementation.
+7. Inspect existing customer/lead/quotation structures.
+8. Inspect existing email functionality.
+9. Inspect existing analytics.
+10. Inspect existing reporting/dashboard functionality.
+
+DO NOT assume a feature is missing merely because it was not listed in the previous architecture summary.
+
+For every requirement below, classify it as:
+
+* ALREADY COMPLETE
+* PARTIALLY COMPLETE
+* MISSING
+* BROKEN
+* NEEDS QA ONLY
+
+Then implement only what is actually required.
+
+Do not duplicate existing functionality.
+
+---
+
+# 2. EXISTING TECHNOLOGY — PRESERVE
+
+Continue using the existing architecture:
+
+* Next.js 16
 * React 19
 * TypeScript
 * Tailwind CSS v4
@@ -42,1558 +67,1619 @@ Use the existing architecture:
 * Supabase RLS
 * Supabase Storage
 * Stripe
-* Existing Shopify migration system
-* Existing YouTube synchronization
-* Existing admin authentication/session architecture
+* Existing CMS
+* Existing Admin Dashboard
+* Existing middleware
+* Existing APIs
+* Existing publicData layer
 
 Do NOT introduce:
 
 * Convex
 * Prisma
 * MongoDB
-* A second database
-* A second payment gateway
-* Unnecessary authentication providers
-* A complete admin UI rewrite
+* Razorpay
+* Another database
+* Another CMS
+* Another payment gateway
 
-Preserve working functionality.
+Stripe remains the payment provider.
 
-Before making changes, inspect the existing implementation and understand:
-
-* database schema
-* RLS policies
-* admin authentication
-* middleware
-* API routes
-* admin components
-* public data fetching
-* frontend CMS rendering
-* Stripe integration
-* storage implementation
-* Shopify migration
-* YouTube sync
+Supabase remains the primary database/storage platform.
 
 ---
 
-# 2. HOME MODELS — COMPLETE MANAGEMENT
+# 3. CUSTOMER ACCOUNT SYSTEM
 
-Admin must provide complete control over every Home Model.
+Implement a complete customer account lifecycle if not already present.
 
-For every model support:
+Required flow:
 
-* Name
-* Slug
-* Price
-* Category
-* Collections
-* Square footage
-* Bedrooms
-* Bathrooms
-* Specifications
-* Description
-* Main image
-* Image gallery
-* Floor plans
-* Status
-* Featured
-* Trending
-* SEO title
-* SEO description
-* Canonical URL
-* OG image
-* Other relevant SEO metadata
-
-Support:
-
-* Create
-* Read
-* Edit
-* Delete
-* Publish/unpublish
-* Draft/active status where applicable
-
-### Price issue
-
-Some models currently display only `$` without an actual price.
-
-Investigate the complete data flow:
-
-Database → API → publicData → model page/card → formatting component.
-
-Fix the root cause.
-
-Do not simply hardcode a price on the frontend.
-
-Ensure:
-
-* Missing prices are handled correctly
-* Valid prices display correctly
-* Currency formatting is consistent
-* Admin price changes immediately reflect on the frontend
+```text
+Visitor
+  ↓
+Signup / Login
+  ↓
+Email Verification
+  ↓
+Customer Account
+  ↓
+Browse Floor Plans
+  ↓
+Cart
+  ↓
+Checkout
+  ↓
+Stripe
+  ↓
+Verified Payment
+  ↓
+Order
+  ↓
+Invoice / Receipt
+  ↓
+Customer Dashboard
+  ↓
+Secure Download
+```
 
 ---
 
-# 3. COLLECTION MANAGEMENT
+# 4. CUSTOMER SIGNUP
 
-Complete Collections functionality.
+Implement customer registration.
 
-Admin must be able to:
-
-* Create collections
-* Edit collections
-* Delete collections
-* Change collection name
-* Change slug
-* Change description/content
-* Upload/change collection image
-* Manage SEO
-* Assign models
-* Remove models
-* Reorder models if supported by the existing architecture
-
-### IMPORTANT
-
-Collections currently show **0 models**.
-
-Investigate and fix the model-to-collection relationship.
-
-Verify:
-
-products
-↓
-product_collections
-↓
-collections
-↓
-public frontend
-
-Make sure assigned models actually appear on:
-
-* Collection admin
-* Collection pages
-* Related model listings
-* Any collection filters
-
-Test both:
-
-* Assign model → model appears
-* Remove model → model disappears
-
-Do not merely fix the UI count.
-
-Fix the underlying database/API relationship.
-
----
-
-# 4. FLOOR PLAN MANAGEMENT
-
-The Floor Plan Manager must provide complete control.
-
-Admin must manage:
-
-* Plan name
-* Slug
-* Price
-* Category
-* Description
-* Square footage
-* Bedrooms
-* Bathrooms
-* Specifications
-* Main image
-* Image gallery
-* Preview images
-* PDF
-* CAD/DWG files
-* ZIP files where applicable
-* Status
-* Featured
-* SEO metadata
-
-Support:
-
-* Create
-* Edit
-* Delete
-* Publish/unpublish
-
-### Secure files
-
-Paid PDF/CAD/ZIP files MUST NOT be publicly accessible.
-
-Use:
-
-* Private Supabase Storage
-* Authorization checks
-* Signed/time-limited URLs
-* Purchase verification
-* Download access records
-
-Never expose permanent public URLs for paid files.
-
----
-
-# 5. ORDER MANAGEMENT
-
-Complete the existing Orders admin.
-
-When opening an order, display complete information.
-
-### Customer
-
-Show:
+Support where applicable:
 
 * Name
 * Email
-* Phone if collected
-* Billing details where applicable
-* Shipping/customer information where applicable
+* Password
+* Phone
+* Required profile information
+* Terms/policy acceptance where required
 
-### Payment
+Requirements:
+
+* Server-side validation
+* Password handled securely through the authentication system
+* No plaintext password storage
+* Duplicate email handling
+* Rate limiting
+* Abuse protection
+
+After signup:
+
+```text
+Account Created
+      ↓
+Verification Required
+      ↓
+Verification Email
+      ↓
+Verified Customer
+```
+
+---
+
+# 5. EMAIL VERIFICATION
+
+Implement complete email verification.
+
+Requirements:
+
+* Verification email
+* Secure verification token/process
+* Verification status
+* Verification timestamp where available
+* Resend verification
+* Resend rate limiting
+* Expired/invalid verification handling
+
+Admin should be able to see whether a customer is verified.
+
+Never allow admin users to manually manipulate authentication records as a substitute for the proper verification flow.
+
+---
+
+# 6. CUSTOMER LOGIN
+
+Implement customer login.
+
+Requirements:
+
+* Email/password login
+* Secure session
+* HttpOnly cookies where applicable
+* Secure session handling
+* Rate limiting
+* Failed login handling
+* Logout
+* Session expiration
+
+Do not expose authentication secrets to the browser.
+
+---
+
+# 7. GOOGLE / SOCIAL LOGIN
+
+Inspect the current authentication architecture.
+
+If Google authentication is already configured or enabled, complete its integration.
+
+If it is not configured:
+
+* Prepare the architecture cleanly
+* Do not introduce unnecessary providers
+* Document the required external configuration
+
+Customer identity provider information must never expose OAuth secrets/tokens.
+
+---
+
+# 8. FORGOT PASSWORD / RESET PASSWORD
+
+Implement the normal secure password reset workflow.
+
+Required:
+
+```text
+Forgot Password
+      ↓
+Reset Email
+      ↓
+Secure Reset Link
+      ↓
+Customer Sets New Password
+      ↓
+Account Updated
+```
+
+Admins must NEVER:
+
+* See passwords
+* Retrieve passwords
+* Set a customer's password directly
+* Store plaintext passwords
+
+Admin assistance should only trigger the secure reset workflow.
+
+---
+
+# 9. CUSTOMER PROFILE
+
+Create a customer profile/account area.
+
+Customer should be able to manage permitted information such as:
+
+* Name
+* Email through secure email-change flow
+* Phone
+* Billing/contact information
+* Account information
+
+Authentication email changes must use a secure verified workflow.
+
+Do not simply update authentication email through direct database SQL.
+
+---
+
+# 10. CUSTOMER DASHBOARD
+
+Create/complete:
+
+`/account`
+
+or the existing customer account route.
+
+Dashboard should show:
+
+* Customer information
+* Account status
+* Verification status where useful
+* Recent orders
+* Purchased floor plans
+* Download access
+* Download history
+* Invoices/receipts
+* Relevant account events
+* Support/help option
+
+Example:
+
+```text
+MY ACCOUNT
+
+Welcome, Customer
+
+Orders
+--------------------------------
+#MH-10021    Paid
+#MH-10019    Paid
+
+Purchased Plans
+--------------------------------
+Modern Cabin 2400
+Download
+
+Invoices
+--------------------------------
+INV-10021
+Download Invoice
+```
+
+---
+
+# 11. CUSTOMER ORDER HISTORY
+
+Customers must be able to see their own orders.
 
 Show:
 
 * Order number
-* Stripe payment/order identifiers
-* Payment status
-* Payment amount
-* Currency
-* Payment date
-* Relevant Stripe status
-* Refund status if supported
-
-### Purchased product
-
-Show:
-
-* Floor plan
+* Order date
+* Purchased products
 * Quantity
 * Price
-* Purchased files/product
-* Download access status
-
-### Download
-
-Show:
-
-* Download token/access
-* Expiration
-* Download count
+* Discount if applicable
+* Tax where applicable
+* Total
+* Payment status
+* Order status
 * Download status
 
-Do not expose Stripe secret information.
+Customers must only be able to access their own orders.
 
-Never store card numbers, CVV, or other card details.
+Test direct API access using another customer's order ID.
 
-Stripe remains responsible for payment information.
+It must fail.
 
 ---
 
-# 6. LEADS — COMPLETE CRM MANAGEMENT
+# 12. CUSTOMER ORDER DETAILS
 
-The Leads section must become a real lead-management interface instead of only a table.
+Create a customer-facing order detail page.
 
-When opening a lead, show:
+Example:
 
-### Customer information
+`/account/orders/[orderId]`
+
+Display:
+
+* Order information
+* Product/floor plan
+* Price
+* Payment status
+* Payment date
+* Invoice
+* Download access
+* Download expiry
+* Support option
+
+Do not expose:
+
+* Stripe secret keys
+* Internal webhook data
+* Other customer's data
+* Card information
+
+---
+
+# 13. SHOPPING CART
+
+Inspect the existing floor-plan ecommerce implementation.
+
+If a proper persistent cart does not exist, implement it.
+
+Support:
+
+* Add to cart
+* Remove
+* Update quantity where applicable
+* Empty cart
+* Cart persistence
+* Price display
+* Subtotal
+* Discount where supported
+* Checkout
+
+Do not treat cart data as proof of purchase.
+
+Only Stripe/server-side verified payment creates a paid entitlement.
+
+---
+
+# 14. SERVER-SIDE PRICE VALIDATION
+
+This is CRITICAL.
+
+Never trust prices received from the browser.
+
+When creating Stripe checkout:
+
+```text
+Browser
+   ↓
+Product ID
+   ↓
+Server
+   ↓
+Load current authoritative price from Supabase
+   ↓
+Validate product availability
+   ↓
+Create Stripe Checkout
+```
+
+The browser must never be able to change:
+
+```text
+$595 → $1
+```
+
+or manipulate discounts.
+
+Test by modifying browser requests.
+
+---
+
+# 15. STRIPE CHECKOUT
+
+Preserve the existing Stripe integration.
+
+Verify:
+
+* Checkout creation
+* Product validation
+* Correct amount
+* Correct currency
+* Customer information
+* Metadata/order reference
+* Success URL
+* Cancel URL
+* Webhook processing
+
+Do not replace the existing Stripe implementation unnecessarily.
+
+---
+
+# 16. PAYMENT / WEBHOOK LOG
+
+Create or complete a payment/webhook diagnostic system.
+
+Store safe information such as:
+
+* Stripe event ID
+* Event type
+* Processing status
+* Related order
+* Received timestamp
+* Processed timestamp
+* Error state
+* Retry state
+
+Never store sensitive payment credentials.
+
+Admin should be able to diagnose:
+
+```text
+Order Pending
+↓
+Webhook Received?
+↓
+Webhook Processed?
+↓
+Payment Confirmed?
+↓
+Entitlement Created?
+```
+
+---
+
+# 17. IDEMPOTENCY / DUPLICATE PROTECTION
+
+This is CRITICAL.
+
+Repeated Stripe webhook events must NOT create:
+
+* Duplicate orders
+* Duplicate payments
+* Duplicate download entitlements
+* Duplicate emails
+
+Use:
+
+* Unique Stripe event IDs
+* Unique checkout/payment references
+* Database constraints
+* Idempotent processing
+
+Test the same webhook twice.
+
+Expected:
+
+```text
+1 webhook event
+1 paid order
+1 entitlement
+```
+
+---
+
+# 18. REFUND WORKFLOW
+
+If business policy allows refunds, implement controlled refund handling.
+
+Admin requirements:
+
+* Authorized refund action
+* Confirmation
+* Optional reason
+* Stripe server-side refund
+* Refund status
+* Refund history
+* Audit log
+
+After refund:
+
+* Update order state
+* Update entitlement according to business policy
+* Record refund information
+
+Never trust frontend refund status.
+
+---
+
+# 19. TAX & BILLING CONFIGURATION
+
+Implement only according to the client's actual Stripe/business configuration.
+
+Support:
+
+* Currency
+* Business information
+* Billing information
+* Tax configuration
+* Stripe Tax where enabled
+* Manual tax rules where appropriate
+
+Store authoritative totals.
+
+Verify:
+
+```text
+Subtotal
++
+Tax
+-
+Discount
+=
+Final Total
+```
+
+Invoice totals must match the authoritative order/payment records.
+
+---
+
+# 20. COUPONS / PROMOTIONS
+
+If required by the business, implement controlled discounts.
+
+Support:
+
+* Coupon code
+* Discount type
+* Fixed/percentage value
+* Start date
+* End date
+* Usage limits
+* Eligible products/plans
+* Active/inactive state
+
+Validate coupons server-side.
+
+Never trust discount values from the browser.
+
+If coupons are not required for launch, prepare the architecture without making it a launch blocker.
+
+---
+
+# 21. ABANDONED CHECKOUT
+
+If technically and legally appropriate, track:
+
+* Cart created
+* Checkout started
+* Checkout abandoned
+* Purchase completed
+
+Never classify abandoned checkout as a purchase.
+
+If reminder emails are implemented:
+
+* Require appropriate consent/legal basis
+* Avoid spam
+* Rate-limit communication
+* Keep analytics separate from paid orders
+
+---
+
+# 22. INVOICES
+
+Implement customer-accessible invoices if not already present.
+
+Invoice should contain:
+
+* Business information
+* Customer information
+* Invoice number
+* Order number
+* Date
+* Product/floor plan
+* Quantity
+* Unit price
+* Subtotal
+* Tax
+* Discount
+* Total
+* Payment status
+
+Provide:
+
+* View invoice
+* Download invoice
+
+Invoice must reflect authoritative order/payment records.
+
+---
+
+# 23. TRANSACTIONAL EMAIL SYSTEM
+
+Implement/complete transactional email flows.
+
+Required where applicable:
+
+### Account
+
+* Verification email
+* Password reset
+
+### Ecommerce
+
+* Order confirmation
+* Payment receipt
+* Invoice
+* Download instructions
+
+### Refund
+
+* Refund confirmation
+
+### Support
+
+* Relevant customer/order communication
+
+Every email event should be logged where practical.
+
+Never claim delivery metrics that the email provider does not provide.
+
+---
+
+# 24. DOWNLOAD HISTORY
+
+Customer dashboard should show:
+
+* Purchased plan
+* Download date
+* Download status
+* Remaining download attempts where applicable
+* Expiry
+* File/package name
+
+Existing secure download rules must remain intact.
+
+Do not weaken:
+
+* Private storage
+* Signed access
+* Token validation
+* Expiration
+* Download limits
+
+---
+
+# 25. CUSTOMER SUPPORT FLOW
+
+From an order/account page provide a support route.
+
+Where possible, automatically include:
+
+* Customer
+* Order number
+* Product
+* Relevant context
+
+Do not require customers to manually re-enter information already available.
+
+---
+
+# 26. ADMIN CUSTOMER MANAGEMENT
+
+Add/complete:
+
+`/admin/customers`
+
+Admin customer detail must show:
+
+* Customer ID
+* Name
+* Email
+* Phone
+* Signup method
+* Provider
+* Created date
+* Verification state
+* Account status
+* Last relevant activity
+* Orders
+* Invoices
+* Purchased plans
+* Downloads
+* Account events
+
+Admins must NEVER see customer passwords.
+
+---
+
+# 27. CUSTOMER ACCOUNT ADMIN ACTIONS
+
+Authorized administrators should be able to perform:
+
+### Resend verification
+
+Use secure authentication workflow.
+
+### Send password reset
+
+Send the normal reset email.
+
+### Enable/disable account
+
+Require:
+
+* Permission
+* Confirmation
+* Reason
+* Audit log
+
+### Revoke sessions
+
+Require:
+
+* Permission
+* Confirmation
+* Audit log
+
+### Edit profile
+
+Allow permitted fields such as:
+
+* Name
+* Phone
+* Billing/contact information
+
+Separate this from authentication credentials.
+
+---
+
+# 28. CUSTOMER EMAIL CHANGE
+
+Do NOT simply update the customer's authentication email in the database.
+
+Use the supported verified email-change workflow.
+
+Require appropriate:
+
+* Confirmation
+* Authorization
+* Verification
+* Audit logging
+
+---
+
+# 29. CUSTOMER ACCOUNT SEARCH
+
+Admin customer search should support:
+
+* Name
+* Email
+* Phone where permitted
+* Signup date
+* Verification state
+* Account status
+* Authentication provider
+* Purchaser/non-purchaser
+
+Apply role-based access to PII.
+
+---
+
+# 30. CUSTOMER ACCOUNT TIMELINE
+
+Create a customer event timeline.
+
+Example:
+
+```text
+Account Created
+      ↓
+Email Verified
+      ↓
+Quote Submitted
+      ↓
+Order Created
+      ↓
+Payment Completed
+      ↓
+Invoice Sent
+      ↓
+Download
+      ↓
+Password Reset Requested
+```
+
+Include:
+
+* Event
+* Actor
+* Timestamp
+* Safe metadata
+
+---
+
+# 31. CUSTOMER DATA EXPORT
+
+Implement controlled customer exports.
+
+Supported formats:
+
+* CSV
+* XLSX
+
+Allow filtering.
+
+Possible fields:
 
 * Name
 * Email
 * Phone
-* Location
-* Source
-* Submission date
+* Signup date
+* Verification status
+* Order count
+* Paid lifetime value
+* Last order
 
-### Lead information
+Never export:
 
-* Original inquiry
-* Quote information
-* Selected model
-* Requirements
-* Budget
-* Square footage
-* Other submitted fields
+* Passwords
+* Authentication secrets
+* Tokens
+* Card details
+* Unnecessary sensitive information
 
-### Lead management
-
-Admin should be able to:
-
-* Add notes
-* Edit notes
-* Change lead status
-* Assign lead
-* Set follow-up date
-* Set follow-up reminder/status
-* Track lead history
-* Add internal comments
-* View previous interactions
-* Manage quotation
-
-Suggested statuses:
-
-* New
-* Contacted
-* Qualified
-* Quote Sent
-* Follow-up
-* Won
-* Lost
-
-Do not hardcode these in a way that prevents future extension.
+Log sensitive exports.
 
 ---
 
-# 7. QUOTE SUBMISSIONS
+# 32. CUSTOMER DATA REQUEST WORKFLOW
 
-Quote submissions need complete management.
+Create a controlled workflow for:
 
-Admin should see:
+* Account requests
+* Data requests
+* Supported deletion requests
+* Other relevant privacy requests
 
-* Customer details
-* Building/model selection
-* Foundation
-* Insulation
-* Roof style
-* ZIP/location
-* Square footage
-* Budget
-* Requirements
-* Submitted date
-* Current status
+Do not blindly delete legally required transaction records.
 
-Allow:
-
-* Notes
-* Status changes
-* Follow-up
-* Quote editing
-* Final quotation amount
-* Internal comments
-* Quote history
-
-The client should be able to manage a quotation from the admin without developer involvement.
+Retention rules must be configurable/documented according to the client's legal/accounting requirements.
 
 ---
 
-# 8. PAGE MANAGER + SECTION BLOCKS
+# 33. ECOMMERCE ANALYTICS DASHBOARD
 
-This is one of the highest-priority requirements.
+Implement the remaining ecommerce reporting layer.
 
-The client must have complete control of all pages.
+Create a dashboard showing:
 
-Admin should support:
+* Paid revenue
+* Paid orders
+* Customers
+* New registrations
+* Average order value
+* Refunds
+* Payment failures
+* Top floor plans
+* Downloads
+* Date comparison
 
-* Create page
-* Edit page
-* Delete page
-* Publish/unpublish
-* Draft state
-* Page title
-* Slug
-* SEO
-* Sections
-* Section visibility
-
-For every section/block allow:
-
-* Add
-* Edit
-* Delete
-* Duplicate if practical
-* Hide/show
-* Reorder
-* Change text
-* Change images
-* Change videos
-* Change buttons
-* Change links
-* Change CTA
-* Configure section-specific content
-
-### Drag and drop
-
-Implement drag-and-drop section ordering if compatible with the existing architecture.
-
-The ordering must be persisted in the database.
-
-Example:
-
-section_order:
-
-1. Hero
-2. Home Types
-3. Available Homes
-4. Budget
-5. Locations
-6. Trending Homes
-7. Customization
-8. Floor Plans
-9. Quote CTA
-10. How It Works
-11. Financing
-12. Videos
-13. Reviews
-14. Blogs
-
-The exact order must be configurable from admin.
+All monetary metrics must come from authoritative paid/refunded order data.
 
 ---
 
-# 9. HOMEPAGE — NO HARDCODED CONTENT
+# 34. PAYMENT METHODS
 
-Every important homepage section must be manageable through admin.
+Do not hardcode card-only checkout.
 
-Verify and connect:
+Use payment methods actually supported and enabled by the client's Stripe account and transaction context.
 
-* Hero
-* Home Types
-* Available Homes
-* Budget section
-* Locations
-* Trending Homes
-* Customization
-* Floor Plans
-* Quote section
-* How It Works
-* Financing
-* Videos
-* Reviews
-* Blogs
-* Testimonials
-* FAQs
-* Trust sections
-* Other existing homepage sections
-
-IMPORTANT:
-
-Do not create admin controls that only exist visually.
-
-Every admin change must actually affect the public website.
-
-Test:
-
-Admin edit
-→ database
-→ API/data layer
-→ frontend
-→ live rendered result
+If Stripe supports/enables another eligible method, the order architecture should support it without requiring a database redesign.
 
 ---
 
-# 10. HEADER + MENU MANAGEMENT
+# 35. SALES REPORT
 
-Create/complete Header and Navigation management.
+Create a Sales Report Generator.
 
-Admin must control:
+Filters:
 
-* Main menu
-* Menu labels
-* Links
-* Dropdown menus
-* Dropdown items
-* Ordering
-* Visibility
-* External/internal URLs
+* Date range
+* Payment status
+* Order status
+* Product/floor plan
+* Customer where authorized
 
-Support nested navigation where appropriate.
+Show:
 
-Changes must reflect on the live website without code changes.
-
----
-
-# 11. FOOTER MANAGEMENT
-
-Admin must control:
-
-* Footer columns
-* Footer links
-* Link labels
-* URLs
-* Ordering
-* Social links
-* Contact information
-* Copyright text
-* CTA
-* Other footer content
-
-Ensure changes appear on the public website.
+* Gross paid sales
+* Discounts
+* Refunds
+* Net sales
+* Orders
+* AOV
+* Daily/monthly breakdown
 
 ---
 
-# 12. GLOBAL SETTINGS
+# 36. ORDERS REPORT
 
-Verify that all Global Settings are actually connected.
+Create downloadable order reports.
 
-Admin controls:
+Include:
 
-* Logo
-* Favicon
-* Phone
-* Email
-* Address
-* Announcement bar
-* Social links
-* Footer information
-* Global CTA
-* Global SEO
-
-The current phone number should remain:
-
-812-595-4033
-
-Verify that the value comes from the appropriate settings source rather than being independently hardcoded in multiple frontend components.
-
-Test every setting against the live website.
-
----
-
-# 13. MEDIA LIBRARY
-
-Add a centralized Media Library.
-
-The purpose is to prevent repeatedly uploading the same assets.
-
-Support:
-
-* Images
-* Documents
-* Videos where appropriate
-* Search
-* Filtering
-* Preview
-* File metadata
-* Upload
-* Delete
-* Reuse existing media
-* Copy/select existing media when editing CMS content
-
-For each asset consider storing:
-
-* Filename
-* Storage path
-* MIME type
-* File size
-* Width/height for images
-* Upload date
-* Uploaded by
-* Alt text
-* Usage/reference information where practical
-
-Use Supabase Storage.
-
-Do not expose private files publicly unless intentionally configured as public assets.
-
----
-
-# 14. ARTICLES / BLOG CMS
-
-Complete blog management.
-
-Admin must control:
-
-* Title
-* Slug
-* Content
-* Featured image
-* Gallery/media
-* Category
-* Author
-* Video
-* Tags where applicable
-* Excerpt
-* SEO title
-* SEO description
-* Canonical URL
-* OG image
-* Draft/published status
-* Publish date
-
-Support:
-
-* Create
-* Edit
-* Delete
-* Draft
-* Publish
-* Unpublish
-
-Ensure published content appears correctly on the public resources/blog pages.
-
----
-
-# 15. YOUTUBE AUTO-SYNC MANAGEMENT
-
-The existing YouTube synchronization must have an admin status interface.
-
-Display:
-
-* Connection status
-* Connected channel
-* Last successful sync
-* Last attempted sync
-* Number of videos imported
-* Generated blogs
-* Failed syncs
-* Error messages
-* Sync history
-
-Allow:
-
-* Manual sync
-* View sync result
-* Review failed items
-* Retry failed sync
-
-Do not hide synchronization failures.
-
----
-
-# 16. SEO MANAGEMENT
-
-SEO must be manageable for each major content entity.
-
-Support individual SEO fields for:
-
-### Pages
-
-* Meta title
-* Meta description
-* Canonical
-* OG title
-* OG description
-* OG image
-* Robots/indexing settings
-
-### Models
-
-Same SEO controls.
-
-### Collections
-
-Same SEO controls.
-
-### Blogs
-
-Same SEO controls.
-
-### Floor Plans
-
-Same SEO controls.
-
-Verify:
-
-* sitemap.xml
-* robots.txt
-* canonical URLs
-* metadata rendering
-* OG tags
-* noindex handling
-
----
-
-# 17. SHOPIFY SEO + 301 REDIRECT MANAGEMENT
-
-Preserve old Shopify URLs.
-
-Admin should have redirect management where practical.
-
-Support:
-
-* Old URL
-* New URL
-* Redirect type
-* Active/inactive
-* Source entity
-* Creation/update date
-
-Shopify migration must preserve:
-
-* Product URLs
-* Collection URLs
-* Blog URLs
-* Page URLs
-
-All relevant old URLs should redirect using **301 redirects**.
-
-Verify that the existing middleware redirect system and database redirects do not conflict.
-
-Test old Shopify URL → new URL.
-
----
-
-# 18. REVIEWS / TESTIMONIALS
-
-Add CMS management for reviews/testimonials.
-
-Admin should be able to:
-
-* Create
-* Edit
-* Delete
-* Publish/unpublish
-* Change customer name
-* Change review text
-* Rating
-* Image where applicable
-* Location
+* Order number
 * Date
-* Featured status
-* Ordering
-
-No important testimonials should remain hardcoded in the frontend.
-
----
-
-# 19. FAQ MANAGEMENT
-
-Add complete FAQ management.
-
-Admin should be able to:
-
-* Create FAQ
-* Edit FAQ
-* Delete FAQ
-* Question
-* Answer
-* Category
-* Page association
-* Publish/unpublish
-* Ordering
-
-FAQs should be dynamically loaded on the frontend.
-
----
-
-# 20. ADMIN ROLES
-
-Implement proper role-based access control.
-
-Minimum roles:
-
-### Super Admin
-
-Full access:
-
-* All CMS
+* Customer
 * Products
-* Collections
-* Floor plans
-* Orders
-* Payments
-* Leads
-* Quotes
-* Settings
-* Users
-* Security
-* Activity logs
-* Migration
-* Media
-
-### Content/Admin
-
-Access:
-
-* Pages
-* Sections
-* Products/models
-* Collections
-* Blogs
-* Media
-* Reviews
-* FAQs
-* SEO
-
-Should NOT automatically have access to:
-
-* Payment secrets
-* Security settings
-* Admin user management
-* Sensitive financial controls
-
-### Sales
-
-Access:
-
-* Leads
-* Quotes
-* Customer details required for sales
-* Follow-ups
-* Relevant models/floor plans
-
-Should NOT have unrestricted access to:
-
-* Global settings
-* Security
-* Admin users
-* Payment configuration
-* CMS structure
-
-Permissions must be enforced on the backend/database.
-
-Do NOT rely only on hiding menu items.
+* Quantity
+* Subtotal
+* Tax
+* Discount
+* Total
+* Payment status
+* Order status
+* Download/fulfillment state
 
 ---
 
-# 21. TWO-FACTOR AUTHENTICATION
+# 37. CUSTOMER REPORT
 
-Implement admin 2FA.
+Authorized admins should be able to generate customer reports.
 
-Prefer a secure TOTP-based approach compatible with authenticator applications.
+Include:
 
-Requirements:
-
-* 2FA enrollment
-* QR/setup process
+* Customer
+* Signup date
 * Verification
-* Recovery codes
-* Login challenge
-* Disable/reset process requiring appropriate authorization
-* Re-authentication for sensitive security changes
+* Order count
+* Paid lifetime value
+* Last order
+* Customer status
 
-Do not store raw recovery codes.
-
-Hash sensitive recovery credentials where appropriate.
+Respect role permissions.
 
 ---
 
-# 22. ADMIN SESSION SECURITY
+# 38. FLOOR PLAN SALES REPORT
 
-Implement:
+Report performance per floor plan:
 
-* Automatic inactivity expiration
-* Secure HTTP-only cookies
-* Secure cookie configuration in production
-* Session invalidation
-* Logout
-* Logout all devices/sessions
-* Session/device visibility where practical
-
-An admin should be able to invalidate all active sessions when necessary.
-
----
-
-# 23. LOGIN RATE LIMITING + LOCKOUT
-
-Protect admin authentication against brute force.
-
-Implement:
-
-* Login attempt rate limiting
-* Temporary lockout after repeated failures
-* Increasing delay/backoff where appropriate
-* Logging of failed attempts
-* IP/user-based controls where practical
-
-Do not permanently lock accounts without a recovery mechanism.
-
----
-
-# 24. SENSITIVE ACTION CONFIRMATION
-
-Require confirmation for destructive or high-impact operations.
-
-Examples:
-
-* Delete model
-* Delete page
-* Delete collection
-* Delete floor plan
-* Delete order-related records
-* Delete blog
-* Delete media
-* Change pricing
-* Change global settings
-* Create admin
-* Delete admin
-* Change role
-* Change 2FA/security settings
-
-For highly sensitive security/account actions require:
-
-* Current password confirmation
-* 2FA confirmation where applicable
-
----
-
-# 25. ADMIN ACTIVITY LOG
-
-Create an Admin Activity Log.
-
-Record:
-
-* Admin user
-* Role
-* Action
-* Entity/type
-* Entity ID
-* Description
-* Timestamp
-* IP address where appropriate
-* User agent where appropriate
-* Before/after data for important changes where appropriate
-
-Examples:
-
-* Login
-* Failed login
-* Logout
-* Model created
-* Model edited
-* Price changed
-* Page deleted
-* Settings changed
-* Admin user created
-* Role changed
-* Order viewed
-* Refund/payment action where supported
-* Security setting changed
-
-Activity logs should be protected from normal modification/deletion.
-
----
-
-# 26. CONTENT VERSION HISTORY
-
-For important CMS content, maintain previous versions where practical.
-
-At minimum consider:
-
-* Pages
-* Sections
-* Blogs
-* Models
-* Collections
-* Global settings
-
-Store:
-
-* Previous data
-* Changed by
-* Changed at
-
-Provide a restore capability for appropriate content.
-
-The goal is to recover from accidental changes.
-
----
-
-# 27. SUPABASE RLS + BACKEND AUTHORIZATION
-
-This is CRITICAL.
-
-Do not depend on:
-
-* Frontend route protection
-* Hidden buttons
-* Admin-only navigation
-
-Every sensitive operation must be protected.
-
-Implement and verify:
-
-* Supabase RLS
-* Server-side authorization
-* Role checks
-* API authorization
-* Ownership/access checks
-* Admin session verification
-
-Verify that unauthorized users cannot access:
-
-* Leads
-* Quotes
 * Orders
-* Payments
-* Customer information
-* Private files
-* Admin settings
+* Units
+* Paid revenue
+* Refunds
+* Net revenue
+* Funnel metrics
 
-Test APIs directly, not only through the UI.
-
----
-
-# 28. SECRETS MANAGEMENT
-
-Never expose:
-
-* Supabase service-role key
-* Stripe secret key
-* Stripe webhook secret
-* OpenAI API key
-* Shopify Admin credentials
-* YouTube credentials
-* Email provider credentials
-
-These must only exist in secure server-side environment variables.
-
-Review the complete codebase for accidental exposure.
-
-Check:
-
-* Client components
-* `NEXT_PUBLIC_*`
-* API responses
-* browser network requests
-* logs
-* Git history where appropriate
-
-Only genuinely public values should use `NEXT_PUBLIC_*`.
+Support date filtering.
 
 ---
 
-# 29. CUSTOMER DATA PROTECTION
+# 39. PAYMENTS & REFUNDS REPORT
 
-Customer information must only be available to authorized admin roles.
+Create reconciliation-friendly reports containing:
 
-Protect:
+* Order
+* Stripe reference
+* Amount
+* Payment status
+* Payment date
+* Refund amount
+* Refund status
 
-* Email
-* Phone
-* Address
-* Quote information
-* Lead information
-* Order information
-* Payment information
-
-Do not expose customer data through public APIs.
-
-Check all:
-
-* `/api/*`
-* Server actions
-* Public data functions
-* Supabase policies
-* Search endpoints
-* Frontend requests
+NEVER include raw card data.
 
 ---
 
-# 30. PRIVATE FLOOR-PLAN FILE SECURITY
+# 40. INVOICE REPORT
 
-Paid files must use private storage.
+Allow authorized administrators to:
 
-Required flow:
-
-Customer completes Stripe payment
-→ verified Stripe webhook
-→ order/payment validated
-→ download access generated
-→ signed/time-limited URL
-→ authorized download
-
-Do NOT trust:
-
-* Frontend payment status
-* Query parameters
-* Client-side order status
-* Client-provided payment IDs without verification
-
-A user must not be able to access a paid CAD/PDF/ZIP file without a valid purchase.
+* Search invoices
+* Filter invoices
+* Download individual invoices
+* Generate invoice register
+* Export approved invoice data
 
 ---
 
-# 31. FILE UPLOAD SECURITY
-
-Validate all uploads server-side.
-
-Restrict:
-
-* MIME type
-* File extension
-* File size
-* Storage destination
-
-Pay particular attention to:
-
-* PDF
-* DWG
-* ZIP
-* Images
-* Documents
-
-Do not allow executable files through customer/admin upload endpoints unless there is an explicitly required and secured use case.
-
-Validate files before storing them.
-
----
-
-# 32. PUBLIC FORM SECURITY
-
-Protect:
-
-* Contact forms
-* Quote forms
-* Lead forms
-* Floor-plan related forms
-* Upload forms
-
-Implement:
-
-* Rate limiting
-* Server-side validation
-* CAPTCHA/Cloudflare Turnstile where appropriate
-* Spam protection
-* Input sanitization
-
-Do not rely only on client-side validation.
-
----
-
-# 33. XSS / SQL INJECTION / UNSAFE HTML
-
-Review every dynamic input.
-
-Protect against:
-
-* XSS
-* SQL injection
-* unsafe HTML
-* malicious URLs
-* malicious uploaded files
-
-Use parameterized Supabase/database queries.
-
-If rich HTML content is supported, sanitize it before rendering.
-
-Avoid unsafe HTML rendering unless content has been properly sanitized.
-
----
-
-# 34. CSRF + SECURITY HEADERS
-
-Review application security headers.
-
-Configure appropriate:
-
-* Content Security Policy where practical
-* X-Frame-Options/frame-ancestors
-* X-Content-Type-Options
-* Referrer-Policy
-* Permissions-Policy
-* Strict-Transport-Security in production
-
-Protect state-changing operations against CSRF where applicable.
-
-Review cookies:
-
-* HttpOnly
-* Secure
-* SameSite
-
----
-
-# 35. STRIPE SECURITY
-
-Stripe must remain the payment authority.
-
-Never store card information.
-
-Never trust frontend payment status.
-
-Payment/order confirmation must come from verified Stripe webhooks.
-
-Verify:
-
-* Webhook signature
-* Event type
-* Payment/order identity
-* Amount where appropriate
-* Currency where appropriate
-* Idempotency
-
-Ensure duplicate webhook events cannot create duplicate orders/download access.
-
----
-
-# 36. DATABASE BACKUPS
-
-Configure a reliable Supabase backup strategy.
-
-Review:
-
-* Automated backups
-* Point-in-time recovery availability for the client's Supabase plan
-* Recovery procedure
-* Backup retention
-* Migration backup procedure
-
-Before major schema/data migrations:
-
-1. Backup
-2. Apply migration
-3. Verify
-4. Test
-5. Keep recovery path available
-
-Document the recovery process.
-
----
-
-# 37. END-TO-END ADMIN VERIFICATION
-
-Do not stop when the admin UI looks correct.
-
-For every major admin feature test:
-
-```text
-Admin UI
-   ↓
-API / Server Action
-   ↓
-Authorization
-   ↓
-Supabase
-   ↓
-Database
-   ↓
-Public API/Data Layer
-   ↓
-Frontend
-```
-
-Verify that actual frontend content changes after admin changes.
-
-Test at minimum:
-
-### Models
-
-Create/edit/delete/price/gallery/SEO/collections.
-
-### Collections
-
-Create/edit/assign models/remove models/SEO.
-
-### Floor Plans
-
-Create/edit/pricing/files/orders/download authorization.
-
-### Leads
-
-Open/details/notes/status/follow-up/history.
-
-### Quotes
-
-Details/status/quotation/follow-up.
-
-### Pages
-
-Sections/add/edit/delete/hide/show/reorder.
-
-### Homepage
-
-Every existing section editable from admin.
-
-### Header/Footer
-
-Menu/dropdowns/footer links.
-
-### Global Settings
-
-Every setting connected to frontend.
-
-### Media
-
-Upload/reuse/delete/authorization.
-
-### Blogs
-
-Create/edit/publish/SEO/media/video.
-
-### YouTube
-
-Sync/status/history/errors/retry.
-
-### SEO
-
-Metadata/sitemap/robots/canonical/redirects.
-
-### Reviews
-
-CRUD + frontend.
-
-### FAQs
-
-CRUD + frontend.
-
----
-
-# 38. SECURITY TEST MATRIX
-
-Before completion, test:
-
-### Authentication
-
-* Correct credentials
-* Incorrect credentials
-* Repeated failed login
-* 2FA
-* Session expiration
-* Logout
-* Logout all sessions
-
-### Authorization
-
-Test every role against every sensitive module.
-
-### API
-
-Attempt unauthorized requests directly.
-
-### Database
-
-Verify RLS prevents unauthorized data access.
-
-### Storage
-
-Attempt direct access to private files.
-
-### Payments
-
-Attempt fake frontend payment success.
-
-### Webhooks
-
-Test invalid webhook signatures.
-
-### Forms
-
-Test spam/rate limits.
-
-### Uploads
-
-Test invalid file types and oversized files.
-
-### XSS
-
-Test malicious text in CMS fields/forms.
-
-### SQL injection
-
-Verify query handling.
-
-### Secrets
-
-Verify no secret is exposed to browser.
-
----
-
-# 39. DO NOT MARK FEATURES COMPLETE BASED ONLY ON UI
-
-A feature is complete only when:
-
-1. Admin control exists
-2. Database stores the change
-3. API/server authorization works
-4. RLS/permissions work
-5. Public website reflects the change
-6. Validation works
-7. Security is verified
-8. Error handling works
-
-Do not create placeholder controls.
-
-Do not leave hardcoded frontend data when an admin-controlled equivalent exists.
-
----
-
-# 40. DEVELOPMENT APPROACH
-
-Work in this order:
-
-### Step 1
-
-Inspect the entire existing implementation.
-
-### Step 2
-
-Map every client requirement to:
-
-* Existing feature
-* Partially implemented feature
-* Missing feature
-* Broken feature
-
-### Step 3
-
-Fix database relationships/schema where necessary.
-
-### Step 4
-
-Fix APIs and server-side authorization.
-
-### Step 5
-
-Complete admin functionality.
-
-### Step 6
-
-Connect admin data to frontend.
-
-### Step 7
-
-Implement security/RLS/roles/2FA.
-
-### Step 8
-
-Implement activity logs/version history.
-
-### Step 9
-
-Test storage/payment/security.
-
-### Step 10
-
-Perform complete end-to-end regression testing.
-
----
-
-# 41. IMPORTANT PRESERVATION RULE
-
-Do not break existing working functionality.
-
-Before changing:
-
-* Stripe
-* Shopify migration
-* Supabase
-* public pages
-* middleware
-* SEO
-* floor-plan downloads
-
-inspect the current implementation first.
-
-Reuse existing utilities and services where possible.
-
-Avoid unnecessary rewrites.
-
----
-
-# 42. FINAL ACCEPTANCE CRITERIA
-
-The Admin Backend should be considered complete only when the client can independently:
-
-* Manage all Home Models
-* Manage Collections
-* Assign models to collections
-* Manage Floor Plans
-* Manage floor-plan files
-* View complete Orders
-* Manage Leads
-* Manage Quote Submissions
-* Manage Homepage sections
-* Manage all pages
-* Reorder sections
-* Manage Header/Menu
-* Manage Footer
-* Manage Global Settings
-* Manage Media
-* Manage Articles
-* Monitor YouTube sync
-* Manage SEO
-* Manage Shopify redirects
-* Manage Reviews
-* Manage FAQs
-* Manage admin users/roles
-* Use 2FA
-* Review activity logs
-* Restore important content versions
-
-without requiring developer code changes for normal website operations.
-
-Security acceptance additionally requires:
-
-* 2FA
-* Role-based authorization
-* Session expiration
-* Logout-all-sessions
-* Login rate limiting
-* Sensitive-action confirmation
-* Activity logging
-* Supabase RLS
-* Server-side authorization
-* Private file storage
-* Secure signed downloads
-* Secure Stripe webhooks
-* Upload validation
-* Public-form rate limiting
-* XSS/input protection
-* Security headers
-* Secret protection
-* Database backup/recovery strategy
-
----
-
-# 43. FINAL REPORT
-
-After implementation, provide a detailed report containing:
-
-### Completed
-
-List every completed feature.
-
-### Partially Completed
-
-List anything dependent on external credentials, client decisions, or third-party configuration.
-
-### Not Completed
-
-Clearly identify anything remaining.
-
-### Database Changes
-
-List:
-
-* New tables
-* Modified tables
-* Columns
-* Relationships
-* RLS policies
-* Indexes
-
-### API Changes
-
-List every new/modified endpoint.
-
-### Security Changes
-
-List:
-
-* 2FA
-* RBAC
-* RLS
-* Sessions
-* Rate limiting
-* Activity logs
-* Storage security
-* Webhook security
-* Upload validation
-
-### Environment Variables
-
-List all required environment variables without exposing secret values.
-
-### Testing
+# 41. DOWNLOAD ACTIVITY REPORT
 
 Report:
 
-* TypeScript check
-* Build
+* Customer
+* Order
+* Product
+* Download date
+* Download status
+* Expiry
+* Download count
+
+Respect privacy permissions.
+
+---
+
+# 42. EMAIL PERFORMANCE REPORT
+
+Where supported by the email provider, report:
+
+* Sent
+* Delivered
+* Failed
+* Bounced
+* Other provider-supported metrics
+
+Do not invent unavailable metrics.
+
+---
+
+# 43. SIGNUP & CUSTOMER CONVERSION REPORT
+
+Track:
+
+```text
+Signup
+↓
+Verified Account
+↓
+First Purchase
+↓
+Returning Customer
+```
+
+Report:
+
+* Signups
+* Verified accounts
+* First-time purchasers
+* Returning purchasers
+* Signup-to-purchase conversion
+
+Define event rules consistently.
+
+---
+
+# 44. ECOMMERCE FUNNEL
+
+Track:
+
+* Product view
+* Add to cart
+* Checkout start
+* Purchase
+
+Example:
+
+```text
+1,000 Product Views
+        ↓
+120 Add to Cart
+        ↓
+70 Checkout
+        ↓
+25 Verified Purchases
+```
+
+Prevent duplicate purchase events.
+
+---
+
+# 45. ATTRIBUTION
+
+Where technically and legally appropriate, capture:
+
+* UTM source
+* UTM medium
+* UTM campaign
+* Referrer
+* Approved acquisition source
+
+Connect attribution to:
+
+* Session
+* Customer
+* Order
+
+Do not alter authoritative Stripe/payment truth.
+
+---
+
+# 46. DATE FILTERS
+
+All analytics should support:
+
+* Today
+* Yesterday
+* Last 7 days
+* Last 30 days
+* Month
+* Quarter
+* Year
+* Custom range
+* Previous-period comparison
+
+Use a consistent timezone strategy.
+
+---
+
+# 47. CSV / EXCEL EXPORT
+
+Implement permission-controlled:
+
+* CSV
+* XLSX
+
+Exports should respect active filters.
+
+Use stable column names.
+
+Format:
+
+* Dates consistently
+* Currency consistently
+* Human-readable values
+
+---
+
+# 48. PDF MANAGEMENT REPORTS
+
+Create formatted PDF summaries for authorized users.
+
+Possible reports:
+
+* Executive sales summary
+* Monthly sales
+* Product/floor-plan performance
+* Customer summary
+* Payment/refund summary
+
+Include:
+
+* Date range
+* Generated timestamp
+* Filters
+* KPIs
+* Tables
+
+---
+
+# 49. EXPORT PERMISSIONS
+
+Create strict export permissions.
+
+Example:
+
+### Super Admin
+
+Can access authorized:
+
+* Customer exports
+* Payment reports
+* Financial reports
+
+### Sales
+
+Can access:
+
+* Sales/customer information necessary for sales
+
+### Content Admin
+
+Should NOT access:
+
+* Full payment export
+* Sensitive financial data
+* Unnecessary customer PII
+
+Enforce on:
+
+* API
+* Server
+* Database/RLS
+
+Not only UI.
+
+---
+
+# 50. DASHBOARD DRILL-DOWN
+
+Dashboard KPIs must be clickable.
+
+Example:
+
+```text
+12 Refunded Orders
+        ↓
+Filtered Orders
+        ↓
+Exactly those 12 orders
+```
+
+Apply permissions.
+
+---
+
+# 51. REPORTING RECONCILIATION
+
+Before declaring reporting complete:
+
+Compare reports against:
+
+* Supabase orders
+* Payment records
+* Stripe records
+
+Test:
+
+* Totals
+* Refunds
+* Filters
+* Date boundaries
+* Timezones
+* Duplicate events
+* Export rows
+
+---
+
+# 52. SALES ROLE
+
+Complete RBAC with:
+
+### SUPER_ADMIN
+
+Full authorized access.
+
+### CONTENT_ADMIN / EDITOR
+
+CMS/content/media access.
+
+### SALES
+
+Customer/lead/quote/sales access required for operations.
+
+Sales should NOT automatically receive:
+
+* Security administration
+* Admin-user management
+* Payment secrets
+* Unnecessary system settings
+
+Every permission must be enforced server/database-side.
+
+---
+
+# 53. CUSTOMER DATA PRIVACY
+
+Verify that:
+
+* Customer A cannot access Customer B
+* Public APIs cannot expose customer PII
+* Customer orders are isolated
+* Customer invoices are isolated
+* Customer downloads are isolated
+* Admin roles only access necessary information
+* Exports respect permissions
+* Logs don't contain unnecessary sensitive information
+
+---
+
+# 54. BACKUPS & RECOVERY
+
+Verify the production Supabase backup strategy.
+
+Implement/document:
+
+* Automated backups
+* Recovery process
+* PITR where supported by the selected Supabase plan
+* Pre-migration backup
+* Pre-major-release backup
+
+Do not consider a local JSON fallback equivalent to production database backup.
+
+---
+
+# 55. MOBILE CUSTOMER QA
+
+Test the entire customer journey on common mobile screen sizes:
+
+* Signup
+* Verification
+* Login
+* Password reset
+* Account
+* Catalog
+* Product detail
+* Cart
+* Checkout
+* Stripe
+* Order
+* Invoice
+* Download
+
+Fix mobile-specific layout/interaction issues.
+
+---
+
+# 56. COMPLETE END-TO-END QA
+
+This is the final critical test.
+
+Run:
+
+```text
+New Customer
+      ↓
+Signup
+      ↓
+Email Verification
+      ↓
+Login
+      ↓
+Browse Floor Plans
+      ↓
+Product View
+      ↓
+Add to Cart
+      ↓
+Checkout
+      ↓
+Stripe Test Payment
+      ↓
+Verified Webhook
+      ↓
+Paid Order
+      ↓
+Email
+      ↓
+Invoice
+      ↓
+Customer Dashboard
+      ↓
+Secure Download
+      ↓
+Admin Order
+      ↓
+Admin Customer
+      ↓
+Analytics
+      ↓
+Reports
+      ↓
+RLS / Permission Tests
+      ↓
+Mobile QA
+```
+
+Also test:
+
+* Failed payment
+* Cancelled checkout
+* Duplicate webhook
+* Invalid payment
+* Refund
+* Expired download
+* Download limit
+* Unauthorized customer
+* Unauthorized admin
+* Incorrect role
+* Rate limiting
+
+---
+
+# 57. SECURITY REGRESSION TEST
+
+Do not weaken existing security.
+
+Verify:
+
+### Authentication
+
+* Admin 2FA
+* Customer authentication
+* Session expiry
+* Logout
+* Password reset
+
+### Authorization
+
+* Admin roles
+* Customer ownership
+* API authorization
+* Supabase RLS
+
+### Storage
+
+* Private paid files
+* Signed URLs
+* Expiration
+* Download limits
+
+### Payments
+
+* Stripe webhook signature
+* Idempotency
+* Server-side price validation
+* Refund authorization
+
+### Data
+
+* PII protection
+* Export permissions
+* Audit logs
+
+---
+
+# 58. DO NOT REBUILD COMPLETED FEATURES
+
+Before modifying any existing module:
+
+1. Inspect it.
+2. Test it.
+3. Reuse it where possible.
+4. Extend only where necessary.
+
+Especially preserve:
+
+* Stripe
+* Floor-plan ecommerce
+* Secure downloads
+* Supabase
+* Admin CMS
+* Shopify migration
+* SEO redirects
+* YouTube automation
+* RBAC
+* 2FA
+* Activity logs
+* Content versioning
+
+---
+
+# 59. DEFINITION OF COMPLETE
+
+A requirement is COMPLETE only when:
+
+```text
+UI
+ ↓
+API / Server Action
+ ↓
+Authorization
+ ↓
+Supabase
+ ↓
+Database/RLS
+ ↓
+Business Logic
+ ↓
+Frontend
+ ↓
+QA
+```
+
+All layers must work.
+
+Do not mark a feature complete simply because the page or button exists.
+
+---
+
+# 60. FINAL IMPLEMENTATION REPORT
+
+At the end, provide a detailed implementation report.
+
+## A. Customer Ecommerce
+
+Report status for Modules 1–50.
+
+For each:
+
+* Completed
+* Partial
+* Missing
+* QA Required
+
+## B. Reporting
+
+Report status for Modules 51–70.
+
+## C. Customer Account Administration
+
+Report status for Modules 71–90.
+
+## D. Database
+
+List:
+
+* Tables added
+* Tables modified
+* Relationships
+* Indexes
+* RLS policies
+* Constraints
+
+## E. APIs
+
+List:
+
+* New API routes
+* Modified API routes
+* Authentication requirements
+* Role requirements
+
+## F. Stripe
+
+Report:
+
+* Checkout
+* Webhooks
+* Idempotency
+* Refunds
+* Payment logging
+* Price validation
+
+## G. Customer Authentication
+
+Report:
+
+* Signup
+* Verification
+* Login
+* Google/social login if enabled
+* Password reset
+* Sessions
+
+## H. Analytics
+
+Report:
+
+* Dashboard
+* Sales
+* Orders
+* Customers
+* Products
+* Payments
+* Refunds
+* Funnel
+* Attribution
+
+## I. Exports
+
+Report:
+
+* CSV
+* XLSX
+* PDF
+* Permission controls
+
+## J. Security
+
+Report:
+
+* RLS
+* RBAC
+* Rate limiting
+* Session security
+* PII protection
+* Storage
+* Stripe security
+* Audit logs
+
+## K. QA
+
+Report:
+
+* Unit tests
 * API tests
-* Admin tests
-* Role tests
+* Integration tests
+* Stripe test-mode tests
 * RLS tests
-* Storage tests
-* Stripe webhook tests
-* Security tests
-* Frontend end-to-end tests
+* Role tests
+* Mobile tests
+* End-to-end tests
 
-### Remaining Client Requirements
+## L. Remaining
 
-Clearly identify anything that requires client credentials or external configuration.
+Clearly list anything that still requires:
 
-Do not claim something is complete merely because the UI exists.
+* Client credentials
+* Stripe configuration
+* Supabase configuration
+* Email provider configuration
+* Google OAuth configuration
+* Legal/accounting decisions
+* Production deployment
+* Client verification
 
-The final goal is:
+---
 
-**"The client can operate and manage the entire website from the admin without contacting the developer for normal content, product, CMS, SEO, lead, quote, order, or website changes."**
+# FINAL GOAL
+
+After completing this task, the ModularHome platform should support the complete lifecycle:
+
+```text
+CUSTOMER
+   ↓
+Signup
+   ↓
+Verification
+   ↓
+Login
+   ↓
+Browse
+   ↓
+Cart
+   ↓
+Stripe Checkout
+   ↓
+Verified Payment
+   ↓
+Order
+   ↓
+Invoice
+   ↓
+Email
+   ↓
+Customer Dashboard
+   ↓
+Secure Download
+   ↓
+Support
+
+                    ↘
+                      ADMIN
+                    ↙
+             Customer Management
+             Order Management
+             Payment Management
+             Refunds
+             Analytics
+             Reports
+             Exports
+             CRM
+             Audit
+             Security
+```
+
+The final system must allow the client to operate the customer ecommerce business **without routine developer intervention**, while preserving the security and CMS functionality already implemented.
+
+Do not declare the project fully complete until the implementation has been tested against the actual requirements and the final report clearly identifies what is **Completed, Ready for QA, or Remaining**.

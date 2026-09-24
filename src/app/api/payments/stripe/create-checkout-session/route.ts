@@ -2,18 +2,31 @@ import { NextRequest, NextResponse } from "next/server";
 import { stripe, isStripeConfigured } from "@/lib/stripe";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 import { INITIAL_FLOOR_PLANS } from "@/data/floorPlans";
+import { getCustomerSession } from "@/lib/customerAuth";
+import { getCustomerByEmail } from "@/lib/customerStore";
 
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { floorPlanId, customerName, customerEmail, customerPhone, customerZip } = body;
+    const {
+      floorPlanId,
+      items: rawItems,
+      customerName,
+      customerEmail,
+      customerPhone,
+      customerZip,
+      attribution,
+    } = body;
 
-    if (!floorPlanId || !customerName || !customerEmail) {
+    const email = (customerEmail || "").toLowerCase().trim();
+    const name = (customerName || "").trim();
+
+    if (!email || !name) {
       return NextResponse.json(
         {
           success: false,
           error: {
-            message: "Floor plan ID, customer name, and email are required.",
+            message: "Customer name and valid email are required.",
             code: "VALIDATION_ERROR",
           },
         },
@@ -21,39 +34,82 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // 1. Resolve floor plan from DB or local dataset
-    let floorPlan: any = null;
-    if (isSupabaseConfigured()) {
-      try {
-        const { data } = await supabaseAdmin
-          .from("floor_plans")
-          .select("*")
-          .or(`id.eq.${floorPlanId},slug.eq.${floorPlanId}`)
-          .single();
-        floorPlan = data;
-      } catch (err: any) {
-        console.warn("Supabase floor plan lookup note:", err.message);
-      }
-    }
-
-    if (!floorPlan) {
-      floorPlan = INITIAL_FLOOR_PLANS.find(
-        (fp) => fp.id === floorPlanId || fp.slug === floorPlanId
-      );
-    }
-
-    if (!floorPlan) {
+    // Determine normalized item list
+    let requestedItems: Array<{ floorPlanId: string; quantity: number }> = [];
+    if (Array.isArray(rawItems) && rawItems.length > 0) {
+      requestedItems = rawItems.map((i: any) => ({
+        floorPlanId: String(i.floorPlanId || i.id),
+        quantity: Math.max(1, Number(i.quantity) || 1),
+      }));
+    } else if (floorPlanId) {
+      requestedItems = [{ floorPlanId: String(floorPlanId), quantity: 1 }];
+    } else {
       return NextResponse.json(
         {
           success: false,
-          error: { message: "Floor plan blueprint package not found.", code: "NOT_FOUND" },
+          error: { message: "No items specified for checkout.", code: "EMPTY_CART" },
         },
-        { status: 404 }
+        { status: 400 }
       );
     }
 
-    const price = Number(floorPlan.sale_price || floorPlan.salePrice || floorPlan.price);
-    const amountInCents = Math.round(price * 100);
+    // 1. Authoritative Server-Side Price Validation
+    const validatedLineItems: Array<{
+      floorPlan: any;
+      unitPrice: number;
+      quantity: number;
+      amountInCents: number;
+    }> = [];
+
+    let totalOrderAmount = 0;
+
+    for (const item of requestedItems) {
+      let plan: any = null;
+
+      if (isSupabaseConfigured()) {
+        try {
+          const { data } = await supabaseAdmin
+            .from("floor_plans")
+            .select("*")
+            .or(`id.eq.${item.floorPlanId},slug.eq.${item.floorPlanId}`)
+            .single();
+          plan = data;
+        } catch {}
+      }
+
+      if (!plan) {
+        plan = INITIAL_FLOOR_PLANS.find(
+          (fp) => fp.id === item.floorPlanId || fp.slug === item.floorPlanId
+        );
+      }
+
+      if (!plan) {
+        return NextResponse.json(
+          {
+            success: false,
+            error: {
+              message: `Floor plan blueprint (${item.floorPlanId}) was not found in catalog.`,
+              code: "ITEM_NOT_FOUND",
+            },
+          },
+          { status: 404 }
+        );
+      }
+
+      // Authoritative unit price from database, never trusted from client
+      const unitPrice = Number(plan.sale_price || plan.salePrice || plan.price || 495);
+      const amountInCents = Math.round(unitPrice * 100);
+
+      totalOrderAmount += unitPrice * item.quantity;
+
+      validatedLineItems.push({
+        floorPlan: plan,
+        unitPrice,
+        quantity: item.quantity,
+        amountInCents,
+      });
+    }
+
     const orderNumber = `MH-ORD-${Date.now().toString().slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
 
     const origin =
@@ -61,68 +117,65 @@ export async function POST(request: NextRequest) {
       process.env.NEXT_PUBLIC_SITE_URL ||
       "http://localhost:3000";
 
+    // Check if customer is authenticated or exists
+    let customerId: string | null = null;
+    const session = await getCustomerSession();
+    if (session && session.email.toLowerCase() === email) {
+      customerId = session.id;
+    } else {
+      const existingCust = await getCustomerByEmail(email);
+      if (existingCust) customerId = existingCust.id;
+    }
+
     let stripeSessionId = `cs_test_mock_${Date.now()}`;
     let checkoutUrl: string | null = null;
 
-    // 2. Create live Stripe Checkout Session if credentials present
+    // 2. Create Live Stripe Checkout Session
     if (isStripeConfigured()) {
       try {
-        const session = await stripe.checkout.sessions.create({
+        const stripeLineItems = validatedLineItems.map((v) => ({
+          price_data: {
+            currency: "usd",
+            product_data: {
+              name: `Architectural Blueprint Package: ${v.floorPlan.title}`,
+              description: `Single-build license • ${v.floorPlan.square_feet || v.floorPlan.squareFeet || 800} sqft • ${v.floorPlan.dimensions || "CAD DWG + PDF"}`,
+              images: v.floorPlan.preview_image || v.floorPlan.previewImage ? [v.floorPlan.preview_image || v.floorPlan.previewImage] : [],
+            },
+            unit_amount: v.amountInCents,
+          },
+          quantity: v.quantity,
+        }));
+
+        const stripeSession = await stripe.checkout.sessions.create({
           payment_method_types: ["card"],
           mode: "payment",
-          customer_email: customerEmail.toLowerCase().trim(),
+          customer_email: email,
           client_reference_id: orderNumber,
-          line_items: [
-            {
-              price_data: {
-                currency: "usd",
-                product_data: {
-                  name: `Architectural Blueprint Package: ${floorPlan.title}`,
-                  description: `Single-build license • ${floorPlan.square_feet || floorPlan.squareFeet} sqft • ${floorPlan.bedrooms || 2} Bed • ${floorPlan.bathrooms || 1} Bath • PDF & CAD DWG included`,
-                  images: floorPlan.preview_image || floorPlan.previewImage ? [floorPlan.preview_image || floorPlan.previewImage] : [],
-                },
-                unit_amount: amountInCents,
-              },
-              quantity: 1,
-            },
-          ],
+          line_items: stripeLineItems,
           metadata: {
             orderNumber,
-            floorPlanId: floorPlan.id,
-            planSlug: floorPlan.slug,
-            customerName,
-            customerPhone: customerPhone || "",
+            customerId: customerId || "",
+            customerName: name,
             customerZip: customerZip || "",
+            itemCount: String(validatedLineItems.length),
+            primaryPlanSlug: validatedLineItems[0].floorPlan.slug,
           },
           success_url: `${origin}/checkout/success?session_id={CHECKOUT_SESSION_ID}&orderNumber=${orderNumber}&title=${encodeURIComponent(
-            floorPlan.title
+            validatedLineItems[0].floorPlan.title
           )}`,
-          cancel_url: `${origin}/floor-plans/${floorPlan.slug}`,
+          cancel_url: `${origin}/floor-plans`,
         });
 
-        stripeSessionId = session.id;
-        checkoutUrl = session.url;
+        stripeSessionId = stripeSession.id;
+        checkoutUrl = stripeSession.url;
       } catch (stripeErr: any) {
         console.error("Stripe session creation error:", stripeErr);
-        // In local development fallback gracefully if invalid test keys
         stripeSessionId = `cs_test_sim_${Date.now()}`;
       }
     }
 
     // 3. Persist Order in Supabase
-    let createdOrder: any = {
-      id: `ord_${Date.now()}`,
-      order_number: orderNumber,
-      customer_name: customerName,
-      customer_email: customerEmail.toLowerCase().trim(),
-      customer_phone: customerPhone || null,
-      customer_zip: customerZip || null,
-      total_amount: price,
-      currency: "USD",
-      payment_status: "PENDING",
-      order_status: "PENDING",
-      payment_id: stripeSessionId,
-    };
+    let createdOrderId = `ord_${Date.now()}`;
 
     if (isSupabaseConfigured()) {
       try {
@@ -130,29 +183,36 @@ export async function POST(request: NextRequest) {
           .from("orders")
           .insert({
             order_number: orderNumber,
-            customer_name: customerName,
-            customer_email: customerEmail.toLowerCase().trim(),
+            customer_id: customerId,
+            customer_name: name,
+            customer_email: email,
             customer_phone: customerPhone || null,
             customer_zip: customerZip || null,
-            total_amount: price,
+            total_amount: totalOrderAmount,
+            tax_amount: 0,
+            discount_amount: 0,
             currency: "USD",
             payment_status: "PENDING",
             order_status: "PENDING",
             payment_id: stripeSessionId,
+            attribution: attribution || {},
           })
           .select()
           .single();
 
         if (!orderErr && dbOrder) {
-          createdOrder = dbOrder;
-          // Insert order item
-          await supabaseAdmin.from("order_items").insert({
+          createdOrderId = dbOrder.id;
+
+          // Insert order items
+          const itemsToInsert = validatedLineItems.map((v) => ({
             order_id: dbOrder.id,
-            floor_plan_id: floorPlan.id.startsWith("fp-") ? null : floorPlan.id,
-            title: floorPlan.title,
-            price: price,
-            quantity: 1,
-          });
+            floor_plan_id: v.floorPlan.id && !v.floorPlan.id.startsWith("fp-") ? v.floorPlan.id : null,
+            title: v.floorPlan.title,
+            price: v.unitPrice,
+            quantity: v.quantity,
+          }));
+
+          await supabaseAdmin.from("order_items").insert(itemsToInsert);
         }
       } catch (dbErr: any) {
         console.warn("Supabase order creation note:", dbErr.message);
@@ -162,19 +222,18 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       success: true,
       order: {
-        id: createdOrder.id,
+        id: createdOrderId,
         orderNumber,
-        amount: price,
+        amount: totalOrderAmount,
         currency: "USD",
         sessionId: stripeSessionId,
         checkoutUrl,
         isStripeLive: Boolean(checkoutUrl),
-        floorPlan: {
-          title: floorPlan.title,
-          category: floorPlan.category,
-          dimensions: floorPlan.dimensions,
-          sqft: floorPlan.square_feet || floorPlan.squareFeet,
-        },
+        items: validatedLineItems.map((v) => ({
+          title: v.floorPlan.title,
+          price: v.unitPrice,
+          quantity: v.quantity,
+        })),
       },
     });
   } catch (error: any) {

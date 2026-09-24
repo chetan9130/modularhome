@@ -1,0 +1,15 @@
+[
+  {
+    "id": "eml-1790238165825-rcsjo",
+    "recipient": "rushi@gmail.com",
+    "template_type": "EMAIL_VERIFICATION",
+    "subject": "Verify your ModularHome.com customer account",
+    "customer_id": "cust-1790238165303-2kf4c",
+    "status": "SENT",
+    "metadata": {
+      "verifyUrl": "http://localhost:3000/account/verify?token=efa31277997bba05dc3a3157be263e0ea821b5d8431042b4010c3a25924db84c",
+      "name": "Rushi"
+    },
+    "created_at": "2026-09-24T08:22:45.826Z"
+  }
+]

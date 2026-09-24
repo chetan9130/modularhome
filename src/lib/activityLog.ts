@@ -71,6 +71,75 @@ export async function logAdminActivity(
   }
 }
 
+export interface LogActivityParams {
+  user?: AdminSessionUser | null;
+  adminId?: string;
+  adminEmail?: string;
+  adminName?: string;
+  user_id?: string;
+  user_name?: string;
+  user_role?: string;
+  action: string;
+  entityType?: string;
+  entity_type?: string;
+  entityId?: string;
+  entity_id?: string;
+  description?: string;
+  details?: Record<string, any>;
+  ip?: string;
+  ip_address?: string;
+  userAgent?: string;
+  user_agent?: string;
+}
+
+/**
+ * Universal flexible activity logging helper supporting both object options and positional arguments
+ */
+export async function logActivity(
+  arg1: AdminSessionUser | null | LogActivityParams,
+  action?: string,
+  entityType?: string,
+  entityId?: string,
+  description?: string,
+  details: Record<string, any> = {},
+  ip: string = "system",
+  userAgent: string = ""
+): Promise<void> {
+  // If first parameter is an options object
+  if (arg1 && typeof arg1 === "object" && !("email" in arg1 && "role" in arg1 && "name" in arg1 && !("action" in arg1))) {
+    const opts = arg1 as LogActivityParams;
+    const user: AdminSessionUser | null = opts.user || (opts.adminId || opts.user_id ? {
+      id: opts.adminId || opts.user_id || "",
+      email: opts.adminEmail || "",
+      name: opts.adminName || opts.user_name || "Admin",
+      role: opts.user_role || "SUPER_ADMIN",
+    } : null);
+
+    return logAdminActivity(
+      user,
+      opts.action || "ACTION",
+      opts.entityType || opts.entity_type || "SYSTEM",
+      opts.entityId || opts.entity_id,
+      opts.description || opts.action || "",
+      opts.details || {},
+      opts.ip || opts.ip_address || "system",
+      opts.userAgent || opts.user_agent || ""
+    );
+  }
+
+  // Positional fallback
+  return logAdminActivity(
+    arg1 as AdminSessionUser | null,
+    action || "ACTION",
+    entityType || "SYSTEM",
+    entityId,
+    description || action || "",
+    details,
+    ip,
+    userAgent
+  );
+}
+
 /**
  * Retrieves recent activity logs with optional filters
  */

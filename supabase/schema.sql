@@ -512,6 +512,101 @@ ALTER TABLE quotations ADD COLUMN IF NOT EXISTS quote_history JSONB DEFAULT '[]'
 ALTER TABLE quotations ADD COLUMN IF NOT EXISTS internal_notes TEXT;
 
 -- ==============================================================================
+-- 24. CUSTOMER ACCOUNTS & ECOMMERCE PROFILES
+-- ==============================================================================
+CREATE TABLE IF NOT EXISTS customers (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  name TEXT NOT NULL,
+  phone TEXT,
+  billing_address JSONB DEFAULT '{}'::jsonb,
+  status TEXT DEFAULT 'ACTIVE', -- 'ACTIVE', 'DISABLED'
+  email_verified BOOLEAN DEFAULT false,
+  verification_token TEXT,
+  verification_token_expires_at TIMESTAMPTZ,
+  reset_token TEXT,
+  reset_token_expires_at TIMESTAMPTZ,
+  provider TEXT DEFAULT 'EMAIL', -- 'EMAIL', 'GOOGLE'
+  last_login_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_customers_email ON customers(email);
+CREATE INDEX IF NOT EXISTS idx_customers_status ON customers(status);
+CREATE INDEX IF NOT EXISTS idx_customers_verification ON customers(verification_token);
+CREATE INDEX IF NOT EXISTS idx_customers_reset ON customers(reset_token);
+
+-- 25. Customer Sessions Table
+CREATE TABLE IF NOT EXISTS customer_sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_token TEXT UNIQUE NOT NULL,
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  expires_at BIGINT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_customer_sessions_token ON customer_sessions(session_token);
+CREATE INDEX IF NOT EXISTS idx_customer_sessions_customer ON customer_sessions(customer_id);
+
+-- 26. Customer Activity Events & Lifecycle Timeline
+CREATE TABLE IF NOT EXISTS customer_events (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  customer_id UUID REFERENCES customers(id) ON DELETE CASCADE,
+  event_type TEXT NOT NULL, -- 'ACCOUNT_CREATED', 'EMAIL_VERIFIED', 'LOGGED_IN', 'PASSWORD_RESET_REQUESTED', 'PASSWORD_RESET_COMPLETED', 'ORDER_PLACED', 'DOWNLOAD_ACCESSED', 'ADMIN_NOTE_ADDED', 'STATUS_CHANGED'
+  actor_type TEXT DEFAULT 'CUSTOMER', -- 'CUSTOMER', 'ADMIN', 'SYSTEM'
+  actor_id TEXT,
+  actor_name TEXT,
+  details JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_customer_events_customer ON customer_events(customer_id);
+CREATE INDEX IF NOT EXISTS idx_customer_events_type ON customer_events(event_type);
+CREATE INDEX IF NOT EXISTS idx_customer_events_created ON customer_events(created_at);
+
+-- 27. Stripe Webhook Diagnostics & Idempotency Store
+CREATE TABLE IF NOT EXISTS payment_webhooks (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  stripe_event_id TEXT UNIQUE NOT NULL,
+  event_type TEXT NOT NULL,
+  order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+  status TEXT DEFAULT 'PROCESSED', -- 'RECEIVED', 'PROCESSED', 'FAILED', 'IGNORED'
+  error_message TEXT,
+  payload JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_payment_webhooks_stripe_id ON payment_webhooks(stripe_event_id);
+CREATE INDEX IF NOT EXISTS idx_payment_webhooks_order ON payment_webhooks(order_id);
+
+-- 28. Transactional Email System Logs
+CREATE TABLE IF NOT EXISTS email_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  recipient TEXT NOT NULL,
+  template_type TEXT NOT NULL, -- 'EMAIL_VERIFICATION', 'PASSWORD_RESET', 'ORDER_CONFIRMATION', 'INVOICE_RECEIPT', 'REFUND_CONFIRMATION', 'DOWNLOAD_READY'
+  subject TEXT NOT NULL,
+  customer_id UUID REFERENCES customers(id) ON DELETE SET NULL,
+  order_id UUID REFERENCES orders(id) ON DELETE SET NULL,
+  status TEXT DEFAULT 'SENT', -- 'SENT', 'FAILED', 'SIMULATED'
+  metadata JSONB DEFAULT '{}'::jsonb,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_email_logs_recipient ON email_logs(recipient);
+CREATE INDEX IF NOT EXISTS idx_email_logs_customer ON email_logs(customer_id);
+CREATE INDEX IF NOT EXISTS idx_email_logs_order ON email_logs(order_id);
+
+-- Enhance orders table with customer and billing attributes
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS customer_id UUID REFERENCES customers(id) ON DELETE SET NULL;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS tax_amount NUMERIC DEFAULT 0;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS discount_amount NUMERIC DEFAULT 0;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS refunded_amount NUMERIC DEFAULT 0;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS refund_reason TEXT;
+ALTER TABLE orders ADD COLUMN IF NOT EXISTS attribution JSONB DEFAULT '{}'::jsonb;
+
+-- ==============================================================================
 -- ROW LEVEL SECURITY (RLS) POLICIES
 -- ==============================================================================
 
@@ -539,6 +634,11 @@ ALTER TABLE media_assets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 ALTER TABLE faqs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE login_attempts ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customers ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customer_sessions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE customer_events ENABLE ROW LEVEL SECURITY;
+ALTER TABLE payment_webhooks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE email_logs ENABLE ROW LEVEL SECURITY;
 
 -- Public Read Policies
 CREATE POLICY "Public can read published products" ON products FOR SELECT USING (is_published = true);
@@ -560,6 +660,7 @@ CREATE POLICY "Public can submit quotations" ON quotations FOR INSERT WITH CHECK
 CREATE POLICY "Public can create orders" ON orders FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public can create order items" ON order_items FOR INSERT WITH CHECK (true);
 CREATE POLICY "Public can view own download token" ON download_access FOR SELECT USING (true);
+CREATE POLICY "Public can register as customer" ON customers FOR INSERT WITH CHECK (true);
 
 -- Service Role / Admin Bypass
 CREATE POLICY "Service role full access on admin_users" ON admin_users FOR ALL USING (auth.jwt() IS NULL OR true);
@@ -585,6 +686,11 @@ CREATE POLICY "Service role full access on media_assets" ON media_assets FOR ALL
 CREATE POLICY "Service role full access on reviews" ON reviews FOR ALL USING (auth.jwt() IS NULL OR true);
 CREATE POLICY "Service role full access on faqs" ON faqs FOR ALL USING (auth.jwt() IS NULL OR true);
 CREATE POLICY "Service role full access on login_attempts" ON login_attempts FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on customers" ON customers FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on customer_sessions" ON customer_sessions FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on customer_events" ON customer_events FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on payment_webhooks" ON payment_webhooks FOR ALL USING (auth.jwt() IS NULL OR true);
+CREATE POLICY "Service role full access on email_logs" ON email_logs FOR ALL USING (auth.jwt() IS NULL OR true);
 
 -- Schema and Table Permissions for PostgREST & Supabase Client Roles
 GRANT USAGE ON SCHEMA public TO anon, authenticated, service_role;
@@ -595,4 +701,5 @@ GRANT ALL ON ALL ROUTINES IN SCHEMA public TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON TABLES TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON SEQUENCES TO anon, authenticated, service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT ALL ON ROUTINES TO anon, authenticated, service_role;
+
 

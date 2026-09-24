@@ -23,10 +23,13 @@ import {
   Building2,
   CheckCircle2,
   FileText,
-  ShieldCheck
+  ShieldCheck,
+  ShoppingBag,
+  User
 } from "lucide-react";
 import { PublicGlobalSettings } from "@/lib/settings";
 import { CmsPage } from "@/lib/publicData";
+import { useCart } from "@/context/CartContext";
 
 interface CategoryNavOption {
   label: string;
@@ -113,6 +116,7 @@ function NavbarContent({ initialSettings, customPages = [] }: NavbarContentProps
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
+  const { itemCount, setIsCartOpen } = useCart();
 
   const currentCategory = searchParams ? searchParams.get("category") : null;
 
@@ -236,6 +240,11 @@ function NavbarContent({ initialSettings, customPages = [] }: NavbarContentProps
                 <span className="text-gray-700">|</span>
                 <Link href="/resources" className="hover:text-[#fcb907] transition-colors">
                   Cost Calculator
+                </Link>
+                <span className="text-gray-700">|</span>
+                <Link href="/account" className="hover:text-[#fcb907] transition-colors flex items-center gap-1">
+                  <User className="w-3 h-3 text-[#fcb907]" />
+                  <span>My Account</span>
                 </Link>
                 <span className="text-gray-700">|</span>
                 <Link href="/contact" className="hover:text-[#fcb907] transition-colors">
@@ -404,13 +413,38 @@ function NavbarContent({ initialSettings, customPages = [] }: NavbarContentProps
             </div>
 
             {/* Right: Quick Features & Main CTA Button */}
-            <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
               <Link
                 href="/upload-floor-plan"
                 className="hidden xl:inline-flex items-center gap-1.5 text-xs font-bold text-[#101114] hover:text-[#d97706] py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors"
               >
                 <FileSpreadsheet className="w-4 h-4 text-[#d97706]" />
                 <span>Floor Plans</span>
+              </Link>
+
+              {/* Shopping Cart Button */}
+              <button
+                type="button"
+                onClick={() => setIsCartOpen(true)}
+                aria-label={`View Cart with ${itemCount} items`}
+                className="relative p-2 text-[#101114] hover:text-[#d97706] hover:bg-gray-100 rounded-xl transition-colors cursor-pointer flex items-center justify-center"
+              >
+                <ShoppingBag className="w-5 h-5" />
+                {itemCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 bg-[#fcb907] text-[#101114] font-black text-[10px] w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-xs animate-in zoom-in">
+                    {itemCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Account Link */}
+              <Link
+                href="/account"
+                title="Customer Account & Orders"
+                className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-[#101114] hover:text-[#d97706] py-2 px-2.5 rounded-xl hover:bg-gray-100 transition-colors"
+              >
+                <User className="w-4 h-4" />
+                <span className="hidden md:inline">Account</span>
               </Link>
 
               <Link
@@ -657,6 +691,10 @@ function NavbarContent({ initialSettings, customPages = [] }: NavbarContentProps
                   <Link href="/floor-plans" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#d97706] flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-[#d97706]" />
                     <span>Plans Store</span>
+                  </Link>
+                  <Link href="/account" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#d97706] flex items-center gap-1.5 text-[#d97706]">
+                    <User className="w-3.5 h-3.5 text-[#d97706]" />
+                    <span>My Account</span>
                   </Link>
                   <Link href="/videos" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#d97706] flex items-center gap-1.5">
                     <Play className="w-3.5 h-3.5 text-[#d97706]" />
