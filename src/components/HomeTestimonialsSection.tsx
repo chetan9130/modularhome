@@ -13,26 +13,11 @@ export default function HomeTestimonialsSection({ initialReviews }: HomeTestimon
         author: `— ${r.customerName}`,
         location: r.location || "USA",
       }))
-    : [
-        {
-          stars: "★★★★★",
-          quote: "From initial CAD customization to final on-site modular delivery in Austin, the precision steel engineering saved us over 4 months compared to traditional stick framing. Exceptional thermal insulation!",
-          author: "— David & Sarah J.",
-          location: "Texas",
-        },
-        {
-          stars: "★★★★★",
-          quote: "We built in heavy snow territory in Montana. The 50 PSF snow load certification and 50-year structural steel frame warranty gave us complete peace of mind. High vaulted ceilings are stunning.",
-          author: "— Marcus V.",
-          location: "Montana",
-        },
-        {
-          stars: "★★★★★",
-          quote: "We purchased a downloadable floor-plan CAD package and ended up commissioning the full turnkey steel framing kit. Customer support guided our local foundation contractor seamlessly.",
-          author: "— Elena R.",
-          location: "Arizona",
-        },
-      ];
+    : [];
+
+  if (reviews.length === 0) {
+    return null;
+  }
 
   return (
     <section className="py-12 sm:py-16 bg-white" id="testimonials">
@@ -47,14 +32,14 @@ export default function HomeTestimonialsSection({ initialReviews }: HomeTestimon
             </p>
           </div>
           <Link
-            href="/about#testimonials"
+            href="/contact"
             className="text-[#d97706] hover:text-[#b45309] font-extrabold text-sm sm:text-base hover:underline whitespace-nowrap self-start sm:self-auto"
           >
-            View All Reviews →
+            Contact Our Team →
           </Link>
         </div>
 
-        {/* 3 Testimonial Cards */}
+        {/* Testimonial Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
           {reviews.map((rev, idx) => (
             <div

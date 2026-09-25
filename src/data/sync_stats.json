@@ -1,7 +1,7 @@
 {
-  "lastSyncAt": "2026-09-24T08:08:28.061Z",
-  "totalFound": 133,
+  "lastSyncAt": null,
+  "totalFound": 0,
   "newVideosAdded": 0,
-  "updatedVideos": 126,
-  "status": "success"
+  "updatedVideos": 0,
+  "status": "idle"
 }

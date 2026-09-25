@@ -553,95 +553,7 @@ export interface CmsPage {
   sections?: PageSection[];
 }
 
-const FALLBACK_PAGES: CmsPage[] = [
-  {
-    id: "page-warranty",
-    title: "Warranty & Engineering Certifications",
-    slug: "warranty-certifications",
-    subtitle: "Comprehensive 50-Year Structural Steel & 10-Year Weatherproofing Guarantee",
-    content: `<h2>50-Year Structural Warranty</h2>
-<p>Every ModularHome structure is built with precision cold-formed galvanized steel trusses and framing members engineered to withstand hurricane winds (up to 150 MPH) and extreme snow loads (up to 50 PSF). Our structural frames are guaranteed against rust-through, rot, warping, and seismic failure for 50 full years.</p>
-
-<h3>What Is Covered</h3>
-<ul>
-  <li><strong>Structural Steel Frame:</strong> 50-year non-prorated structural integrity warranty.</li>
-  <li><strong>Roofing & Thermal Envelope:</strong> 25-year manufacturer standing seam roof & weather barrier warranty.</li>
-  <li><strong>Plumbing & Electrical:</strong> 10-year comprehensive factory installed systems warranty.</li>
-  <li><strong>Interior Fixtures & Appliances:</strong> Full manufacturer warranties passed directly to the homeowner.</li>
-</ul>
-
-<h3>IBC & State Modular Certifications</h3>
-<p>All plans and builds carry stamped state engineering approvals and comply with all applicable International Building Codes (IBC) and International Residential Codes (IRC).</p>`,
-    status: "PUBLISHED",
-    featuredImage: "https://images.unsplash.com/photo-1541888946425-d0fbb18f15f6?auto=format&fit=crop&w=1600&q=80",
-    seoTitle: "Warranty & Engineering Certifications | ModularHome.com",
-    metaDescription: "Learn about ModularHome.com's 50-year structural warranty, IBC engineering certifications, and quality standards.",
-    sections: [
-      {
-        id: "sec-trust-1",
-        type: "TRUST",
-        title: "Built For Generations",
-        displayOrder: 1,
-        isVisible: true,
-      },
-      {
-        id: "sec-how-1",
-        type: "HOW_IT_WORKS",
-        title: "Our Precision Build Quality",
-        displayOrder: 2,
-        isVisible: true,
-      },
-      {
-        id: "sec-cta-1",
-        type: "CTA",
-        title: "Ready to Build Your Certified Modular Home?",
-        subtitle: "Speak with an architectural housing advisor today or get an instant engineering estimate.",
-        displayOrder: 3,
-        isVisible: true,
-      }
-    ]
-  },
-  {
-    id: "page-privacy",
-    title: "Privacy Policy",
-    slug: "privacy-policy",
-    subtitle: "How ModularHome.com collects, uses, and protects your information",
-    content: `<h2>Your Privacy Matters</h2>
-<p>At ModularHome.com, we respect your privacy and are committed to protecting your personal data. This privacy policy describes how we handle information collected on our website, quotation wizards, and consultation forms.</p>
-
-<h3>Information We Collect</h3>
-<p>We may collect personal details such as your name, email address, phone number, delivery ZIP code, and floor plan preferences when you request a custom price quote, upload blueprints, or contact our team.</p>
-
-<h3>How We Use Your Information</h3>
-<ul>
-  <li>To generate accurate regional housing quotations and delivery estimates.</li>
-  <li>To connect you with certified builders and logistics partners in your area.</li>
-  <li>To provide customer support and project updates.</li>
-</ul>
-
-<p>We do not sell your personal information to third-party marketing companies.</p>`,
-    status: "PUBLISHED",
-    seoTitle: "Privacy Policy | ModularHome.com",
-    metaDescription: "Read the ModularHome.com privacy policy to understand how we protect your personal and project information.",
-  },
-  {
-    id: "page-terms",
-    title: "Terms of Service",
-    slug: "terms-of-service",
-    subtitle: "Terms and conditions governing the use of ModularHome.com services and marketplace",
-    content: `<h2>Terms of Use</h2>
-<p>By accessing or using ModularHome.com, you agree to comply with and be bound by these terms of service.</p>
-
-<h3>Modular Home Quotes & Estimates</h3>
-<p>All pricing estimates provided by our online calculators and quotation tools are preliminary approximations based on standard site conditions. Final binding contracts are subject to local site inspection, foundation engineering, and local municipal zoning requirements.</p>
-
-<h3>Architectural Plans & CAD Licensing</h3>
-<p>Purchased floor plans and blueprints are licensed for single-structure construction unless a multi-use developer license is explicitly issued.</p>`,
-    status: "PUBLISHED",
-    seoTitle: "Terms of Service | ModularHome.com",
-    metaDescription: "Terms of service and customer agreements for ModularHome.com.",
-  }
-];
+const FALLBACK_PAGES: CmsPage[] = [];
 
 /**
  * Normalizes a DB row to CmsPage interface
@@ -874,41 +786,7 @@ export interface PublicFaq {
 export async function getPublicCollections(): Promise<PublicCollection[]> {
   try {
     if (!isSupabaseConfigured()) {
-      return [
-        {
-          id: "col-1",
-          name: "Modern Residential Series",
-          slug: "modern-residential",
-          tagline: "Architectural luxury with rigid steel durability",
-          description: "Explore clean lines, vaulted ceilings, and panoramic double-pane windows.",
-          image: "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
-          status: "PUBLISHED",
-          isFeatured: true,
-          productCount: 5,
-        },
-        {
-          id: "col-2",
-          name: "Luxury Barndominiums",
-          slug: "barndominiums",
-          tagline: "Expansive clear-span interiors and massive garage space",
-          description: "Spacious multi-use steel layouts designed for country living and modern workshops.",
-          image: "https://images.unsplash.com/photo-1518780664697-55e3ad937233?auto=format&fit=crop&w=1200&q=80",
-          status: "PUBLISHED",
-          isFeatured: true,
-          productCount: 4,
-        },
-        {
-          id: "col-3",
-          name: "Rapid-Ship Cabin Kits",
-          slug: "cabin-kits",
-          tagline: "Turnkey weekend retreats engineered for extreme weather",
-          description: "Compact, energy-efficient cabin packages with high snow and wind load ratings.",
-          image: "https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=1200&q=80",
-          status: "PUBLISHED",
-          isFeatured: true,
-          productCount: 3,
-        },
-      ];
+      return [];
     }
 
     const { data: dbCollections, error } = await supabaseAdmin
@@ -1005,42 +883,7 @@ export async function getPublicReviews(): Promise<PublicReview[]> {
     console.warn("Supabase reviews fetch error:", error);
   }
 
-  // Initial High-Quality Testimonials Fallback
-  return [
-    {
-      id: "rev-1",
-      customerName: "David & Sarah Jenkins",
-      location: "Austin, Texas",
-      rating: 5,
-      reviewText: "From initial CAD customization to final on-site modular delivery in Austin, the precision steel engineering saved us over 4 months compared to traditional stick framing. Exceptional thermal insulation!",
-      projectTitle: "The Aspen Barndominium (2,400 SQ FT)",
-      status: "PUBLISHED",
-      isFeatured: true,
-      displayOrder: 1,
-    },
-    {
-      id: "rev-2",
-      customerName: "Marcus Vance",
-      location: "Bozeman, Montana",
-      rating: 5,
-      reviewText: "We built in heavy snow territory in Montana. The 50 PSF snow load certification and 50-year structural steel frame warranty gave us complete peace of mind. High vaulted ceilings are stunning.",
-      projectTitle: "The Ridgeview Modern Cabin",
-      status: "PUBLISHED",
-      isFeatured: true,
-      displayOrder: 2,
-    },
-    {
-      id: "rev-3",
-      customerName: "Elena Rodriguez",
-      location: "Phoenix, Arizona",
-      rating: 5,
-      reviewText: "We purchased a downloadable floor-plan CAD package and ended up commissioning the full turnkey steel framing kit. Customer support guided our local foundation contractor seamlessly.",
-      projectTitle: "The Clearwater Multi-Gen ADU",
-      status: "PUBLISHED",
-      isFeatured: true,
-      displayOrder: 3,
-    },
-  ];
+  return [];
 }
 
 /**
@@ -1076,33 +919,7 @@ export async function getPublicFaqs(category?: string): Promise<PublicFaq[]> {
     console.warn("Supabase FAQs fetch error:", error);
   }
 
-  // Default Structured FAQs Fallback
-  return [
-    {
-      id: "faq-1",
-      question: "How long does it take from order to modular home delivery?",
-      answer: "Standard precision-engineered modular home models are typically manufactured within 4 to 8 weeks in our controlled indoor factory environment, then delivered nationwide via heavy freight carriers ready for swift crane assembly.",
-      category: "Delivery & Timeline",
-      status: "PUBLISHED",
-      displayOrder: 1,
-    },
-    {
-      id: "faq-2",
-      question: "What are the structural advantages of galvanized light-gauge steel framing?",
-      answer: "Our 100% commercial-grade galvanized steel frames are impervious to rot, termites, warping, and mold. They offer superior strength-to-weight ratios with up to 150 MPH wind ratings and seismic resilience.",
-      category: "Engineering & Materials",
-      status: "PUBLISHED",
-      displayOrder: 2,
-    },
-    {
-      id: "faq-3",
-      question: "What is included in downloadable digital blueprint packages?",
-      answer: "Each downloadable blueprint package includes full architectural construction sheets (PDF + CAD DWG), structural steel framing diagrams, foundation details, and electrical/plumbing schematics ready for permit submission.",
-      category: "Floor Plans & Store",
-      status: "PUBLISHED",
-      displayOrder: 3,
-    },
-  ];
+  return [];
 }
 
 

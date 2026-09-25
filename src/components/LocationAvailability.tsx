@@ -145,31 +145,38 @@ export default function LocationAvailability() {
           {/* Sample Available Homes in this Region */}
           <div className="pt-2">
             <div className="text-xs font-bold uppercase text-[var(--ink)] tracking-wider mb-4">
-              Popular Home Models Delivered to {activeStateObj.state}:
+              Factory Delivery Available to {activeStateObj.state}:
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              {availableHomes.map((home) => {
-                const adjustedPrice = Math.round(home.startingPrice * activeStateObj.shippingMultiplier);
-                return (
-                  <div key={home.id} className="bg-[var(--soft)] border border-[var(--line)] rounded-[16px] overflow-hidden flex flex-col justify-between hover:border-[var(--r)] transition-all">
-                    <div className="relative aspect-[16/10] w-full">
-                      <Image src={home.primaryImage} alt={home.name} fill className="object-cover" />
+            {availableHomes.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {availableHomes.map((home) => {
+                  const adjustedPrice = Math.round(home.startingPrice * activeStateObj.shippingMultiplier);
+                  return (
+                    <div key={home.id} className="bg-[var(--soft)] border border-[var(--line)] rounded-[16px] overflow-hidden flex flex-col justify-between hover:border-[var(--r)] transition-all">
+                      <div className="relative aspect-[16/10] w-full">
+                        <Image src={home.primaryImage || "/finallogo.avif"} alt={home.name} fill className="object-cover" />
+                      </div>
+                      <div className="p-4 space-y-1">
+                        <div className="text-xs font-bold text-[var(--ink)]">{home.name}</div>
+                        <div className="text-[11px] text-[var(--muted)]">{home.sqft} SQ FT • {home.bedrooms} Bed • {home.bathrooms} Bath</div>
+                        <div className="text-xs font-extrabold text-[var(--r)] pt-1">Starting at {formatPrice(adjustedPrice)}</div>
+                      </div>
+                      <div className="p-4 pt-0">
+                        <Link href={`/buildings/${home.slug}`} className="block w-full text-center text-[11px] font-bold uppercase py-2 bg-white border border-[var(--line)] hover:bg-[var(--r)] hover:text-white rounded-[10px] transition-colors">
+                          View Details
+                        </Link>
+                      </div>
                     </div>
-                    <div className="p-4 space-y-1">
-                      <div className="text-xs font-bold text-[var(--ink)]">{home.name}</div>
-                      <div className="text-[11px] text-[var(--muted)]">{home.sqft} SQ FT • {home.bedrooms} Bed • {home.bathrooms} Bath</div>
-                      <div className="text-xs font-extrabold text-[var(--r)] pt-1">Starting at {formatPrice(adjustedPrice)}</div>
-                    </div>
-                    <div className="p-4 pt-0">
-                      <Link href={`/buildings/${home.slug}`} className="block w-full text-center text-[11px] font-bold uppercase py-2 bg-white border border-[var(--line)] hover:bg-[var(--r)] hover:text-white rounded-[10px] transition-colors">
-                        View Details
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="p-6 bg-[var(--soft)] border border-[var(--line)] rounded-[16px] text-center space-y-2">
+                <p className="text-xs text-[var(--ink)] font-bold">Custom engineering and direct delivery active for {activeStateObj.state}.</p>
+                <p className="text-[11px] text-[var(--muted)]">Reach out to our logistics and design team to plan your build and verify regional snow &amp; wind ratings.</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

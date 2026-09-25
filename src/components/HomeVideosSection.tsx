@@ -36,9 +36,13 @@ export default function HomeVideosSection({ videos }: HomeVideosSectionProps) {
     };
   }, []);
 
-  const displayVideos = videoList.length >= 5 ? videoList.slice(0, 5) : (videoList.length > 0 ? videoList : VIDEOS_DATA);
-  const mainVideo = displayVideos[0] || VIDEOS_DATA[0];
+  const displayVideos = videoList.length >= 5 ? videoList.slice(0, 5) : videoList;
+  const mainVideo = displayVideos[0] || null;
   const sideVideos = displayVideos.slice(1, 5);
+
+  if (!mainVideo) {
+    return null;
+  }
 
   return (
     <>

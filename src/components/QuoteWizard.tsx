@@ -26,11 +26,38 @@ const AVAILABLE_OPTIONS = [
   { id: "opt-standing-seam", name: "Concealed Fastener Standing Seam Roof Upgrade", price: 7800, desc: "26-gauge ultra-durability concealed roof fasteners" },
 ];
 
+const DEFAULT_MODEL: BuildingModel = {
+  id: "custom-blueprint",
+  slug: "custom-blueprint",
+  name: "Custom Modular Blueprint",
+  series: "Standard Series",
+  category: "Cabins",
+  tagline: "Custom modular floor plan & engineering",
+  description: "Precision factory-engineered modular steel home design.",
+  sqft: 1200,
+  bedrooms: 3,
+  bathrooms: 2,
+  stories: 1,
+  startingPrice: 129000,
+  dimensions: "30' x 40'",
+  frameType: "Precision Steel Frame",
+  roofPitch: "4:12",
+  windRating: "150 MPH",
+  snowLoad: "50 PSF",
+  warranty: "50-Year Structural Guarantee",
+  primaryImage: "/finallogo.avif",
+  gallery: [],
+  floorPlanImage: "",
+  features: ["Precision cold-formed steel structure", "Wet-stamped state engineering calculations"],
+  specs: [{ label: "Frame", value: "Galvanized Light Gauge Steel" }],
+  customizableOptions: [],
+};
+
 export default function QuoteWizard() {
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState<string>("Cabins");
   const [allModels, setAllModels] = useState<BuildingModel[]>(BUILDING_MODELS);
-  const [selectedModel, setSelectedModel] = useState<BuildingModel>(BUILDING_MODELS[0]);
+  const [selectedModel, setSelectedModel] = useState<BuildingModel>(BUILDING_MODELS[0] || DEFAULT_MODEL);
   const [sqft, setSqft] = useState<number>(1200);
   const [selectedOptions, setSelectedOptions] = useState<string[]>(["opt-insul", "opt-porch"]);
 
@@ -72,8 +99,9 @@ export default function QuoteWizard() {
 
   // Price Calculation Engine
   const calculation = useMemo(() => {
-    const standardSqft = selectedModel.sqft || 1000;
-    const basePrice = selectedModel.startingPrice;
+    const activeModel = selectedModel || DEFAULT_MODEL;
+    const standardSqft = activeModel.sqft || 1000;
+    const basePrice = activeModel.startingPrice || 120000;
     const costPerSqFt = basePrice / standardSqft;
 
     const sizeAdjustedPrice = Math.round(sqft * costPerSqFt);
@@ -287,55 +315,64 @@ export default function QuoteWizard() {
                   </p>
                 </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
-                  {filteredModels.map((m) => {
-                    const isSelected = selectedModel.id === m.id;
-                    return (
-                      <div
-                        key={m.id}
-                        onClick={() => {
-                          setSelectedModel(m);
-                          setSqft(m.sqft);
-                        }}
-                        className={`cursor-pointer rounded-[11px] border overflow-hidden transition-all duration-300 ${
-                          isSelected
-                            ? "bg-[#f6f7f9] border-[#fcb907] ring-1 ring-[#fcb907] shadow-md"
-                            : "bg-white border-[#e7e9ee] hover:border-[#fcb907]"
-                        }`}
-                      >
-                        <div className="relative aspect-[16/10] w-full bg-[#f6f7f9]">
-                          <Image
-                            src={m.primaryImage}
-                            alt={m.name}
-                            fill
-                            className="object-cover"
-                            sizes="(max-width: 768px) 100vw, 33vw"
-                          />
-                          <div className="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold bg-white/95 text-[#101114] rounded-[6px] shadow-xs">
-                            {formatCurrency(m.startingPrice)}
+                {filteredModels.length > 0 ? (
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pt-2">
+                    {filteredModels.map((m) => {
+                      const isSelected = (selectedModel?.id || DEFAULT_MODEL.id) === m.id;
+                      return (
+                        <div
+                          key={m.id}
+                          onClick={() => {
+                            setSelectedModel(m);
+                            setSqft(m.sqft);
+                          }}
+                          className={`cursor-pointer rounded-[11px] border overflow-hidden transition-all duration-300 ${
+                            isSelected
+                              ? "bg-[#f6f7f9] border-[#fcb907] ring-1 ring-[#fcb907] shadow-md"
+                              : "bg-white border-[#e7e9ee] hover:border-[#fcb907]"
+                          }`}
+                        >
+                          <div className="relative aspect-[16/10] w-full bg-[#f6f7f9]">
+                            <Image
+                              src={m.primaryImage || "/finallogo.avif"}
+                              alt={m.name}
+                              fill
+                              className="object-cover"
+                              sizes="(max-width: 768px) 100vw, 33vw"
+                            />
+                            <div className="absolute top-2 right-2 px-2 py-0.5 text-[10px] font-bold bg-white/95 text-[#101114] rounded-[6px] shadow-xs">
+                              {formatCurrency(m.startingPrice)}
+                            </div>
                           </div>
-                        </div>
 
-                        <div className="p-3.5 space-y-1">
-                          <div className="flex items-center justify-between">
-                            <span className="text-[10px] font-bold uppercase text-[#d97706]">
-                              {m.series}
-                            </span>
-                            <span className="text-xs text-[#6b7280] font-semibold">
-                              {m.sqft} SQ FT
-                            </span>
-                          </div>
-                          <div className="text-sm font-black text-[#101114]">
-                            {m.name}
-                          </div>
-                          <div className="text-xs text-[#6b7280]">
-                            {m.bedrooms > 0 ? `${m.bedrooms} Bed • ${m.bathrooms} Bath` : "1 Bed • 1 Bath"}
+                          <div className="p-3.5 space-y-1">
+                            <div className="flex items-center justify-between">
+                              <span className="text-[10px] font-bold uppercase text-[#d97706]">
+                                {m.series}
+                              </span>
+                              <span className="text-xs text-[#6b7280] font-semibold">
+                                {m.sqft} SQ FT
+                              </span>
+                            </div>
+                            <div className="text-sm font-black text-[#101114]">
+                              {m.name}
+                            </div>
+                            <div className="text-xs text-[#6b7280]">
+                              {m.bedrooms > 0 ? `${m.bedrooms} Bed • ${m.bathrooms} Bath` : "1 Bed • 1 Bath"}
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
-                </div>
+                      );
+                    })}
+                  </div>
+                ) : (
+                  <div className="p-8 text-center bg-[#f6f7f9] rounded-[11px] border border-[#e7e9ee] space-y-2">
+                    <p className="text-sm font-bold text-[#101114]">Custom Engineering for {category}</p>
+                    <p className="text-xs text-[#6b7280]">
+                      No pre-configured catalogue models in this category. You can proceed to customize dimensions and upgrades in the following steps.
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -360,7 +397,7 @@ export default function QuoteWizard() {
                       Selected Model:
                     </span>
                     <div className="text-xl font-black text-[#101114] mt-0.5">
-                      {selectedModel.name}
+                      {selectedModel?.name || DEFAULT_MODEL.name}
                     </div>
                   </div>
 
@@ -503,7 +540,7 @@ export default function QuoteWizard() {
                   <div className="space-y-2.5 text-sm">
                     <div className="flex justify-between text-[#101114]">
                       <span>
-                        {selectedModel.name} ({new Intl.NumberFormat("en-US").format(sqft)} SQ FT Modular Shell)
+                        {selectedModel?.name || DEFAULT_MODEL.name} ({new Intl.NumberFormat("en-US").format(sqft)} SQ FT Modular Shell)
                       </span>
                       <span className="font-bold">{formatCurrency(calculation.sizeAdjustedPrice)}</span>
                     </div>

@@ -335,7 +335,7 @@ export default function ModelsCatalog() {
         {/* Results Counter & Active Criteria */}
         <div className="py-4 flex items-center justify-between text-xs text-[#6b7280]">
           <div>
-            Showing <span className="text-[#101114] font-bold">{filteredModels.length}</span> of {BUILDING_MODELS.length} models
+            Showing <span className="text-[#101114] font-bold">{filteredModels.length}</span> of {models.length} models
           </div>
           {isFiltered && (
             <span className="text-[#d97706] font-bold">

@@ -54,7 +54,7 @@ export function normalizeVideo(v: any): VideoItem {
 }
 
 export function readVideosFromStore(): VideoItem[] {
-  if (memoryVideosCache && memoryVideosCache.length > 0) {
+  if (memoryVideosCache) {
     return memoryVideosCache;
   }
 
@@ -63,7 +63,7 @@ export function readVideosFromStore(): VideoItem[] {
     if (fs.existsSync(FILE_PATH)) {
       const data = fs.readFileSync(FILE_PATH, "utf-8");
       const parsed = JSON.parse(data);
-      if (Array.isArray(parsed) && parsed.length > 0) {
+      if (Array.isArray(parsed)) {
         memoryVideosCache = parsed.map(normalizeVideo);
         return memoryVideosCache;
       }

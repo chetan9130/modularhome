@@ -17,112 +17,8 @@ import { getPublicProducts, getPublicReviews, getPublicSettings } from "@/lib/pu
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-// Curated default models fallback matching architectural steel design
-const DEFAULT_AVAILABLE: ProductItem[] = [
-  {
-    id: "aspen",
-    slug: "the-aspen",
-    name: "The Aspen",
-    badge: "Best Seller",
-    image: "https://images.unsplash.com/photo-1570129477492-45c003edd2be?auto=format&fit=crop&w=700&q=80",
-    bedrooms: 3,
-    bathrooms: 2,
-    sqft: 1586,
-    price: 189000,
-  },
-  {
-    id: "meadow",
-    slug: "the-meadow",
-    name: "The Meadow",
-    badge: "Quick Ship",
-    image: "https://images.unsplash.com/photo-1600047509358-9dc75507daeb?auto=format&fit=crop&w=700&q=80",
-    bedrooms: 4,
-    bathrooms: 2,
-    sqft: 2012,
-    price: 224900,
-  },
-  {
-    id: "elmwood",
-    slug: "the-elmwood",
-    name: "The Elmwood",
-    badge: "New Model",
-    image: "https://images.unsplash.com/photo-1600566753086-00f18fb6b3ea?auto=format&fit=crop&w=700&q=80",
-    bedrooms: 3,
-    bathrooms: 2,
-    sqft: 1404,
-    price: 179000,
-  },
-  {
-    id: "clearwater",
-    slug: "the-clearwater",
-    name: "The Clearwater",
-    badge: "Popular",
-    image: "https://images.unsplash.com/photo-1600607687920-4e2a09cf159d?auto=format&fit=crop&w=700&q=80",
-    bedrooms: 3,
-    bathrooms: 2,
-    sqft: 1726,
-    price: 179900,
-  },
-  {
-    id: "ridgeview",
-    slug: "the-ridgeview",
-    name: "The Ridgeview",
-    badge: "Modern",
-    image: "https://images.unsplash.com/photo-1600585154526-990dced4db0d?auto=format&fit=crop&w=700&q=80",
-    bedrooms: 4,
-    bathrooms: 2,
-    sqft: 2256,
-    price: 289000,
-  },
-];
-
-const DEFAULT_TRENDING: ProductItem[] = [
-  {
-    id: "lakeside",
-    slug: "the-lakeside",
-    name: "The Lakeside",
-    image: "https://images.unsplash.com/photo-1600607688969-a5bfcd646154?auto=format&fit=crop&w=700&q=78",
-    bedrooms: 3,
-    bathrooms: 2,
-    price: 165000,
-  },
-  {
-    id: "brookhaven",
-    slug: "the-brookhaven",
-    name: "The Brookhaven",
-    image: "https://images.unsplash.com/photo-1600566753051-f0b89df2dd90?auto=format&fit=crop&w=700&q=78",
-    bedrooms: 3,
-    bathrooms: 2,
-    price: 205000,
-  },
-  {
-    id: "pinecrest",
-    slug: "the-pinecrest",
-    name: "The Pinecrest",
-    image: "https://images.unsplash.com/photo-1600047509782-20d39509f26d?auto=format&fit=crop&w=700&q=78",
-    bedrooms: 3,
-    bathrooms: 2,
-    price: 275000,
-  },
-  {
-    id: "summit",
-    slug: "the-summit",
-    name: "The Summit",
-    image: "https://images.unsplash.com/photo-1600585152915-d208bec867a1?auto=format&fit=crop&w=700&q=78",
-    bedrooms: 3,
-    bathrooms: 2,
-    price: 199000,
-  },
-  {
-    id: "willow",
-    slug: "the-willow",
-    name: "The Willow",
-    image: "https://images.unsplash.com/photo-1600566752355-35792bedcfea?auto=format&fit=crop&w=700&q=78",
-    bedrooms: 3,
-    bathrooms: 2,
-    price: 142000,
-  },
-];
+const DEFAULT_AVAILABLE: ProductItem[] = [];
+const DEFAULT_TRENDING: ProductItem[] = [];
 
 export default async function HomePage() {
   const [products, reviews, settings] = await Promise.all([
@@ -141,7 +37,7 @@ export default async function HomePage() {
       slug: p.slug,
       name: p.name,
       badge: idx === 0 ? "Best Seller" : idx === 1 ? "Quick Ship" : idx === 2 ? "Popular" : undefined,
-      image: p.primaryImage || p.image || DEFAULT_AVAILABLE[0].image,
+      image: p.primaryImage || p.image || "/finallogo.avif",
       bedrooms: p.bedrooms || 3,
       bathrooms: p.bathrooms || 2,
       sqft: p.sqft || 1600,
@@ -154,18 +50,13 @@ export default async function HomePage() {
         slug: p.slug,
         name: p.name,
         badge: idx === 0 ? "Trending" : undefined,
-        image: p.primaryImage || p.image || DEFAULT_TRENDING[0].image,
+        image: p.primaryImage || p.image || "/finallogo.avif",
         bedrooms: p.bedrooms || 3,
         bathrooms: p.bathrooms || 2,
         sqft: p.sqft || 1800,
         price: p.startingPrice || 195000,
       }));
-    } else {
-      trendingHomes = DEFAULT_TRENDING;
     }
-  } else {
-    availableHomes = DEFAULT_AVAILABLE;
-    trendingHomes = DEFAULT_TRENDING;
   }
 
   const heroHeading = settings?.defaultSeoTitle || "Modular Homes For A Better Tomorrow";
@@ -244,11 +135,18 @@ export default async function HomePage() {
           </div>
 
           {/* 5-Column Product Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-4.5">
-            {availableHomes.map((home) => (
-              <HomeProductCard key={home.id} product={home} />
-            ))}
-          </div>
+          {availableHomes.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-4.5">
+              {availableHomes.map((home) => (
+                <HomeProductCard key={home.id} product={home} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10 px-4 bg-[#f8f9fa] rounded-[14px] border border-[#e7e9ee] text-[#6b7280]">
+              <p className="text-sm font-semibold text-[#101114]">No models currently listed.</p>
+              <p className="text-xs mt-1">Contact our team to configure a custom modular plan for your site.</p>
+            </div>
+          )}
         </div>
       </section>
 
@@ -279,11 +177,18 @@ export default async function HomePage() {
           </div>
 
           {/* 5-Column Trending Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-4.5">
-            {trendingHomes.map((home) => (
-              <HomeProductCard key={home.id} product={home} />
-            ))}
-          </div>
+          {trendingHomes.length > 0 ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-4.5">
+              {trendingHomes.map((home) => (
+                <HomeProductCard key={home.id} product={home} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-10 px-4 bg-white rounded-[14px] border border-[#e7e9ee] text-[#6b7280]">
+              <p className="text-sm font-semibold text-[#101114]">No trending models available at this moment.</p>
+              <p className="text-xs mt-1">Explore our custom blueprint and modular options.</p>
+            </div>
+          )}
         </div>
       </section>
 

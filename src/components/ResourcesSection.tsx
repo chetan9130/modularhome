@@ -27,6 +27,10 @@ export default function ResourcesSection() {
 
   const featuredArticles = articles.slice(0, 4);
 
+  if (featuredArticles.length === 0) {
+    return null;
+  }
+
   return (
     <section id="resources" className="py-20 bg-white border-b border-[var(--line)] text-[var(--ink)]">
       <div className="wrap">
