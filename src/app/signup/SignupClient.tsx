@@ -18,6 +18,7 @@ import {
   EyeOff,
   FileCheck,
 } from "lucide-react";
+import GoogleAuthButton from "@/components/GoogleAuthButton";
 
 function SignupFormInner() {
   const router = useRouter();
@@ -135,6 +136,22 @@ function SignupFormInner() {
           <span className="leading-relaxed">{errorMessage}</span>
         </div>
       )}
+
+      {/* Google OAuth Button */}
+      <div className="space-y-3">
+        <GoogleAuthButton
+          mode="signup"
+          redirectPath={redirectParam}
+          onError={(msg) => setErrorMessage(msg)}
+        />
+        <div className="relative flex items-center justify-center">
+          <div className="border-t border-gray-200 w-full" />
+          <span className="bg-white px-3 text-[11px] font-bold uppercase tracking-wider text-gray-400 shrink-0">
+            or sign up with email
+          </span>
+          <div className="border-t border-gray-200 w-full" />
+        </div>
+      </div>
 
       {/* Signup Form */}
       <form onSubmit={handleSubmit} className="space-y-4">

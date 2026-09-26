@@ -150,6 +150,24 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
   return locals.find((c) => c.id === id) || null;
 }
 
+export async function getCustomerByAuthUserId(authUserId: string): Promise<Customer | null> {
+  if (!authUserId) return null;
+  if (isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from("customers")
+        .select("*")
+        .eq("auth_user_id", authUserId)
+        .maybeSingle();
+      if (!error && data) return data as Customer;
+    } catch (e) {
+      console.warn("Supabase getCustomerByAuthUserId note:", e);
+    }
+  }
+  const locals = readLocalCustomers();
+  return locals.find((c) => c.auth_user_id === authUserId) || null;
+}
+
 export async function getCustomerByVerificationToken(token: string): Promise<Customer | null> {
   if (!token) return null;
   if (isSupabaseConfigured()) {

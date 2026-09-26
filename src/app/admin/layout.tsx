@@ -60,26 +60,22 @@ export default function AdminLayout({
 
   useEffect(() => {
     let isMounted = true;
-    if (!isLoginPage) {
+    if (!isLoginPage && !user) {
       fetch("/api/admin/auth/me")
         .then((res) => {
           if (res.ok) return res.json();
-          throw new Error("Unauthorized");
+          if (res.status === 401) throw new Error("Unauthorized");
+          return null;
         })
         .then((data) => {
-          if (!isMounted) return;
+          if (!isMounted || !data) return;
           if (data.success && data.user) {
             setUser(data.user);
-          } else {
-            throw new Error("Unauthorized");
           }
         })
-        .catch(async () => {
+        .catch((err) => {
           if (!isMounted) return;
-          try {
-            await fetch("/api/admin/auth/logout", { method: "POST" });
-          } catch {}
-          if (isMounted) {
+          if (err?.message === "Unauthorized") {
             router.push(`/admin/login?redirect=${encodeURIComponent(pathname || "/admin")}&reason=unauthorized`);
           }
         });
@@ -87,7 +83,7 @@ export default function AdminLayout({
     return () => {
       isMounted = false;
     };
-  }, [pathname, isLoginPage, router]);
+  }, [isLoginPage, user, pathname, router]);
 
   const handleLogout = async () => {
     try {

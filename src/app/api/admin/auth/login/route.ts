@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyPassword, createAdminSession } from "@/lib/auth";
+import { hashPassword, verifyPassword, createAdminSession } from "@/lib/auth";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 import { checkLoginRateLimit, recordFailedLogin, clearLoginAttempts } from "@/lib/rateLimit";
 import { verifyTotpCode } from "@/lib/totp";
@@ -60,28 +60,27 @@ export async function POST(request: NextRequest) {
         .from("admin_users")
         .select("*")
         .eq("email", normalizedEmail)
-        .single();
+        .maybeSingle();
 
       if (!error && data) {
         user = data;
       }
     }
 
-    // Default master admin fallback if db not seeded yet
+    // Default master admin fallback if database is not seeded yet
     const validDefaultPassword = process.env.ADMIN_DEFAULT_PASSWORD || "admin@26";
     const defaultEmail = (process.env.ADMIN_DEFAULT_EMAIL || "admin@modularhome.com").toLowerCase().trim();
-    const isDefaultAdmin =
-      normalizedEmail === defaultEmail &&
-      (password === validDefaultPassword || password === "admin@26" || password === "Admin@ModularHome2026!" || password === "admin123");
+    const isDefaultAdmin = normalizedEmail === defaultEmail && password === validDefaultPassword;
 
     if (!user && isDefaultAdmin) {
       if (isSupabaseConfigured()) {
         try {
+          const hashedPassword = await hashPassword(validDefaultPassword);
           const { data: inserted } = await supabaseAdmin
             .from("admin_users")
             .insert({
-              email: "admin@modularhome.com",
-              password_hash: "default_seeded_admin",
+              email: defaultEmail,
+              password_hash: hashedPassword,
               name: "Admin Superuser",
               role: "SUPER_ADMIN",
               status: "ACTIVE",
@@ -91,7 +90,7 @@ export async function POST(request: NextRequest) {
 
           user = inserted || {
             id: "admin-root",
-            email: "admin@modularhome.com",
+            email: defaultEmail,
             name: "Admin Superuser",
             role: "SUPER_ADMIN",
             status: "ACTIVE",
@@ -99,7 +98,7 @@ export async function POST(request: NextRequest) {
         } catch {
           user = {
             id: "admin-root",
-            email: "admin@modularhome.com",
+            email: defaultEmail,
             name: "Admin Superuser",
             role: "SUPER_ADMIN",
             status: "ACTIVE",
@@ -108,7 +107,7 @@ export async function POST(request: NextRequest) {
       } else {
         user = {
           id: "admin-root",
-          email: "admin@modularhome.com",
+          email: defaultEmail,
           name: "Admin Superuser",
           role: "SUPER_ADMIN",
           status: "ACTIVE",

@@ -2,10 +2,12 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import crypto from "crypto";
 import bcrypt from "bcryptjs";
+import fs from "fs";
+import path from "path";
 import { supabaseAdmin, isSupabaseConfigured } from "./supabase";
 
 const COOKIE_NAME = "admin_session";
-const SESSION_EXPIRY_HOURS = 1; // Admin session is valid for exactly 1 hour
+const SESSION_EXPIRY_DAYS = 7; // Admin session lasts 7 days
 
 export async function hashPassword(plainText: string): Promise<string> {
   return bcrypt.hash(plainText, 10);
@@ -22,62 +24,135 @@ export interface AdminSessionUser {
   role: string;
 }
 
-// In-memory session store fallback if database is offline during dev/build
+interface StoredAdminSession {
+  session_token: string;
+  user_id: string;
+  user: AdminSessionUser;
+  expires_at: number;
+  created_at: string;
+}
+
+const ADMIN_SESSIONS_FILE = path.join(process.cwd(), "src", "data", "custom_admin_sessions.json");
+
+function ensureSessionsFile() {
+  try {
+    if (!fs.existsSync(ADMIN_SESSIONS_FILE)) {
+      const dir = path.dirname(ADMIN_SESSIONS_FILE);
+      if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+      fs.writeFileSync(ADMIN_SESSIONS_FILE, "[]", "utf-8");
+    }
+  } catch {}
+}
+
+function readLocalAdminSessions(): StoredAdminSession[] {
+  try {
+    ensureSessionsFile();
+    if (!fs.existsSync(ADMIN_SESSIONS_FILE)) return [];
+    const raw = fs.readFileSync(ADMIN_SESSIONS_FILE, "utf-8");
+    return JSON.parse(raw) || [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalAdminSessions(sessions: StoredAdminSession[]): void {
+  try {
+    ensureSessionsFile();
+    fs.writeFileSync(ADMIN_SESSIONS_FILE, JSON.stringify(sessions.slice(0, 1000), null, 2), "utf-8");
+  } catch (e) {
+    console.warn("Could not write local admin sessions:", e);
+  }
+}
+
+// In-memory session store for ultra-fast lookup
 const memorySessions = new Map<
   string,
   { user: AdminSessionUser; expiresAt: number }
 >();
 
 /**
- * Creates a secure session token and persists to Supabase (and cookie)
+ * Creates a secure session token and persists to Memory, Local File, and Supabase (and sets HttpOnly cookie)
  */
 export async function createAdminSession(
   userId: string,
   userFallback?: AdminSessionUser
 ): Promise<string> {
   const sessionToken = crypto.randomBytes(32).toString("hex");
-  const expiresAt = Date.now() + SESSION_EXPIRY_HOURS * 60 * 60 * 1000;
+  const expiresAt = Date.now() + SESSION_EXPIRY_DAYS * 24 * 60 * 60 * 1000;
+  const createdAt = new Date().toISOString();
 
+  const user: AdminSessionUser = userFallback || {
+    id: userId,
+    email: "admin@modularhome.com",
+    name: "Admin User",
+    role: "SUPER_ADMIN",
+  };
+
+  // 1. In-memory cache
+  memorySessions.set(sessionToken, { user, expiresAt });
+
+  // 2. Persistent file store
+  try {
+    const list = readLocalAdminSessions().filter((s) => s.expires_at > Date.now());
+    list.unshift({
+      session_token: sessionToken,
+      user_id: userId,
+      user,
+      expires_at: expiresAt,
+      created_at: createdAt,
+    });
+    writeLocalAdminSessions(list);
+  } catch (err) {
+    console.warn("Local admin session write note:", err);
+  }
+
+  // 3. Supabase database table
   if (isSupabaseConfigured()) {
     try {
       await supabaseAdmin.from("sessions").insert({
         session_token: sessionToken,
-        user_id: userId,
+        user_id: userId !== "admin-root" ? userId : null,
         expires_at: expiresAt,
       });
     } catch (e) {
-      console.warn("Could not persist session to Supabase, falling back to memory:", e);
+      console.warn("Could not persist session to Supabase sessions table:", e);
     }
   }
 
-  if (userFallback) {
-    memorySessions.set(sessionToken, { user: userFallback, expiresAt });
+  // 4. Set HttpOnly cookie
+  try {
+    const cookieStore = await cookies();
+    cookieStore.set(COOKIE_NAME, sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      expires: new Date(expiresAt),
+      maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60,
+    });
+  } catch (cookieErr) {
+    console.warn("Admin session cookie store note:", cookieErr);
   }
-
-  const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, sessionToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    expires: new Date(expiresAt),
-    maxAge: SESSION_EXPIRY_HOURS * 60 * 60, // 3600 seconds (1 hour)
-  });
 
   return sessionToken;
 }
 
 /**
- * Retrieves the current authenticated admin session
+ * Retrieves the current authenticated admin session with multi-tier fallback
  */
 export async function getAdminSession(): Promise<AdminSessionUser | null> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get(COOKIE_NAME)?.value;
+    let token: string | undefined;
+    try {
+      const cookieStore = await cookies();
+      token = cookieStore.get(COOKIE_NAME)?.value;
+    } catch {
+      return null;
+    }
 
     if (!token) return null;
 
-    // 1. Check memory store first for rapid response / offline fallback
+    // 1. Check in-memory store
     const mem = memorySessions.get(token);
     if (mem) {
       if (Date.now() > mem.expiresAt) {
@@ -87,44 +162,51 @@ export async function getAdminSession(): Promise<AdminSessionUser | null> {
       return mem.user;
     }
 
-    // 2. Query Supabase database
+    // 2. Check local persistent session file
+    const localList = readLocalAdminSessions();
+    const localMatch = localList.find((s) => s.session_token === token);
+    if (localMatch && localMatch.expires_at > Date.now()) {
+      // Re-populate memory cache
+      memorySessions.set(token, { user: localMatch.user, expiresAt: localMatch.expires_at });
+      return localMatch.user;
+    }
+
+    // 3. Query Supabase database
     if (isSupabaseConfigured()) {
-      const { data: sessionData, error } = await supabaseAdmin
-        .from("sessions")
-        .select(`
-          session_token,
-          expires_at,
-          user_id,
-          admin_users (
-            id,
-            email,
-            name,
-            role,
-            status
-          )
-        `)
-        .eq("session_token", token)
-        .single();
+      try {
+        const { data: sessionData, error: sessError } = await supabaseAdmin
+          .from("sessions")
+          .select("session_token, expires_at, user_id")
+          .eq("session_token", token)
+          .maybeSingle();
 
-      if (!error && sessionData && sessionData.admin_users) {
-        if (Number(sessionData.expires_at) < Date.now()) {
-          // Expired
-          await supabaseAdmin.from("sessions").delete().eq("session_token", token);
-          return null;
+        if (!sessError && sessionData) {
+          if (Number(sessionData.expires_at) < Date.now()) {
+            await supabaseAdmin.from("sessions").delete().eq("session_token", token);
+            return null;
+          }
+
+          if (sessionData.user_id) {
+            const { data: dbUser } = await supabaseAdmin
+              .from("admin_users")
+              .select("id, email, name, role, status")
+              .eq("id", sessionData.user_id)
+              .maybeSingle();
+
+            if (dbUser && dbUser.status === "ACTIVE") {
+              const sessionUser: AdminSessionUser = {
+                id: dbUser.id,
+                email: dbUser.email,
+                name: dbUser.name,
+                role: dbUser.role || "SUPER_ADMIN",
+              };
+              memorySessions.set(token, { user: sessionUser, expiresAt: Number(sessionData.expires_at) });
+              return sessionUser;
+            }
+          }
         }
-
-        const user = Array.isArray(sessionData.admin_users)
-          ? sessionData.admin_users[0]
-          : sessionData.admin_users;
-
-        if (user && user.status === "ACTIVE") {
-          return {
-            id: user.id,
-            email: user.email,
-            name: user.name,
-            role: user.role,
-          };
-        }
+      } catch (dbErr) {
+        console.warn("Supabase session check error note:", dbErr);
       }
     }
 
@@ -136,15 +218,24 @@ export async function getAdminSession(): Promise<AdminSessionUser | null> {
 }
 
 /**
- * Destroys current session and removes auth cookie
+ * Destroys current session across memory, local file, DB and clears auth cookie
  */
 export async function destroyAdminSession(): Promise<void> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get(COOKIE_NAME)?.value;
+    let token: string | undefined;
+    try {
+      const cookieStore = await cookies();
+      token = cookieStore.get(COOKIE_NAME)?.value;
+    } catch {}
 
     if (token) {
       memorySessions.delete(token);
+
+      try {
+        const remaining = readLocalAdminSessions().filter((s) => s.session_token !== token);
+        writeLocalAdminSessions(remaining);
+      } catch {}
+
       if (isSupabaseConfigured()) {
         try {
           await supabaseAdmin.from("sessions").delete().eq("session_token", token);
@@ -152,13 +243,17 @@ export async function destroyAdminSession(): Promise<void> {
       }
     }
 
-    cookieStore.set(COOKIE_NAME, "", {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      path: "/",
-      expires: new Date(0),
-    });
+    try {
+      const cookieStore = await cookies();
+      cookieStore.set(COOKIE_NAME, "", {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/",
+        expires: new Date(0),
+        maxAge: 0,
+      });
+    } catch {}
   } catch (error) {
     console.error("Error destroying admin session:", error);
   }
@@ -170,11 +265,10 @@ export async function destroyAdminSession(): Promise<void> {
 export async function requireAdminAuth(): Promise<NextResponse | AdminSessionUser> {
   const session = await getAdminSession();
   if (!session) {
-    await destroyAdminSession();
     return NextResponse.json(
       {
         success: false,
-        error: { message: "Unauthorized. Admin session expired or invalid. Logged out.", code: "UNAUTHORIZED" },
+        error: { message: "Unauthorized. Admin session expired or invalid. Please sign in.", code: "UNAUTHORIZED" },
       },
       { status: 401 }
     );
@@ -194,7 +288,6 @@ export async function requireAdminRole(
   }
 
   const userRole = (authResult.role || "SUPER_ADMIN").toUpperCase();
-  // Normalize legacy 'ADMIN' or 'EDITOR'
   const normalizedRole =
     userRole === "ADMIN" ? "SUPER_ADMIN" : userRole === "EDITOR" ? "CONTENT_ADMIN" : userRole;
 
@@ -229,7 +322,13 @@ export async function invalidateAllUserSessions(userId: string): Promise<void> {
     }
   }
 
-  // 2. Remove from Supabase sessions
+  // 2. Remove from local file store
+  try {
+    const list = readLocalAdminSessions().filter((s) => s.user_id !== userId && s.user.id !== userId);
+    writeLocalAdminSessions(list);
+  } catch {}
+
+  // 3. Remove from Supabase sessions
   if (isSupabaseConfigured() && userId !== "admin-root") {
     try {
       await supabaseAdmin.from("sessions").delete().eq("user_id", userId);
@@ -238,5 +337,3 @@ export async function invalidateAllUserSessions(userId: string): Promise<void> {
     }
   }
 }
-
-

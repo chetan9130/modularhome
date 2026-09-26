@@ -1,20 +1,32 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, Suspense, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Lock, Mail, ArrowRight, Loader2, ShieldCheck, AlertCircle } from "lucide-react";
+import GoogleAuthButton from "@/components/GoogleAuthButton";
 
 function CustomerLoginForm() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirectPath = searchParams.get("redirect") || "/account";
+  const urlError = searchParams.get("error");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [errorMessage, setErrorMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState(urlError || "");
+
+  useEffect(() => {
+    if (urlError) {
+      setErrorMessage(
+        urlError === "missing_credentials"
+          ? "Login session expired or credentials missing. Please sign in."
+          : decodeURIComponent(urlError)
+      );
+    }
+  }, [urlError]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +58,7 @@ function CustomerLoginForm() {
     <div className="w-full max-w-md bg-white rounded-3xl border border-gray-200 shadow-xl p-8 sm:p-10 space-y-6">
       {/* Brand & Title */}
       <div className="text-center space-y-2">
-        <Link href="/" className="inline-block">
+        <Link href="/" className="inline-block hover:opacity-90 transition-opacity">
           <Image
             src="/finallogo.avif"
             alt="ModularHome"
@@ -64,11 +76,27 @@ function CustomerLoginForm() {
       </div>
 
       {errorMessage && (
-        <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs font-medium text-red-700 flex items-start gap-2">
+        <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs font-medium text-red-700 flex items-start gap-2 animate-in fade-in">
           <AlertCircle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
           <span>{errorMessage}</span>
         </div>
       )}
+
+      {/* 1. Google OAuth Button */}
+      <div className="space-y-3">
+        <GoogleAuthButton
+          mode="signin"
+          redirectPath={redirectPath}
+          onError={(msg) => setErrorMessage(msg)}
+        />
+        <div className="relative flex items-center justify-center">
+          <div className="border-t border-gray-200 w-full" />
+          <span className="bg-white px-3 text-[11px] font-bold uppercase tracking-wider text-gray-400 shrink-0">
+            or sign in with email
+          </span>
+          <div className="border-t border-gray-200 w-full" />
+        </div>
+      </div>
 
       <form onSubmit={handleLogin} className="space-y-4">
         <div>

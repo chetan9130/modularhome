@@ -52,6 +52,7 @@ export async function GET() {
         phone: customer.phone,
         billing_address: customer.billing_address || {},
         email_verified: customer.email_verified,
+        provider: customer.provider || "EMAIL",
         status: customer.status,
         created_at: customer.created_at,
         stats: {

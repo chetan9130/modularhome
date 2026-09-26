@@ -43,6 +43,27 @@ export const supabaseAdmin: SupabaseClient = createClient(
 );
 
 /**
+ * Helper to get a Browser-configured Supabase Client for OAuth & Client-side auth
+ */
+let browserClientInstance: SupabaseClient | null = null;
+
+export function getSupabaseBrowserClient(): SupabaseClient {
+  if (typeof window === "undefined") {
+    return supabase;
+  }
+  if (!browserClientInstance) {
+    browserClientInstance = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    });
+  }
+  return browserClientInstance;
+}
+
+/**
  * Helper to check if Supabase is properly configured with live credentials
  */
 export function isSupabaseConfigured(): boolean {
@@ -52,3 +73,4 @@ export function isSupabaseConfigured(): boolean {
     !process.env.NEXT_PUBLIC_SUPABASE_URL?.includes("placeholder-project")
   );
 }
+
