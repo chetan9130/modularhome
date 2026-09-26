@@ -1,5 +1,65 @@
 [
   {
+    "id": "eml-1790431303842-fflyt",
+    "recipient": "test.client.1790431303446@example.com",
+    "template_type": "EMAIL_VERIFICATION",
+    "subject": "Verify your ModularHome.com customer account",
+    "customer_id": "cust-1790431303628-b67d46ba",
+    "status": "SENT",
+    "metadata": {
+      "callbackUrl": "https://modularhome.com/auth/callback?token=1ff32c5dbf6820fb96f6623049b5bccb5b29e7e0805536c74c42b8cb299f03e4",
+      "directVerifyUrl": "https://modularhome.com/verify-email?token=1ff32c5dbf6820fb96f6623049b5bccb5b29e7e0805536c74c42b8cb299f03e4",
+      "name": "Sarah Jenkins",
+      "html_preview": "\n    <div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05);\">\n      <!-- Header -->\n      <div style=\"background: #101114; padding: 28px 24px; text-align: center; border-bottom: 3px solid #fcb907;\">\n        <h1 style=\"color: #ffffff; margin: 0; font-size: 26px; font-weight: 900; let"
+    },
+    "created_at": "2026-09-26T14:01:43.842Z"
+  },
+  {
+    "id": "eml-1790431303633-the23",
+    "recipient": "test.client.1790431303446@example.com",
+    "template_type": "EMAIL_VERIFICATION",
+    "subject": "Verify your ModularHome.com customer account",
+    "customer_id": "cust-1790431303628-b67d46ba",
+    "status": "SENT",
+    "metadata": {
+      "callbackUrl": "https://modularhome.com/auth/callback?token=1fd9e0330b1ba3bf7fa266ec92b8c718b24719df50a5a3b4526d04b68cff68c6",
+      "directVerifyUrl": "https://modularhome.com/verify-email?token=1fd9e0330b1ba3bf7fa266ec92b8c718b24719df50a5a3b4526d04b68cff68c6",
+      "name": "Sarah Jenkins",
+      "html_preview": "\n    <div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05);\">\n      <!-- Header -->\n      <div style=\"background: #101114; padding: 28px 24px; text-align: center; border-bottom: 3px solid #fcb907;\">\n        <h1 style=\"color: #ffffff; margin: 0; font-size: 26px; font-weight: 900; let"
+    },
+    "created_at": "2026-09-26T14:01:43.633Z"
+  },
+  {
+    "id": "eml-1790430847093-dw5cm",
+    "recipient": "test.client.1790430846722@example.com",
+    "template_type": "EMAIL_VERIFICATION",
+    "subject": "Verify your ModularHome.com customer account",
+    "customer_id": "cust-1790430846912-fafacff1",
+    "status": "SENT",
+    "metadata": {
+      "callbackUrl": "https://modularhome.com/auth/callback?token=7a0173d72dd1dc8389cccc59748a4a26bfaceec594240b2ad87e93beff7dbc2c",
+      "directVerifyUrl": "https://modularhome.com/verify-email?token=7a0173d72dd1dc8389cccc59748a4a26bfaceec594240b2ad87e93beff7dbc2c",
+      "name": "Sarah Jenkins",
+      "html_preview": "\n    <div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05);\">\n      <!-- Header -->\n      <div style=\"background: #101114; padding: 28px 24px; text-align: center; border-bottom: 3px solid #fcb907;\">\n        <h1 style=\"color: #ffffff; margin: 0; font-size: 26px; font-weight: 900; let"
+    },
+    "created_at": "2026-09-26T13:54:07.093Z"
+  },
+  {
+    "id": "eml-1790430846918-9vb0s",
+    "recipient": "test.client.1790430846722@example.com",
+    "template_type": "EMAIL_VERIFICATION",
+    "subject": "Verify your ModularHome.com customer account",
+    "customer_id": "cust-1790430846912-fafacff1",
+    "status": "SENT",
+    "metadata": {
+      "callbackUrl": "https://modularhome.com/auth/callback?token=3ccc78f91ef67d16e08e39db7669172a67bb5d54453002c9b746935a2d948209",
+      "directVerifyUrl": "https://modularhome.com/verify-email?token=3ccc78f91ef67d16e08e39db7669172a67bb5d54453002c9b746935a2d948209",
+      "name": "Sarah Jenkins",
+      "html_preview": "\n    <div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05);\">\n      <!-- Header -->\n      <div style=\"background: #101114; padding: 28px 24px; text-align: center; border-bottom: 3px solid #fcb907;\">\n        <h1 style=\"color: #ffffff; margin: 0; font-size: 26px; font-weight: 900; let"
+    },
+    "created_at": "2026-09-26T13:54:06.918Z"
+  },
+  {
     "id": "eml-1790430592052-o5x9q",
     "recipient": "test.client.1790430591672@example.com",
     "template_type": "EMAIL_VERIFICATION",

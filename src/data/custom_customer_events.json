@@ -1,5 +1,77 @@
 [
   {
+    "id": "evt-1790431303854-tr3ls",
+    "customer_id": "cust-1790431303628-b67d46ba",
+    "event_type": "EMAIL_VERIFIED",
+    "actor_type": "CUSTOMER",
+    "actor_name": "Sarah Jenkins",
+    "details": {
+      "email": "test.client.1790431303446@example.com"
+    },
+    "created_at": "2026-09-26T14:01:43.854Z"
+  },
+  {
+    "id": "evt-1790431303844-0lew8",
+    "customer_id": "cust-1790431303628-b67d46ba",
+    "event_type": "VERIFICATION_RESENT",
+    "actor_type": "CUSTOMER",
+    "actor_name": "Sarah Jenkins",
+    "details": {
+      "email": "test.client.1790431303446@example.com"
+    },
+    "created_at": "2026-09-26T14:01:43.844Z"
+  },
+  {
+    "id": "evt-1790431303635-zdbd8",
+    "customer_id": "cust-1790431303628-b67d46ba",
+    "event_type": "ACCOUNT_CREATED",
+    "actor_type": "CUSTOMER",
+    "actor_name": "Sarah Jenkins",
+    "details": {
+      "email": "test.client.1790431303446@example.com",
+      "phone": "+1 (812) 555-0199",
+      "terms_version": "v1.0",
+      "auth_user_id": null
+    },
+    "created_at": "2026-09-26T14:01:43.635Z"
+  },
+  {
+    "id": "evt-1790430847105-7g9ts",
+    "customer_id": "cust-1790430846912-fafacff1",
+    "event_type": "EMAIL_VERIFIED",
+    "actor_type": "CUSTOMER",
+    "actor_name": "Sarah Jenkins",
+    "details": {
+      "email": "test.client.1790430846722@example.com"
+    },
+    "created_at": "2026-09-26T13:54:07.105Z"
+  },
+  {
+    "id": "evt-1790430847095-fmmb0",
+    "customer_id": "cust-1790430846912-fafacff1",
+    "event_type": "VERIFICATION_RESENT",
+    "actor_type": "CUSTOMER",
+    "actor_name": "Sarah Jenkins",
+    "details": {
+      "email": "test.client.1790430846722@example.com"
+    },
+    "created_at": "2026-09-26T13:54:07.095Z"
+  },
+  {
+    "id": "evt-1790430846920-um35n",
+    "customer_id": "cust-1790430846912-fafacff1",
+    "event_type": "ACCOUNT_CREATED",
+    "actor_type": "CUSTOMER",
+    "actor_name": "Sarah Jenkins",
+    "details": {
+      "email": "test.client.1790430846722@example.com",
+      "phone": "+1 (812) 555-0199",
+      "terms_version": "v1.0",
+      "auth_user_id": null
+    },
+    "created_at": "2026-09-26T13:54:06.920Z"
+  },
+  {
     "id": "evt-1790430592065-f5w5b",
     "customer_id": "cust-1790430591859-29797d17",
     "event_type": "EMAIL_VERIFIED",

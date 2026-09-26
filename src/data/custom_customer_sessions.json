@@ -1,5 +1,33 @@
 [
   {
+    "id": "csess-1790431303857-39ph0",
+    "session_token": "c3b4f3e56d242babf41657c0c3338bf3b999b6324ae0c4b3f03b90770e471db1",
+    "customer_id": "cust-1790431303628-b67d46ba",
+    "expires_at": 1793023303857,
+    "created_at": "2026-09-26T14:01:43.857Z"
+  },
+  {
+    "id": "csess-1790431303638-ui40j",
+    "session_token": "dd8e5f34e2a12c519050a3f39ec5546ea1a45c6c4697681ccb044dd6ef429949",
+    "customer_id": "cust-1790431303628-b67d46ba",
+    "expires_at": 1793023303638,
+    "created_at": "2026-09-26T14:01:43.638Z"
+  },
+  {
+    "id": "csess-1790430847107-o3tcw",
+    "session_token": "0226a4c4dcdf80b19bec0f1efc9e1d0d3d5148bb4ec5083531b4b502773485c8",
+    "customer_id": "cust-1790430846912-fafacff1",
+    "expires_at": 1793022847107,
+    "created_at": "2026-09-26T13:54:07.107Z"
+  },
+  {
+    "id": "csess-1790430846922-00rug",
+    "session_token": "3f233e0c93809d373c2c033c1a13e461a83304fbf7f7dbe178a0ef382b8f9818",
+    "customer_id": "cust-1790430846912-fafacff1",
+    "expires_at": 1793022846922,
+    "created_at": "2026-09-26T13:54:06.922Z"
+  },
+  {
     "id": "csess-1790430592068-krswu",
     "session_token": "f69cba4c90e68d407046b23ea4de0ea3944071abc839c3fb22d7f40408a343cc",
     "customer_id": "cust-1790430591859-29797d17",

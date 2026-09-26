@@ -1,738 +1,703 @@
-MODULARHOME.COM — IMPLEMENT CUSTOMER ECOMMERCE MODULES 01 & 02
+MODULARHOME.COM — IMPLEMENT MODULE 02: EMAIL VERIFICATION
 
 PROJECT:
 ModularHome.com
 
-CURRENT STACK:
-- Next.js App Router
-- React
-- TypeScript
-- Tailwind CSS
-- Supabase PostgreSQL
-- Supabase Auth
-- Supabase Storage
-- Existing Stripe ecommerce infrastructure
-- Existing product/catalog/floor-plan system
-- Existing Admin CMS
-- Existing production migration/ETL
-- Existing SEO and redirect infrastructure
+TASK:
+Implement and fully verify ONLY:
 
-SOURCE OF TRUTH:
-Follow the ModularHome Final Master Developer Specification.
+MODULE 02 — EMAIL VERIFICATION
 
-This task implements ONLY:
+MASTER SPECIFICATION REQUIREMENT:
+Confirm ownership of the customer's email address.
 
-MODULE 01 — Customer Signup
-MODULE 02 — Email Verification
+Required:
+- Branded verification email
+- Verification callback
+- Verified/unverified account state
+- Customer clicks verification link and account becomes verified
 
-Both modules are CRITICAL requirements.
-
-The specification requires:
-
-MODULE 01 — Customer Signup
-- New customer can create an account before or during purchase.
-- Email/password signup.
-- Validation.
-- Consent/Terms acceptance.
-- Duplicate-account handling.
-- Secure Supabase Auth integration.
-- Successful signup should lead the customer toward their account.
-
-MODULE 02 — Email Verification
-- Confirm ownership of customer's email address.
-- Branded verification email.
-- Verification callback.
-- Verified/unverified account state.
-- Customer clicks verification link and becomes verified.
+MODULE PRIORITY:
+CRITICAL
 
 IMPORTANT:
-DO NOT rebuild the existing ModularHome system.
-DO NOT replace the existing Supabase architecture.
-DO NOT replace existing product/catalog functionality.
-DO NOT replace existing Stripe functionality.
-DO NOT replace existing Admin authentication.
-DO NOT modify the existing migration/ETL.
-DO NOT modify production data.
-DO NOT perform DNS/domain changes.
-DO NOT introduce a second authentication provider.
+Module 01 — Customer Signup is already implemented or is being implemented separately.
+
+DO NOT implement Modules 03+ in this task.
+
+DO NOT rebuild the authentication system.
+DO NOT create a second authentication provider.
+DO NOT replace Supabase Auth.
+DO NOT modify the existing Admin authentication.
+DO NOT modify the existing ETL/migration.
+DO NOT modify migrated products, collections, blogs, pages or production data.
+DO NOT change DNS.
+DO NOT change Stripe configuration.
 
 ==================================================
-1. INSPECT THE EXISTING PROJECT FIRST
+1. INSPECT THE EXISTING IMPLEMENTATION FIRST
 ==================================================
 
-Before writing code, inspect:
+Before changing anything, inspect the existing project.
+
+Check:
 
 - package.json
-- Next.js app structure
-- existing Supabase client/server utilities
+- Supabase client utilities
+- Supabase server utilities
+- existing customer signup implementation
+- existing auth routes
 - existing middleware
-- existing authentication/session logic
-- existing Admin authentication
-- existing database schema
+- existing customer profile table/schema
 - existing RLS policies
-- existing environment variable conventions
-- existing public header/navigation
-- existing customer/cart/checkout code
-- existing Stripe checkout flow
-- existing email infrastructure
-- existing route structure
-- existing UI components
-- existing error handling
-- existing forms and validation utilities
+- existing environment variables
+- existing email configuration
+- existing notification/email utilities
+- existing /auth routes
+- existing /signup or /register route
+- existing login/account routes if present
+- existing layout and design system
 
-Determine whether Supabase Auth is already partially implemented.
+Search for:
 
-If customer authentication already exists, EXTEND it instead of creating another implementation.
+- supabase.auth.signUp
+- supabase.auth.getUser
+- supabase.auth.getSession
+- emailRedirectTo
+- email_confirmed_at
+- confirmed_at
+- /auth/callback
+- verification
+- verify
+- resend
+- signUp
+- customer profile
 
-Clearly identify reusable existing utilities before creating new ones.
+IMPORTANT:
+If Module 01 already created any of these components, reuse them.
 
-==================================================
-2. CUSTOMER AUTH MUST BE SEPARATE FROM ADMIN AUTH
-==================================================
-
-There are two different authentication domains:
-
-ADMIN:
-- /admin/*
-- Existing admin authentication/security must remain unchanged.
-
-CUSTOMER:
-- Public website
-- Customer signup/login/account
-- Supabase Auth customer users
-
-Do not accidentally give customer accounts access to admin routes.
-
-Do not weaken existing Admin RBAC, sessions, RLS, or security.
-
-A normal customer must NEVER be able to access:
-
-/admin
-/admin/*
-/api/admin/*
+Do not create duplicate Supabase clients, duplicate auth callbacks, duplicate customer tables or duplicate verification logic.
 
 ==================================================
-3. MODULE 01 — CUSTOMER SIGNUP
+2. SUPABASE EMAIL CONFIRMATION
 ==================================================
 
-Implement a polished customer signup experience.
+Use Supabase Auth as the source of truth for email verification.
 
-Preferred route if it does not conflict with the existing architecture:
+Do not manually store passwords.
 
-/signup
+Do not implement a custom verification token system if Supabase Auth already provides the required mechanism.
 
-If an existing route such as /register exists, inspect it first and reuse/upgrade it instead of creating a duplicate route.
+Ensure customer signup uses email confirmation.
 
-Signup form should support:
+The signup flow should request email verification using the existing Supabase Auth configuration.
 
-- First name
-- Last name
-- Email
-- Password
-- Confirm password
-- Terms/Privacy acceptance
-
-Use the project's existing design system and Tailwind styling.
-
-Do not create a visually unrelated authentication page.
-
-==================================================
-4. SIGNUP VALIDATION
-==================================================
-
-Implement client-side AND server/Supabase-side validation.
-
-Validate:
-
-EMAIL:
-- Required
-- Valid email format
-- Normalize email appropriately
-
-PASSWORD:
-- Required
-- Minimum secure length
-- Confirm password must match
-
-NAME:
-- Required where applicable
-- Trim whitespace
-- Reasonable length limits
-
-TERMS:
-- Must be explicitly accepted before account creation.
-
-Never trust client-side validation alone.
-
-==================================================
-5. SUPABASE AUTH
-==================================================
-
-Use the existing Supabase Auth configuration.
-
-Use the correct server/client Supabase utilities already present in the project.
-
-Do NOT expose:
-
-- SUPABASE_SERVICE_ROLE_KEY
-- Stripe secret keys
-- other server secrets
-
-to browser/client code.
-
-Customer signup should create a Supabase Auth user.
-
-Use email confirmation.
-
-The application should NOT manually store customer passwords.
-
-Passwords must be handled exclusively by Supabase Auth.
-
-==================================================
-6. CUSTOMER PROFILE
-==================================================
-
-If the project already has a customer/profile table, reuse it.
-
-If not, create the minimum required profile structure according to the existing database architecture.
-
-Do NOT create unnecessary duplicate customer tables.
-
-Recommended relationship:
-
-auth.users
-    ↓
-customer profile
-
-The profile should be linked to the Supabase Auth user ID.
-
-Possible fields:
-
-- id
-- auth_user_id
-- first_name
-- last_name
-- email
-- phone if supported by current architecture
-- created_at
-- updated_at
-
-Use the existing naming conventions if different.
-
-Email should remain authoritative from Supabase Auth where appropriate.
-
-==================================================
-7. TERMS / CONSENT
-==================================================
-
-Customer signup must capture acceptance of the applicable Terms/Privacy policy.
-
-Do not simply create a checkbox with no stored record if the current ecommerce architecture requires auditable acceptance.
-
-If the database already has policy/version infrastructure, reuse it.
-
-Otherwise implement the minimum auditable structure needed.
-
-Store:
-
-- customer/user ID
-- policy/version identifier
-- accepted timestamp
-
-Do not store unnecessary personal information.
-
-==================================================
-8. DUPLICATE ACCOUNT HANDLING
-==================================================
-
-Handle duplicate signup safely.
-
-Do NOT reveal unnecessary account existence information to an unauthenticated user.
-
-Do not display sensitive database/Auth errors directly to the customer.
-
-Use friendly messages such as:
-
-"Unable to create your account with these details. Please sign in or use password recovery if you already have an account."
-
-Use server-side logging for technical errors where appropriate.
-
-Do not leak:
-
-- database errors
-- Supabase internal errors
-- SQL errors
-- user IDs
-- authentication internals
-
-==================================================
-9. MODULE 02 — EMAIL VERIFICATION
-==================================================
-
-Enable Supabase email confirmation.
-
-After signup:
-
-Customer
-  ↓
-Supabase Auth signup
-  ↓
-Verification email
-  ↓
-Customer clicks verification link
-  ↓
-Verification callback
-  ↓
-Authenticated/verified session
-  ↓
-Customer account
-
-Use the project's existing Supabase email confirmation configuration if already present.
-
-Do not implement a custom password/token system if Supabase Auth already provides the required mechanism.
-
-==================================================
-10. VERIFICATION CALLBACK
-==================================================
-
-Implement the appropriate callback route based on the existing Next.js/Supabase architecture.
-
-Preferred conceptual route:
-
-/auth/callback
-
-But first inspect existing auth callback routes.
-
-If one already exists, extend it.
-
-The callback must:
-
-- securely process the Supabase authentication callback
-- establish/refresh the customer session as required
-- handle invalid/expired callbacks safely
-- redirect successfully verified users to the appropriate customer destination
-- display a useful error for failed verification
-
-Do not expose authentication tokens in URLs beyond what the Supabase flow requires.
-
-Do not log sensitive authentication tokens.
-
-==================================================
-11. VERIFIED / UNVERIFIED STATE
-==================================================
-
-The application must be able to determine whether a customer email is verified.
-
-Support states such as:
-
-VERIFIED
-UNVERIFIED
-
-The customer UI should clearly communicate the state.
-
-Example:
-
-"Your email is not verified yet."
-
-Provide:
-
-"Resend verification email"
-
-where supported.
-
-After successful verification:
-
-"Your email has been verified."
-
-==================================================
-12. RESEND VERIFICATION
-==================================================
-
-Provide a safe resend verification flow.
-
-Possible route/page:
-
-/verify-email
-
-or an existing equivalent.
-
-The page should provide:
-
-- current verification state
-- resend button
-- success message
-- safe error handling
-
-Prevent abuse through appropriate rate limiting/cooldown if the project already has a rate-limiting mechanism.
-
-Do not allow unlimited verification-email requests.
-
-==================================================
-13. SIGNUP SUCCESS FLOW
-==================================================
-
-After successful signup, the user should NOT simply be dumped onto an unrelated page.
-
-Preferred flow:
-
-Signup
- ↓
-Account created
- ↓
-Check email
- ↓
-/verify-email
- ↓
-Customer verifies email
- ↓
-Customer continues to customer account
-
-If the project's existing architecture has a different customer flow, preserve it.
-
-The customer should understand exactly what they need to do next.
-
-==================================================
-14. CUSTOMER SESSION SECURITY
-==================================================
-
-Use Supabase's existing secure session architecture.
-
-Do not store authentication tokens in localStorage unless the existing Supabase architecture explicitly requires it.
-
-Use secure cookies/server-side session handling according to the existing project architecture.
-
-Customer session must not grant admin privileges.
-
-Ensure logout works correctly.
-
-Do not modify existing Admin session behavior.
-
-==================================================
-15. RLS / DATABASE SECURITY
-==================================================
-
-Apply proper Supabase RLS to customer profile data.
-
-A customer must only be able to access their own profile.
-
-Conceptually:
-
-Customer A
-  ↓
-Can read/update Customer A profile
-
-Customer B
-  ↓
-Cannot read/update Customer A profile
-
-Anonymous user
-  ↓
-Cannot read customer profiles
-
-Admin access should continue through the existing secure server-side authorization architecture.
-
-Do not rely only on frontend route hiding.
-
-==================================================
-16. MIDDLEWARE / ROUTE PROTECTION
-==================================================
-
-Inspect existing middleware before modifying it.
-
-Do not break:
-
-- /admin/*
-- public pages
-- API routes
-- Stripe webhooks
-- existing redirects
-- sitemap
-- robots.txt
-- SEO
-
-Customer routes that require authentication should be protected appropriately.
-
-At this stage, only protect what is actually required by Modules 01–02.
-
-Do not prematurely block public ecommerce browsing.
-
-==================================================
-17. EMAIL DESIGN
-==================================================
-
-Use the existing email provider/infrastructure if available.
-
-Verification email should be branded for ModularHome.
-
-It should contain:
-
-- ModularHome branding
-- verification purpose
-- clear verification CTA
-- appropriate expiration/security messaging
-- support/contact information if the existing email architecture provides it
-
-Do not hardcode secrets.
-
-Do not use development-only sender addresses in production.
-
-==================================================
-18. ENVIRONMENT CONFIGURATION
-==================================================
-
-Support separate environments:
-
-DEVELOPMENT
-STAGING/PREVIEW
-PRODUCTION
-
-Do not mix Supabase projects.
-
-Preview/Staging:
-    → Supabase STAGING
-
-Production:
-    → Supabase PRODUCTION
+Use the existing project environment variables.
 
 Never expose:
 
 SUPABASE_SERVICE_ROLE_KEY
 
-to the client.
-
-Use the project's existing environment variable names where possible.
-
-Do not commit .env files containing secrets.
+to client-side code.
 
 ==================================================
-19. UI / UX
+3. VERIFICATION EMAIL
 ==================================================
 
-The signup and verification screens must visually match the existing ModularHome website.
+Implement the actual verification email flow.
 
-Use:
+The customer should receive an email after signup.
 
-- Existing Tailwind configuration
-- Existing typography
-- Existing buttons
-- Existing form components
-- Existing spacing
-- Existing responsive behavior
-- Existing header/footer where appropriate
+Email must be branded for ModularHome.
 
-Responsive requirements:
+Email should contain:
 
-Desktop
-Tablet
-Mobile
+- ModularHome branding
+- clear verification purpose
+- customer-friendly explanation
+- clear "Verify Email" CTA
+- verification link
+- appropriate security/expiration messaging where supported
+- ModularHome support/contact information if already available from settings
 
-Handle:
+Do not hardcode sensitive credentials.
 
-- loading
-- validation errors
-- network errors
-- signup success
-- verification pending
-- verification success
-- verification failure
-- resend cooldown
+Do not use fake/demo email sending.
 
-Do not use fake buttons or simulated authentication.
-
-Every control must perform the real operation.
+The verification email must actually be generated by the configured authentication/email system.
 
 ==================================================
-20. SEO
+4. EMAIL REDIRECT / CALLBACK
 ==================================================
 
-Customer authentication pages should not be indexed.
+Implement or extend the existing authentication callback.
+
+Preferred conceptual route:
+
+/auth/callback
+
+BUT:
+
+First inspect whether the project already has an authentication callback.
+
+If it exists:
+- reuse it
+- extend it safely
+- do not create a duplicate callback
+
+The callback must:
+
+1. Receive the Supabase authentication callback.
+2. Exchange/process the authentication code using the correct Supabase flow.
+3. Establish the customer session where appropriate.
+4. Confirm that the verification process completed successfully.
+5. Redirect the customer to the correct destination.
+6. Handle invalid/expired callbacks safely.
+
+Do not expose authentication tokens in the UI.
+
+Do not log access tokens, refresh tokens or sensitive authentication data.
+
+==================================================
+5. VERIFIED / UNVERIFIED STATE
+==================================================
+
+The application must determine the customer's verification state from Supabase Auth.
+
+Use the authoritative Supabase Auth state.
+
+Do not create a second conflicting verification state.
+
+Support:
+
+VERIFIED
+
+and
+
+UNVERIFIED
+
+states.
 
 For example:
 
-/signup
-/login
+email_confirmed_at != null
+    → VERIFIED
+
+email_confirmed_at == null
+    → UNVERIFIED
+
+Use the exact Supabase field/state appropriate to the project's installed Supabase version.
+
+Do not guess if the existing implementation uses another authoritative field.
+
+==================================================
+6. VERIFY EMAIL PAGE
+==================================================
+
+Create or improve the appropriate customer-facing verification page.
+
+Possible route:
+
+/verify-email
+
+If an existing route already serves this purpose, reuse it.
+
+The page should clearly tell the customer:
+
+"Check your email"
+
+and explain:
+
+"We sent a verification link to your email address."
+
+Provide:
+
+- email address where appropriate
+- verification instructions
+- resend verification action
+- success state
+- error state
+- loading state
+
+Do not reveal unnecessary account information.
+
+==================================================
+7. RESEND VERIFICATION EMAIL
+==================================================
+
+Implement:
+
+"Resend verification email"
+
+using the supported Supabase authentication flow.
+
+Requirements:
+
+- Only appropriate users can trigger it.
+- Do not expose sensitive authentication information.
+- Prevent unlimited requests.
+- Add a cooldown/rate limit.
+- Show a clear success message.
+- Show a safe error message.
+- Log server-side errors where appropriate.
+
+Example UX:
+
+"Verification email sent. Please check your inbox."
+
+Then:
+
+"Resend available in 60 seconds."
+
+Use an appropriate cooldown based on the existing application rate-limiting architecture.
+
+Do not create an unnecessarily aggressive user experience.
+
+==================================================
+8. INVALID / EXPIRED VERIFICATION LINKS
+==================================================
+
+Handle:
+
+- invalid verification code
+- expired verification link
+- already-used verification link
+- malformed callback
+- missing callback parameters
+- failed Supabase exchange
+
+The customer should see a friendly message.
+
+Example:
+
+"This verification link is invalid or has expired. Please request a new verification email."
+
+Provide:
+
+"Resend verification email"
+
+where appropriate.
+
+Do not expose:
+
+- Supabase errors
+- database errors
+- tokens
+- internal stack traces
+- authentication implementation details
+
+==================================================
+9. SUCCESSFUL VERIFICATION
+==================================================
+
+After successful verification:
+
+Customer
+    ↓
+Verification callback
+    ↓
+Supabase confirms email
+    ↓
+Session established/refreshed if appropriate
+    ↓
+Customer marked VERIFIED
+    ↓
+Redirect to correct customer destination
+
+The destination should follow the existing project architecture.
+
+If Module 01 already defines the post-verification destination, reuse it.
+
+Do not invent a conflicting customer flow.
+
+==================================================
+10. CUSTOMER PROFILE SYNCHRONIZATION
+==================================================
+
+If the project has a customer profile table:
+
+Ensure the customer's profile remains correctly linked to:
+
+Supabase Auth user ID
+
+Do not create duplicate profiles.
+
+Do not manually override Supabase Auth's verification state.
+
+If the application stores a verification timestamp for reporting/admin purposes, keep it synchronized with the authoritative Auth state.
+
+Do not create a conflicting verification source of truth.
+
+==================================================
+11. ADMIN COMPATIBILITY
+==================================================
+
+Do not implement the full Admin Customer module in this task.
+
+However, the implementation must be compatible with later requirements:
+
+- Module 73 — Email Verification Status
+- Module 74 — Resend Verification Email
+
+Those later admin modules require authorized staff to see verified/unverified state and use a controlled resend workflow.
+
+Do not expose customer passwords or authentication secrets.
+
+Do not modify existing Admin authentication.
+
+==================================================
+12. RLS / SECURITY
+==================================================
+
+Verify that customer profile data remains protected by Supabase RLS.
+
+Customer A must not be able to access Customer B's profile.
+
+Anonymous users must not access private customer profile information.
+
+Verification should not weaken any existing RLS policies.
+
+Do not rely only on frontend route protection.
+
+Server/database authorization must remain authoritative.
+
+==================================================
+13. SESSION SECURITY
+==================================================
+
+Use the existing Supabase session architecture.
+
+Do not:
+
+- store passwords
+- expose service-role keys
+- expose refresh tokens
+- manually create insecure authentication tokens
+- store sensitive auth data in localStorage unnecessarily
+
+Inspect the existing middleware/session implementation before modifying it.
+
+Do not break existing Admin sessions.
+
+==================================================
+14. EMAIL CONFIGURATION
+==================================================
+
+Inspect the current Supabase email/auth configuration.
+
+Determine whether the project currently uses:
+
+- Supabase Auth email provider
+- Supabase SMTP
+- custom SMTP
+- Resend
+- SendGrid
+- Mailgun
+- another configured provider
+
+Reuse the existing provider if already configured.
+
+Do not introduce a second email provider unless the existing architecture cannot support the requirement.
+
+If production email configuration is not available, document exactly what configuration remains required.
+
+Do not claim email verification is complete if the email cannot actually be delivered.
+
+==================================================
+15. BRANDING
+==================================================
+
+Use the existing ModularHome design system.
+
+Verification UI should match:
+
+- existing typography
+- colors
+- buttons
+- spacing
+- responsive layout
+- header/footer where appropriate
+
+Do not create an unrelated authentication design.
+
+==================================================
+16. SEO
+==================================================
+
+Verification/authentication pages must not be indexed.
+
+Apply appropriate:
+
+noindex, nofollow
+
+to pages such as:
+
 /verify-email
 /auth/callback
 
-should use appropriate noindex behavior.
+Do not add these pages to the sitemap.
 
-Do not allow authentication pages to generate production sitemap entries.
+Do not generate production canonical URLs that encourage indexing of authentication pages.
 
-Do not create canonical URLs that cause authentication pages to be indexed.
-
-Preserve the existing public SEO implementation.
+Preserve the existing production SEO configuration.
 
 ==================================================
-21. SECURITY TESTING
+17. MOBILE UX
 ==================================================
+
+Verify the entire verification experience on mobile:
+
+- signup completion
+- "check your email" page
+- email link opening
+- callback
+- verification success
+- invalid/expired link
+- resend verification
+
+Buttons must be usable on small screens.
+
+==================================================
+18. TESTING
+==================================================
+
+Perform REAL testing.
+
+Do not mark the module complete based only on TypeScript compilation.
 
 Test:
 
-1. Valid signup
-2. Invalid email
-3. Weak password
-4. Password mismatch
-5. Missing required fields
-6. Terms not accepted
-7. Duplicate signup
-8. Verification email
-9. Verification callback
-10. Expired/invalid verification link
-11. Resend verification
-12. Unverified account state
-13. Verified account state
-14. Logout
-15. Customer cannot access admin
-16. Customer cannot read another customer's profile
-17. Anonymous user cannot read customer profile
-18. Service-role key is never exposed
-19. Authentication errors do not expose sensitive internals
-20. Mobile signup
-21. Mobile verification flow
+TEST 1:
+Create a new customer.
+
+Expected:
+Account is created successfully.
+
+TEST 2:
+Check email.
+
+Expected:
+Verification email is actually received.
+
+TEST 3:
+Inspect email.
+
+Expected:
+ModularHome branding and working verification link.
+
+TEST 4:
+Click verification link.
+
+Expected:
+Callback succeeds.
+
+TEST 5:
+Check authentication state.
+
+Expected:
+Customer is VERIFIED.
+
+TEST 6:
+Refresh/reopen account.
+
+Expected:
+Verification state remains VERIFIED.
+
+TEST 7:
+Attempt invalid verification link.
+
+Expected:
+Safe error page/message.
+
+TEST 8:
+Attempt expired/invalid verification code.
+
+Expected:
+Safe error and resend option.
+
+TEST 9:
+Resend verification.
+
+Expected:
+New verification email is generated.
+
+TEST 10:
+Spam/cooldown.
+
+Expected:
+Repeated resend requests are rate-limited.
+
+TEST 11:
+Customer profile isolation.
+
+Expected:
+Customer cannot access another customer's private data.
+
+TEST 12:
+Admin isolation.
+
+Expected:
+Normal customer cannot access /admin.
+
+TEST 13:
+Mobile.
+
+Expected:
+Complete verification flow works on mobile.
 
 ==================================================
-22. DATABASE TESTING
+19. AUTOMATED TESTS
 ==================================================
 
-Verify:
+If the project already has an automated testing framework, add appropriate tests.
 
-- Supabase Auth user is created.
-- Customer profile is correctly linked.
-- Terms acceptance is recorded if applicable.
-- Verification state is correctly represented.
-- RLS prevents unauthorized profile access.
-- Duplicate profiles are not created.
-- Repeated signup attempts do not create duplicate customer records.
+Test:
 
-Do not modify migrated product/catalog data.
+- verification state detection
+- callback handling
+- invalid callback
+- resend behavior
+- authorization
+- protected customer data
 
-==================================================
-23. STRIPE / ECOMMERCE COMPATIBILITY
-==================================================
-
-Do not break the existing:
-
-- floor plan catalog
-- cart
-- checkout
-- Stripe integration
-- orders
-- digital downloads
-
-The new customer identity system should be designed so later ecommerce modules can link:
-
-Customer
-  ↓
-Orders
-  ↓
-Purchased Plans
-  ↓
-Entitlements
-  ↓
-Downloads
-
-Do not implement Modules 03–50 unless required to make Modules 01–02 function.
+Do not introduce a new testing framework unnecessarily.
 
 ==================================================
-24. TEST COMMANDS
+20. TYPE / BUILD VALIDATION
 ==================================================
 
-After implementation run:
-
-npm run lint
+Run:
 
 npx tsc --noEmit
 
+Then:
+
 npm run build
 
-Also run any existing test suite.
+Also run the project's existing lint/test commands.
 
-If the project has existing E2E tests, add tests for:
+Fix errors introduced by this module.
 
-- signup
-- verification state
-- verification callback
-- RLS/customer isolation
+Do not make unrelated refactors.
 
 ==================================================
-25. GIT SAFETY
+21. PRODUCTION SAFETY
 ==================================================
 
-Do not modify production database.
+Do not:
 
-Do not execute ETL.
+- run ETL
+- run migration:production
+- modify production database catalog data
+- change DNS
+- change Shopify
+- change Stripe production settings
+- delete existing customer data
+- reset Supabase production
 
-Do not run:
-
-npm run migration:production
-
-Do not change DNS.
-
-Do not change production Stripe configuration.
-
-Implement and test in the current development/staging workflow.
+Use the existing development/staging environment for implementation/testing.
 
 ==================================================
-26. FINAL VERIFICATION
+22. ENVIRONMENT VARIABLES
 ==================================================
 
-Before declaring completion, verify:
+Maintain separate:
 
-MODULE 01 — CUSTOMER SIGNUP
+Development
+Staging/Preview
+Production
 
-[ ] Signup page exists
-[ ] Email/password signup works
-[ ] Validation works
-[ ] Password confirmation works
-[ ] Terms acceptance works
-[ ] Supabase Auth user is created
-[ ] Customer profile is linked
-[ ] Duplicate signup handled safely
-[ ] No passwords stored in application database
-[ ] RLS protects customer profile
-[ ] Mobile signup works
+Supabase credentials must correspond to the correct environment.
 
-MODULE 02 — EMAIL VERIFICATION
+Never commit:
 
-[ ] Verification email is sent
-[ ] Email is branded appropriately
-[ ] Verification callback works
-[ ] Verified state is detected
-[ ] Unverified state is detected
-[ ] Resend verification works
-[ ] Resend abuse is controlled
-[ ] Invalid/expired verification is handled
-[ ] Verified customer reaches correct destination
+.env
+.env.local
+.env.production
+.env.staging
+
+if they contain secrets.
+
+Never output secret values in the final report.
+
+==================================================
+23. FINAL MODULE 02 CHECKLIST
+==================================================
+
+Do not mark Module 02 complete until all applicable items are verified:
+
+[ ] Supabase email confirmation enabled
+[ ] Customer receives verification email
+[ ] Email is branded for ModularHome
+[ ] Verification CTA works
+[ ] Verification callback exists
+[ ] Callback securely processes verification
+[ ] Verified state detected from Supabase Auth
+[ ] Unverified state detected
+[ ] Verify-email page implemented
+[ ] Resend verification implemented
+[ ] Resend cooldown/rate limiting implemented
+[ ] Invalid link handled
+[ ] Expired link handled
+[ ] Already-used link handled
+[ ] Verification success handled
+[ ] Correct post-verification redirect
+[ ] Customer session remains secure
+[ ] Customer profile remains linked correctly
+[ ] RLS remains secure
+[ ] Admin authentication unaffected
+[ ] Customer cannot access admin
 [ ] Authentication pages are noindex
-[ ] No secrets/tokens are exposed
+[ ] Authentication pages excluded from sitemap
+[ ] Mobile flow tested
+[ ] TypeScript passes
+[ ] Build passes
+[ ] Existing tests pass
+[ ] Real email delivery tested
 
 ==================================================
-27. DO NOT CLAIM COMPLETION WITHOUT REAL VERIFICATION
+24. FINAL REPORT
 ==================================================
 
-Do not report:
+At the end, report:
 
-"Module 01 completed"
-or
-"Module 02 completed"
+1. Module 02 implementation status:
+   Completed / Ready for QA / Blocked
 
-unless the actual functionality has been implemented and tested.
+2. Files created.
 
-Final response must contain:
+3. Files modified.
 
-1. Files created
-2. Files modified
-3. Database changes
-4. Supabase Auth configuration changes
-5. RLS changes
-6. Email configuration changes
-7. Routes added/modified
-8. Environment variables required (names only; NEVER output secrets)
-9. Tests executed
-10. TypeScript result
-11. Build result
-12. Module 01 status
-13. Module 02 status
-14. Any remaining limitations
+4. Supabase Auth changes.
 
-Keep all existing ModularHome functionality intact.
+5. Database/RLS changes.
+
+6. Email configuration changes.
+
+7. Routes added/modified.
+
+8. Environment variables required:
+   names ONLY — never values.
+
+9. Tests executed.
+
+10. Email delivery test result.
+
+11. TypeScript result.
+
+12. Build result.
+
+13. Security result.
+
+14. Mobile result.
+
+15. Any remaining blockers.
+
+IMPORTANT:
+Do not claim "Completed" unless the verification email was actually delivered and the verification link successfully changed the customer's account to VERIFIED.
+
+If email provider configuration is missing, clearly report:
+
+"Implementation complete, but email delivery configuration remains pending."
+
+Do not modify unrelated modules.
