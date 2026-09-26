@@ -1,7 +1,7 @@
 {
-  "lastSyncAt": null,
-  "totalFound": 0,
-  "newVideosAdded": 0,
-  "updatedVideos": 0,
-  "status": "idle"
+  "totalVideos": 0,
+  "blogPostsCreated": 0,
+  "lastSyncTime": null,
+  "syncStatus": "IDLE",
+  "logs": []
 }
