@@ -1,7 +1,7 @@
 {
   "runMode": "PRODUCTION",
-  "timestamp": "2026-09-26T06:41:45.798Z",
-  "durationTotalMs": 488148,
+  "timestamp": "2026-09-26T15:56:54.241Z",
+  "durationTotalMs": 57901,
   "sourceFiles": [
     "Collections.xlsx",
     "Products.xlsx",
@@ -10,129 +10,127 @@
     "Redirects.xlsx"
   ],
   "sourceStats": {
-    "rawCollectionRows": 214504,
-    "rawProductRows": 133472,
-    "rawPageRows": 233,
-    "rawBlogRows": 200,
-    "rawRedirectRows": 472
+    "rawCollectionRows": 3577,
+    "rawProductRows": 11817,
+    "rawPageRows": 13,
+    "rawBlogRows": 0,
+    "rawRedirectRows": 0
   },
   "stageResults": [
     {
       "stageName": "1. Collections",
       "status": "SUCCESS",
-      "sourceRecords": 461,
-      "processed": 461,
-      "created": 0,
-      "updated": 461,
+      "sourceRecords": 12,
+      "processed": 12,
+      "created": 12,
+      "updated": 0,
       "skipped": 0,
       "rejected": 0,
       "errors": 0,
-      "durationMs": 3636
+      "durationMs": 2579
     },
     {
       "stageName": "2. Products",
       "status": "SUCCESS",
-      "sourceRecords": 5925,
-      "processed": 5925,
-      "created": 0,
-      "updated": 5925,
+      "sourceRecords": 759,
+      "processed": 759,
+      "created": 759,
+      "updated": 0,
       "skipped": 0,
       "rejected": 0,
       "errors": 0,
-      "durationMs": 12651
+      "durationMs": 12207
     },
     {
       "stageName": "3. Variants",
       "status": "SUCCESS",
-      "sourceRecords": 120513,
-      "processed": 120513,
-      "created": 120513,
+      "sourceRecords": 1789,
+      "processed": 1789,
+      "created": 1789,
       "updated": 0,
       "skipped": 0,
       "rejected": 0,
       "errors": 0,
-      "durationMs": 120954
+      "durationMs": 2920
     },
     {
       "stageName": "4. Product Media",
-      "status": "WARNING",
-      "sourceRecords": 20192,
-      "processed": 20191,
-      "created": 20191,
+      "status": "SUCCESS",
+      "sourceRecords": 11791,
+      "processed": 11791,
+      "created": 11791,
       "updated": 0,
       "skipped": 0,
-      "rejected": 1,
+      "rejected": 0,
       "errors": 0,
-      "durationMs": 17759
+      "durationMs": 14030
     },
     {
       "stageName": "5. Product ↔ Collection Memberships",
       "status": "SUCCESS",
-      "sourceRecords": 215717,
-      "processed": 215717,
-      "created": 215717,
+      "sourceRecords": 208617,
+      "processed": 3577,
+      "created": 3577,
       "updated": 0,
       "skipped": 0,
-      "rejected": 0,
+      "rejected": 205040,
       "errors": 0,
-      "durationMs": 159253
+      "durationMs": 5812
     },
     {
       "stageName": "6. Pages",
       "status": "SUCCESS",
-      "sourceRecords": 233,
-      "processed": 233,
-      "created": 233,
+      "sourceRecords": 13,
+      "processed": 13,
+      "created": 13,
       "updated": 0,
       "skipped": 0,
       "rejected": 0,
       "errors": 0,
-      "durationMs": 1280
+      "durationMs": 1323
     },
     {
       "stageName": "7. Blogs / Articles",
       "status": "SUCCESS",
-      "sourceRecords": 199,
-      "processed": 199,
-      "created": 199,
+      "sourceRecords": 0,
+      "processed": 0,
+      "created": 0,
       "updated": 0,
       "skipped": 0,
       "rejected": 0,
       "errors": 0,
-      "durationMs": 8288
+      "durationMs": 564
     },
     {
       "stageName": "8. Existing Redirects",
       "status": "SUCCESS",
-      "sourceRecords": 472,
-      "processed": 472,
-      "created": 472,
+      "sourceRecords": 0,
+      "processed": 0,
+      "created": 0,
       "updated": 0,
       "skipped": 0,
       "rejected": 0,
       "errors": 0,
-      "durationMs": 888
+      "durationMs": 731
     },
     {
       "stageName": "9. ModularHome URL Mappings & 301s",
       "status": "SUCCESS",
-      "sourceRecords": 6818,
-      "processed": 6818,
-      "created": 6818,
+      "sourceRecords": 784,
+      "processed": 784,
+      "created": 784,
       "updated": 0,
       "skipped": 0,
       "rejected": 0,
       "errors": 0,
-      "durationMs": 11420
+      "durationMs": 3044
     }
   ],
   "rejectedSummary": {
-    "total": 1,
-    "byType": {
-      "media": 1
-    }
+    "total": 0,
+    "byType": {}
   },
   "brandingSummary": {
-    "totalFindingsNormalized": 1038
+    "totalFindingsNormalized": 330
   }
 }

@@ -1,0 +1,4208 @@
+{
+  "timestamp": "2026-09-26T15:55:09.764Z",
+  "sourceFile": "C:\\Users\\cheta\\OneDrive\\Desktop\\Devlopment\\SteelWeb\\migration\\source\\Collections.csv",
+  "mode": "DRY_RUN",
+  "durationMs": 357,
+  "headerAnalysis": {
+    "isMatrixifyFormat": true,
+    "totalHeaders": 45,
+    "supportedCount": 11,
+    "relationshipCount": 3,
+    "preservedMetadataCount": 24,
+    "ignoredSafelyCount": 7,
+    "unsupportedCount": 0,
+    "columns": [
+      {
+        "header": "ID",
+        "classification": "SUPPORTED",
+        "destination": "collections.source_id",
+        "notes": "Primary Shopify collection ID for idempotent sync"
+      },
+      {
+        "header": "Handle",
+        "classification": "SUPPORTED",
+        "destination": "collections.handle",
+        "notes": "Unique URL slug / handle"
+      },
+      {
+        "header": "Command",
+        "classification": "IGNORED-SAFELY",
+        "destination": "(none)",
+        "notes": "Matrixify command directive (MERGE/UPDATE/NEW)"
+      },
+      {
+        "header": "Title",
+        "classification": "SUPPORTED",
+        "destination": "collections.title",
+        "notes": "Collection display name"
+      },
+      {
+        "header": "Body HTML",
+        "classification": "SUPPORTED",
+        "destination": "collections.description_html",
+        "notes": "HTML description (branding-cleaned)"
+      },
+      {
+        "header": "Sort Order",
+        "classification": "SUPPORTED",
+        "destination": "collections.metadata.sort_order",
+        "notes": "Collection product sort algorithm"
+      },
+      {
+        "header": "Template Suffix",
+        "classification": "IGNORED-SAFELY",
+        "destination": "(none)",
+        "notes": "Liquid template suffix"
+      },
+      {
+        "header": "Updated At",
+        "classification": "SUPPORTED",
+        "destination": "collections.updated_at",
+        "notes": "Source update timestamp"
+      },
+      {
+        "header": "Image Src",
+        "classification": "SUPPORTED",
+        "destination": "collections.image",
+        "notes": "Collection header/banner image URL"
+      },
+      {
+        "header": "Image Width",
+        "classification": "IGNORED-SAFELY",
+        "destination": "(none)",
+        "notes": "Original image width dimension"
+      },
+      {
+        "header": "Image Height",
+        "classification": "IGNORED-SAFELY",
+        "destination": "(none)",
+        "notes": "Original image height dimension"
+      },
+      {
+        "header": "Image Alt Text",
+        "classification": "SUPPORTED",
+        "destination": "collections.image_alt_text",
+        "notes": "Image accessibility alt text"
+      },
+      {
+        "header": "Products Count",
+        "classification": "IGNORED-SAFELY",
+        "destination": "(none)",
+        "notes": "Source product count (recalculated dynamically)"
+      },
+      {
+        "header": "Row #",
+        "classification": "IGNORED-SAFELY",
+        "destination": "(none)",
+        "notes": "Matrixify export row counter"
+      },
+      {
+        "header": "Top Row",
+        "classification": "IGNORED-SAFELY",
+        "destination": "(none)",
+        "notes": "Matrixify hierarchy top-row indicator"
+      },
+      {
+        "header": "Published: Google & YouTube",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.channels.google_youtube",
+        "notes": "Channel publish state"
+      },
+      {
+        "header": "Published At: Google & YouTube",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.channels.google_youtube_at",
+        "notes": "Channel publish timestamp"
+      },
+      {
+        "header": "Published: Inbox",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.channels.inbox",
+        "notes": "Channel publish state"
+      },
+      {
+        "header": "Published At: Inbox",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.channels.inbox_at",
+        "notes": "Channel publish timestamp"
+      },
+      {
+        "header": "Published: Online Store",
+        "classification": "SUPPORTED",
+        "destination": "collections.published",
+        "notes": "Online store publish visibility"
+      },
+      {
+        "header": "Published At: Online Store",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.channels.online_store_at",
+        "notes": "Online store publish timestamp"
+      },
+      {
+        "header": "Published: Pinterest",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.channels.pinterest",
+        "notes": "Channel publish state"
+      },
+      {
+        "header": "Published At: Pinterest",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.channels.pinterest_at",
+        "notes": "Channel publish timestamp"
+      },
+      {
+        "header": "Published: Point of Sale",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.channels.pos",
+        "notes": "Channel publish state"
+      },
+      {
+        "header": "Published At: Point of Sale",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.channels.pos_at",
+        "notes": "Channel publish timestamp"
+      },
+      {
+        "header": "Published: Shop",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.channels.shop",
+        "notes": "Channel publish state"
+      },
+      {
+        "header": "Published At: Shop",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.channels.shop_at",
+        "notes": "Channel publish timestamp"
+      },
+      {
+        "header": "Source: ID",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.source.id",
+        "notes": "Matrixify source tracking ID"
+      },
+      {
+        "header": "Source: Command",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.source.command",
+        "notes": "Matrixify source command"
+      },
+      {
+        "header": "Source: Type",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.source.type",
+        "notes": "Matrixify source collection type"
+      },
+      {
+        "header": "Source: Title",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.source.title",
+        "notes": "Matrixify source title"
+      },
+      {
+        "header": "Source: Description",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.source.description",
+        "notes": "Matrixify source description"
+      },
+      {
+        "header": "Inclusion: Type",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.inclusion_type",
+        "notes": "Smart collection inclusion rule"
+      },
+      {
+        "header": "Inclusion: Match",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.inclusion_match",
+        "notes": "Smart collection match condition"
+      },
+      {
+        "header": "Condition: Command",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.rules.command",
+        "notes": "Smart rule command"
+      },
+      {
+        "header": "Condition: Field",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.rules.field",
+        "notes": "Smart rule field target"
+      },
+      {
+        "header": "Condition: Relation",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.rules.relation",
+        "notes": "Smart rule operator/relation"
+      },
+      {
+        "header": "Condition: Value",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.rules.value",
+        "notes": "Smart rule match value"
+      },
+      {
+        "header": "Condition: Match",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.rules.match",
+        "notes": "Smart rule condition conjunction"
+      },
+      {
+        "header": "Sort: Position",
+        "classification": "RELATIONSHIP",
+        "destination": "product_collections.position",
+        "notes": "Product position index within collection"
+      },
+      {
+        "header": "Sort: Product ID",
+        "classification": "RELATIONSHIP",
+        "destination": "product_collections.product_id",
+        "notes": "Associated Shopify Product ID"
+      },
+      {
+        "header": "Sort: Product Handle",
+        "classification": "RELATIONSHIP",
+        "destination": "product_collections (by handle)",
+        "notes": "Associated Product Slug"
+      },
+      {
+        "header": "Metafield: title_tag [string]",
+        "classification": "SUPPORTED",
+        "destination": "collections.seo_title",
+        "notes": "Custom SEO title"
+      },
+      {
+        "header": "Metafield: description_tag [string]",
+        "classification": "SUPPORTED",
+        "destination": "collections.seo_description",
+        "notes": "Custom SEO meta description"
+      },
+      {
+        "header": "Metafield: ess_grid_gallery.ess_grid_gallery_id [number_integer]",
+        "classification": "PRESERVED-METADATA",
+        "destination": "metadata.ess_grid_gallery_id",
+        "notes": "Legacy gallery plugin metafield"
+      }
+    ]
+  },
+  "metrics": {
+    "sourceRowCount": 3577,
+    "uniqueCollectionCount": 12,
+    "validCollectionsCount": 12,
+    "rejectedRecordsCount": 0,
+    "rulesPreservedCount": 114,
+    "productLinksCount": 3577,
+    "brandingFindingsCount": 0
+  },
+  "sampleCollections": [
+    {
+      "source_id": "496751706428",
+      "handle": "house-kits",
+      "title": "Panelized SIP Panel House Kit | Energy-Efficient SIP Home Kit",
+      "description_html": "<p><meta charset=\"utf-8\">Structural Insulated Panels, commonly known as <strong data-start=\"47\" data-end=\"62\">SIPs panels</strong>, are one of the fastest-growing building systems in the United States because they create stronger, more energy-efficient homes while dramatically reducing construction time. At AmishBuiltCabins.com we specialize in high-quality <strong data-start=\"285\" data-end=\"304\">SIP panel homes</strong>, <strong data-start=\"306\" data-end=\"323\">SIP kit homes</strong>, and complete <strong data-start=\"338\" data-end=\"351\">SIP homes</strong> designed for easy installation and superior insulation performance. Our precision-engineered <strong data-start=\"445\" data-end=\"460\">SIPs panels</strong> are manufactured to create airtight building envelopes that outperform traditional stick framing, helping homeowners save significantly on energy costs while building faster and stronger structures. Whether you are planning a modern cabin, barndominium, vacation home, or full-time residence, our <strong data-start=\"758\" data-end=\"777\">SIP panel homes</strong> and <strong data-start=\"782\" data-end=\"799\">SIP kit homes</strong> provide a streamlined solution that ships nationwide and can be assembled quickly by builders or experienced DIY homeowners. With the growing demand for efficient construction, <strong data-start=\"977\" data-end=\"990\">SIP homes</strong> built using advanced <strong data-start=\"1012\" data-end=\"1027\">SIPs panels</strong> are becoming the preferred choice for people who want durability, energy efficiency, and faster build times without sacrificing design flexibility. If you are searching for premium <strong data-start=\"1209\" data-end=\"1224\">SIPs panels</strong>, professionally designed <strong data-start=\"1250\" data-end=\"1269\">SIP panel homes</strong>, or turnkey <strong data-start=\"1282\" data-end=\"1299\">SIP kit homes</strong>, HouseKits.com offers one of the most complete selections of <strong data-start=\"1361\" data-end=\"1374\">SIP homes</strong> and <strong data-start=\"1379\" data-end=\"1394\">SIPs panels</strong> available anywhere in the country.</p>",
+      "seo_title": "Panelized SIP Panel House Kit | Energy-Efficient SIP Home Kit | ModularHome",
+      "seo_description": "Structural Insulated Panels, commonly known as SIPs panels, are one of the fastest-growing building systems in the United States because they create stronger, m",
+      "published": false,
+      "sort_order": "Price",
+      "rules": [
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "hummingbird-hollow-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "wildwood-retreat-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "summit-haven-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "cascade-view-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "rocky-crest-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "timberline-retreat-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "misty-peak-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "snowcap-refuge-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "mountain-brooke-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "alpine-glen-duplex-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "tuscany-hillside-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "alpine-chalet-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "harbor-light-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "golden-shore-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "sierra-crest-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "bryce-view-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "zion-overlook-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "teton-trails-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "silver-birch-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "summit-glen-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "riverstone-hideaway-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "meadow-mist-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "sahara-retreat-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "bluebell-haven-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "highland-refuge-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "santorini-ridge-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "patagonia-refuge-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "andean-escape-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "rosewood-retreat-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "willow-creek-cottage-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "cozy-nook-cottage-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "bumblebee-bungalow-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "sunnybrook-haven-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "maple-leaf-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "fernwood-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "lavender-lane-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "pinecone-perch-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "blossom-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "buttercup-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "rose-retreat-house-kit-home-kit-copy"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "meadowlark-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "sparrows-nets-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "willow-wisp-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "daisy-meadow-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "summer-breeze-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "birchwood-bliss-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "petal-place-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "mossy-creek-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "the-dreamy-den-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "the-garden-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "rosebud-retreat-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "silver-fern-retreat-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "starflower-retreat-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "featherstone-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "whispering-pines-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "the-moonlit-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "velvet-hill-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "lavender-lane-house-kit-home-kit-copy"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "cherry-blossom-house-kit-home-kit-copy"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "the-ivy-cottage-house-kit-home-kit-copy"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "the-acorn-cottage-house-kit-home-kit-copy"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "the-pebble-cottage-house-kit-home-kit-copy"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "evergreen-haven-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "evergreen-haven-house-kit-home-kit-copy"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "wildflower-retreat-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "lake-tahoe-retreat-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "wildflower-retreat-house-kit-home-kit-copy-1"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "mountain-views-retreat-house-kit-home-kit-copy"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "cloudberry-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "cinnamon-ridge-cottage-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "the-secret-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "golden-meadows-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "meadow-breeze-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "lavender-skies-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "the-cozy-cove-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "the-brookside-cottage-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "honeycomb-haven-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "shady-oaks-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "the-foxglove-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "timber-ridge-retreat-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "timber-ridge-retreat-house-kit-home-kit-copy"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "morning-mist-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "sunset-ridge-retreat-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "spruce-hollow-retreat-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "the-chateau-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "the-legend-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "the-country-life-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "twilight-springs-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "napa-valley-retreat-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "palm-springs-retreat-house-kit-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "twin-haven-duplex-house-kit-duplex-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "double-delight-duplex-house-kit-duplex-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "dual-bliss-duplex-house-kit-duplex-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "shared-serenity-duplex-house-kit-duplex-home-kit"
+        },
+        {
+          "command": "MERGE",
+          "field": "Manual Selection",
+          "value": "the-timber-ridge-28-panelized-house-kit"
+        }
+      ],
+      "product_links": [
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "cascade-view-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788292038972"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "wildwood-retreat-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788220997948"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "hummingbird-hollow-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9786090357052"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "summit-haven-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788285419836"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "rocky-crest-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788304425276"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "sierra-crest-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788410298684"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "bryce-view-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788418687292"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "timberline-retreat-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788313141564"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "misty-peak-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788318056764"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "zion-overlook-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788429926716"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "teton-trails-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788439724348"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "silver-birch-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788446146876"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "summit-glen-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788458697020"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "snowcap-refuge-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788336505148"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "mountain-brooke-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788347941180"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "riverstone-hideaway-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788475474236"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "meadow-mist-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788484911420"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "sahara-retreat-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788502278460"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "bluebell-haven-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788521185596"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "tuscany-hillside-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788376777020"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "highland-refuge-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788529639740"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "alpine-chalet-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788390801724"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "santorini-ridge-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788535832892"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "patagonia-refuge-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788545728828"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "andean-escape-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788552872252"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "rosewood-retreat-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788565586236"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "harbor-light-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788394209596"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "willow-creek-cottage-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788569026876"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "cozy-nook-cottage-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788574630204"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "golden-shore-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788403089724"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "bumblebee-bungalow-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788585181500"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "sunnybrook-haven-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788594815292"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "maple-leaf-cottage-house-kit-home-kit",
+          "productId": "9788600713532"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "lavender-lane-house-kit-home-kit",
+          "productId": "9788622143804"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "pinecone-perch-house-kit-home-kit",
+          "productId": "9788631777596"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "blossom-cottage-house-kit-home-kit",
+          "productId": "9788636987708"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "buttercup-cottage-house-kit-home-kit",
+          "productId": "9788641476924"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "rose-retreat-house-kit-home-kit-copy",
+          "productId": "9788646752572"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "meadowlark-cottage-house-kit-home-kit",
+          "productId": "9788656124220"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "sparrows-nets-house-kit-home-kit",
+          "productId": "9788669722940"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "willow-wisp-cottage-house-kit-home-kit",
+          "productId": "9788679323964"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "daisy-meadow-cottage-house-kit-home-kit",
+          "productId": "9788687647036"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "summer-breeze-cottage-house-kit-home-kit",
+          "productId": "9788693479740"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "birchwood-bliss-house-kit-home-kit",
+          "productId": "9788700361020"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "petal-place-cottage-house-kit-home-kit",
+          "productId": "9788717171004"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "mossy-creek-house-kit-home-kit",
+          "productId": "9788733030716"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "the-dreamy-den-house-kit-home-kit",
+          "productId": "9788753281340"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "the-garden-cottage-house-kit-home-kit",
+          "productId": "9788765995324"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "rosebud-retreat-house-kit-home-kit",
+          "productId": "9788772352316"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "wildflower-retreat-house-kit-home-kit",
+          "productId": "9788904997180"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "silver-fern-retreat-house-kit-home-kit",
+          "productId": "9788787949884"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "starflower-retreat-house-kit-home-kit",
+          "productId": "9788796830012"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "featherstone-cottage-house-kit-home-kit",
+          "productId": "9788801712444"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "whispering-pines-cottage-house-kit-home-kit",
+          "productId": "9788814491964"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "the-moonlit-cottage-house-kit-home-kit",
+          "productId": "9788819341628"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "velvet-hill-cottage-house-kit-home-kit",
+          "productId": "9788826059068"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "lavender-lane-house-kit-home-kit-copy",
+          "productId": "9788852928828"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "cherry-blossom-house-kit-home-kit-copy",
+          "productId": "9788860694844"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "the-ivy-cottage-house-kit-home-kit-copy",
+          "productId": "9788866724156"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "the-acorn-cottage-house-kit-home-kit-copy",
+          "productId": "9788872491324"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "the-pebble-cottage-house-kit-home-kit-copy",
+          "productId": "9788877668668"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "evergreen-haven-house-kit-home-kit",
+          "productId": "9788892741948"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "alpine-glen-duplex-house-kit-home-kit",
+          "productId": "9788366913852"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "evergreen-haven-house-kit-home-kit-copy",
+          "productId": "9788897853756"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "fernwood-cottage-house-kit-home-kit",
+          "productId": "9788609495356"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "wildflower-retreat-house-kit-home-kit-copy-1",
+          "productId": "9788948545852"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "mountain-views-retreat-house-kit-home-kit-copy",
+          "productId": "9788959719740"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "the-timber-ridge-28-panelized-house-kit",
+          "productId": "10308685300028"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "cloudberry-cottage-house-kit-home-kit",
+          "productId": "9788977643836"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "cinnamon-ridge-cottage-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+          "productId": "9788999106876"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "the-secret-cottage-house-kit-home-kit",
+          "productId": "9789015949628"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "golden-meadows-house-kit-home-kit",
+          "productId": "9789032137020"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "meadow-breeze-house-kit-home-kit",
+          "productId": "9789041180988"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "lavender-skies-house-kit-home-kit",
+          "productId": "9789047406908"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "the-cozy-cove-house-kit-home-kit",
+          "productId": "9789057302844"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "the-brookside-cottage-house-kit-home-kit",
+          "productId": "9789078765884"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "honeycomb-haven-house-kit-home-kit",
+          "productId": "9789087482172"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "shady-oaks-house-kit-home-kit",
+          "productId": "9789097869628"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "the-foxglove-house-kit-home-kit",
+          "productId": "9789110387004"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "timber-ridge-retreat-house-kit-home-kit",
+          "productId": "9789116547388"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "morning-mist-house-kit-home-kit",
+          "productId": "9789144236348"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "sunset-ridge-retreat-house-kit-home-kit",
+          "productId": "9789163733308"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "spruce-hollow-retreat-house-kit-home-kit",
+          "productId": "9789166125372"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "the-chateau-house-kit-home-kit",
+          "productId": "9789182935356"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "the-legend-house-kit-home-kit",
+          "productId": "9789217931580"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "the-country-life-house-kit-home-kit",
+          "productId": "9789228712252"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "twilight-springs-house-kit-home-kit",
+          "productId": "9789243785532"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "napa-valley-retreat-house-kit-home-kit",
+          "productId": "9789249126716"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "lake-tahoe-retreat-house-kit-home-kit",
+          "productId": "9788919054652"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "twin-haven-duplex-house-kit-duplex-home-kit",
+          "productId": "9793849295164"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "timber-ridge-retreat-house-kit-home-kit-copy",
+          "productId": "9789134307644"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "palm-springs-retreat-house-kit-home-kit",
+          "productId": "9789282615612"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "double-delight-duplex-house-kit-duplex-home-kit",
+          "productId": "9793853325628"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "shared-serenity-duplex-house-kit-duplex-home-kit",
+          "productId": "9793857749308"
+        },
+        {
+          "collectionHandle": "house-kits",
+          "productHandle": "dual-bliss-duplex-house-kit-duplex-home-kit",
+          "productId": "9793855619388"
+        }
+      ],
+      "product_count": 95,
+      "metadata": {
+        "sort_order": "Price",
+        "inclusion_type": "Include",
+        "channels": {
+          "Published: Google & YouTube": "1",
+          "Published At: Google & YouTube": "2026-02-01 13:11:02 -0500",
+          "Published: Inbox": "1",
+          "Published At: Inbox": "2024-10-04 00:15:08 -0400",
+          "Published: Online Store": "1",
+          "Published At: Online Store": "2024-10-04 00:15:08 -0400",
+          "Published: Pinterest": "0",
+          "Published: Point of Sale": "1",
+          "Published At: Point of Sale": "2024-10-04 00:15:08 -0400",
+          "Published: Shop": "1",
+          "Published At: Shop": "2024-10-04 00:15:08 -0400",
+          "Source: ID": "21563867452",
+          "Source: Command": "MERGE",
+          "Source: Type": "Products",
+          "Source: Title": "Untitled Source"
+        }
+      },
+      "findings": []
+    },
+    {
+      "source_id": "497296048444",
+      "handle": "prefab-homes",
+      "title": "Prefab Homes - Prefab Housing",
+      "description_html": "<p><meta charset=\"utf-8\">Looking for the best <strong data-start=\"183\" data-end=\"199\">prefab homes</strong> in America? At AmishBuiltCabins.com, we specialize in high-quality, affordable <strong data-start=\"281\" data-end=\"299\">prefab housing</strong> and <strong data-start=\"304\" data-end=\"325\">modular home kits</strong> delivered nationwide. Whether you're building your first home, a vacation cabin, or a modern modular residence, our prefab solutions offer unbeatable value, fast installation, and long-lasting durability. With customizable floor plans, precision-built framing, and 40-year metal warranties, our <strong data-start=\"621\" data-end=\"645\">prefab modular homes</strong> are engineered for both comfort and performance. Backed by American craftsmanship and nationwide delivery, we’re your #1 source for <strong data-start=\"778\" data-end=\"798\">prefab home kits</strong> that are built to last and priced to move.</p>",
+      "seo_title": "Prefab Homes - Prefab Housing | ModularHome",
+      "seo_description": "Looking for the best prefab homes in America? At AmishBuiltCabins.com, we specialize in high-quality, affordable prefab housing and modular home kits delivered",
+      "published": false,
+      "sort_order": "Alphabet",
+      "rules": [
+        {
+          "command": "MERGE",
+          "field": "Title",
+          "relation": "Contains",
+          "value": "cabin",
+          "match": "AND"
+        }
+      ],
+      "product_links": [
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "20-by-32-the-blue-lagoon-modern-cabin-house-with-finished-inside",
+          "productId": "9917007298876"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "albany-file-cabinet",
+          "productId": "9917005267260"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "albany-lateral-file-cabinet",
+          "productId": "9917005103420"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "amish-built-cabin-wagon-inspired-by-oregon-trail",
+          "productId": "9863551615292"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "aspire-log-cabin-kit",
+          "productId": "9856710181180"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "14-by-40-azteca-modern-cabin",
+          "productId": "9786187088188"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "become-a-tiny-home-broker-cabin-broker",
+          "productId": "9998181564732"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "amish-built-betty-boop-cabin",
+          "productId": "9899326406972"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "big-bertha-rustic-cabin-alabama-pricing-shipping-set-up-fees-included-in-our-pricing",
+          "productId": "9839897706812"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "big-bertha-rustic-cabin-georgia-pricing",
+          "productId": "9787022410044"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "big-bertha-rustic-cabin-indiana-pricing-shipping-set-up-fees-included-in-our-pricing",
+          "productId": "9786928628028"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+          "productId": "9786873708860"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "big-bertha-rustic-cabin-michigan-pricing",
+          "productId": "9786946093372"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "big-bertha-rustic-cabin-ohio-pricing-shipping-set-up-fees-included-in-our-pricing",
+          "productId": "9786930233660"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "big-bertha-rustic-cabin-tennessee-pricing-shipping-set-up-fees-included-in-our-pricing",
+          "productId": "9786938196284"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "big-bertha-rustic-cabin-virginia-pricing",
+          "productId": "9786943963452"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "big-bertha-rustic-cabin-illinois-pricing",
+          "productId": "9787026047292"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "big-bertha-rustic-cabin-missouri-pricing",
+          "productId": "9787029356860"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "big-bertha-rustic-cabin-west-virginia-pricing",
+          "productId": "9787027751228"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "camden-file-cabinet",
+          "productId": "9917006446908"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "camden-lateral-file-cabinet",
+          "productId": "9917006479676"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "cape-cod-cottage-amish-built-modular-cabin",
+          "productId": "9786200719676"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "carrot-top-cabin-old-order-amish-rustic-build",
+          "productId": "10284598198588"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "certified-cabin-sales-partner-launch-your-high-ticket-cabin-business",
+          "productId": "10306013954364"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "14-by-36-driftwood-modern-cabin-house-shell",
+          "productId": "9786184499516"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "el-chapo-muchacho",
+          "productId": "9786209698108"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "el-chapo-muchacho-2-0-amish-built-modular-cabin",
+          "productId": "10068082557244"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "little-debbie-cabin-1-bed-1-bath",
+          "productId": "9899595039036"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "modern-big-bertha-3-0-amish-built-modular-cabin",
+          "productId": "10008827363644"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "log-cabin-kits",
+          "productId": "9978070466876"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "nordvik-a-frame-aframe-cabin-kit",
+          "productId": "10377724133692"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "omni-rolling-file-cabinet",
+          "productId": "9916997697852"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-pennysylvania-pricing",
+          "productId": "9801994600764"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-alabama-pricing",
+          "productId": "9792252510524"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-alaska-pricing",
+          "productId": "9801983525180"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-arizona-pricing",
+          "productId": "9792243663164"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-arkansas-pricing",
+          "productId": "9801984540988"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-california-pricing",
+          "productId": "9801985360188"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-colorado-pricing",
+          "productId": "9792293863740"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-connecticut-pricing",
+          "productId": "9792252739900"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-delaware-pricing",
+          "productId": "9792253034812"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-florida-pricing",
+          "productId": "9792253460796"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-georgia-pricing",
+          "productId": "9792254378300"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-hawaii-pricing",
+          "productId": "9801986474300"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-idaho-pricing",
+          "productId": "9801990603068"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-illinois-pricing",
+          "productId": "9792254869820"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-indiana-pricing",
+          "productId": "9792250577212"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-iowa-pricing",
+          "productId": "9792262308156"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-kansas-pricing",
+          "productId": "9792248283452"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-kentucky-pricing",
+          "productId": "9792250315068"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-louisiana-pricing",
+          "productId": "9792269254972"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-maine-pricing",
+          "productId": "9792255131964"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-maryland-pricing",
+          "productId": "9792255361340"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-massachussetts-pricing",
+          "productId": "9792255820092"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-michigan-pricing",
+          "productId": "9792250839356"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-minnesota-pricing",
+          "productId": "9792272630076"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-mississippi-pricing",
+          "productId": "9792256573756"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-missouri-pricing",
+          "productId": "9792276627772"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-montana-pricing",
+          "productId": "9792289931580"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-nebraska-pricing",
+          "productId": "9792287375676"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-nevada-pricing",
+          "productId": "9792299827516"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-new-hampshire-pricing",
+          "productId": "9792257098044"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-new-jersey-pricing",
+          "productId": "9792257392956"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-new-mexico-pricing",
+          "productId": "9792295960892"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-new-york-pricing",
+          "productId": "9792257687868"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-north-carolina-pricing",
+          "productId": "9792251658556"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-north-dakota-pricing",
+          "productId": "9792283607356"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-ohio-pricing",
+          "productId": "9801993486652"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-oklahoma-pricing",
+          "productId": "9792288883004"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-oregon-pricing",
+          "productId": "9801994142012"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-rhode-island-pricing",
+          "productId": "9801995387196"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-south-carolina-pricing",
+          "productId": "9792251986236"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-south-dakota-pricing",
+          "productId": "9792284262716"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-tennessee-pricing",
+          "productId": "9792259064124"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-texas-pricing",
+          "productId": "9792172458300"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-utah-pricing",
+          "productId": "9792299303228"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-vermont-pricing",
+          "productId": "9792259555644"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-virginia-pricing",
+          "productId": "9792251298108"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-washington-pricing",
+          "productId": "9801996632380"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-west-virginia-pricing",
+          "productId": "9792251101500"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-wisconsin-pricing",
+          "productId": "9792260538684"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "pigeon-forge-cabin-wyoming-pricing",
+          "productId": "9792291864892"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "14-by-52-sunnyside-modern-cabin-house-shell-copy",
+          "productId": "9786190528828"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "soho-straight-edge-file-cabinet",
+          "productId": "9916982395196"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "14-by-52-sunnyside-modern-cabin-house-shell",
+          "productId": "9786185056572"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-air-bnb-cabin-the-perfect-rental-cabin",
+          "productId": "9898461004092"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-appalachian-amish-built-modular-cabin",
+          "productId": "9799889551676"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-aspen-snow-cabin-log-cabin-kit",
+          "productId": "9856716636476"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-baltoro-amish-built-modular-cabin",
+          "productId": "10426379370812"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-berkley-cabin-luxury-log-home-kit",
+          "productId": "10278235799868"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-big-family-homesteader-cabin-4-bed-2-bath",
+          "productId": "9897021047100"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-stallion-modern-amish-built-cabin",
+          "productId": "9802220732732"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-black-rancher-cabin-2-bed-2-bath-2-bed-1-bath-or-1-bed-1-bath-options",
+          "productId": "10240290357564"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "16-by-52-the-black-stallion-modern-cabin-house-shell",
+          "productId": "9797451252028"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cameroon-cabin-luxury-log-home-kit",
+          "productId": "10278187696444"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-campfire-rancher-amish-built-modular-cabin",
+          "productId": "10234420724028"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-canadian-rancher-amish-built-modular-cabin",
+          "productId": "10426383368508"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-chattanooga-cabin-shipping-and-set-up-pricing-based-on-your-state",
+          "productId": "9799924810044"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-commercial-cabin-log-cabin-kit",
+          "productId": "9856723910972"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-country-rancher-amish-built-modular-cabin",
+          "productId": "9891808248124"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cowboy-cabin",
+          "productId": "9898457137468"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cowboy-jr-cabin-luxury-log-home-kit",
+          "productId": "10278793642300"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-coy-cabin-log-cabin-kit",
+          "productId": "9856712114492"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cozy-fireplace-cabin-log-cabin-kit",
+          "productId": "9856715653436"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-craftsman-amish-built-modular-cabin",
+          "productId": "9891401204028"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-alabama-pricing",
+          "productId": "9845996781884"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-alaska-pricing",
+          "productId": "9846007628092"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-arizona-pricing",
+          "productId": "9846009069884"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-arkansas-pricing",
+          "productId": "9846009758012"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-california-pricing",
+          "productId": "9846010806588"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-colorado-pricing",
+          "productId": "9846013034812"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-connecticut-pricing",
+          "productId": "9846013788476"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-delaware-pricing",
+          "productId": "9846015230268"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-florida-pricing",
+          "productId": "9846015852860"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-georgia-pricing",
+          "productId": "9846016180540"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-hawaii-pricing",
+          "productId": "9846071853372"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-idaho-pricing",
+          "productId": "9846017720636"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-illinois-pricing",
+          "productId": "9846018015548"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-indiana-pricing",
+          "productId": "9846018408764"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-iowa-pricing",
+          "productId": "9846018572604"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-kansas-pricing",
+          "productId": "9846018998588"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-kentucky-pricing",
+          "productId": "9846019293500"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-louisiana-pricing",
+          "productId": "9846027190588"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-maine-pricing",
+          "productId": "9846027682108"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-maryland-pricing",
+          "productId": "9846041346364"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-massachusetts-pricing",
+          "productId": "9846043443516"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-michigan-pricing",
+          "productId": "9846045016380"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-minnesota-pricing",
+          "productId": "9846047572284"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-mississippi-pricing",
+          "productId": "9846052815164"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-missouri-pricing",
+          "productId": "9846053142844"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-montana-pricing",
+          "productId": "9846053699900"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-nebraska-pricing",
+          "productId": "9846054191420"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-nevada-pricing",
+          "productId": "9846055043388"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-new-hampshire-pricing",
+          "productId": "9846055403836"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-new-jersey-pricing",
+          "productId": "9846058090812"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-new-mexico-pricing",
+          "productId": "9846058647868"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-new-york-pricing",
+          "productId": "9846059008316"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-north-carolina-pricing",
+          "productId": "9846059630908"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-north-dakota-pricing",
+          "productId": "9846060220732"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-ohio-pricing",
+          "productId": "9846060745020"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-oklahoma-pricing",
+          "productId": "9846061138236"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-oregon-pricing",
+          "productId": "9846061531452"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-pennysylvania-pricing",
+          "productId": "9846062350652"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-pennysylvania-pricing-1",
+          "productId": "9846062809404"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-rhode-island-pricing",
+          "productId": "9846063202620"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-south-carolina-pricing",
+          "productId": "9846064087356"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-south-dakota-pricing",
+          "productId": "9846064972092"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-tennessee-pricing",
+          "productId": "9846065299772"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-texas-pricing",
+          "productId": "9846066315580"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-utah-pricing",
+          "productId": "9846067134780"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-vermont-pricing",
+          "productId": "9846067888444"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-virginia-pricing",
+          "productId": "9846068445500"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-washington-pricing",
+          "productId": "9846069363004"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-west-virgina-pricing",
+          "productId": "9846070018364"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-wisconsin-pricing",
+          "productId": "9846070739260"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cumberland-crossing-cabin-wyoming-pricing",
+          "productId": "9846071198012"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-dreamer-cabin-3-bed-2-bath-1200-sq-feet",
+          "productId": "10037717860668"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-dreamy-fields-cabin-luxury-log-home-kit",
+          "productId": "10278141002044"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-family-homesteader-cabin-3-bed-2-bath",
+          "productId": "9894364184892"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-fireberry-cabin-luxury-log-home-kit-1",
+          "productId": "10286575747388"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-fox-trot-cabin-luxury-log-home-kit",
+          "productId": "10278127403324"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-friar-tuck-cabin-1-bed-1-bath",
+          "productId": "9899642388796"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-friar-tuck-cabin-luxury-log-home-kit",
+          "productId": "10278261555516"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-gatlinburg-lodge-amish-built-modular-cabin",
+          "productId": "9846005137724"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-grand-teton-cabin-luxury-log-home-kit",
+          "productId": "10279312654652"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-homestead-cabin-pre-built-shell",
+          "productId": "10300553920828"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-lake-como-amish-built-modular-cabin",
+          "productId": "10426382549308"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-lake-geneva-amish-built-modular-cabin",
+          "productId": "10426382876988"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-lake-louise-amish-built-modular-cabin",
+          "productId": "10426390577468"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-lake-michigan-amish-built-modular-cabin",
+          "productId": "10426380222780"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-lake-tahoe-amish-built-modular-cabin",
+          "productId": "10426380484924"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-lake-victoria-amish-built-modular-cabin",
+          "productId": "10426382680380"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the",
+          "productId": "10300552380732"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-brook-adu-cabin-series",
+          "productId": "9802164371772"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-alaska-pricing",
+          "productId": "9855904842044"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-brook-adu-cabin-series-alaska-pricing",
+          "productId": "9917007331644"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-arizona-pricing",
+          "productId": "9855905104188"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-arkansas-pricing",
+          "productId": "9855905333564"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-california-pricing",
+          "productId": "9855905497404"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-colorado-pricing",
+          "productId": "9855905694012"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-connecticut-pricing",
+          "productId": "9855905890620"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-delaware-pricing",
+          "productId": "9855906021692"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-florida-pricing",
+          "productId": "9855906152764"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-georgia-pricing",
+          "productId": "9855906349372"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-hawaii-pricing",
+          "productId": "9855906480444"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-idaho-pricing",
+          "productId": "9855907168572"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-illinois-pricing",
+          "productId": "9855907299644"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-indiana-pricing",
+          "productId": "9855907496252"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-iowa-pricing",
+          "productId": "9855908413756"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-kansas-pricing",
+          "productId": "9855908938044"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-kentucky-pricing",
+          "productId": "9855909101884"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-louisiana-pricing",
+          "productId": "9855909331260"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-maine-pricing",
+          "productId": "9855909986620"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-maryland-pricing",
+          "productId": "9855910281532"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-massachusetts-pricing",
+          "productId": "9855910576444"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-michigan-pricing",
+          "productId": "9855910740284"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-minnesota-pricing",
+          "productId": "9855910936892"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-mississippi-pricing",
+          "productId": "9855912476988"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-missouri-pricing",
+          "productId": "9855913591100"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-montana-pricing",
+          "productId": "9855915065660"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-nebraska-pricing",
+          "productId": "9855923454268"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-nevada-pricing",
+          "productId": "9855924207932"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-new-hampshire-pricing",
+          "productId": "9855925027132"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-new-jersey-pricing",
+          "productId": "9855925715260"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-new-mexico-pricing",
+          "productId": "9855926108476"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-new-york-pricing",
+          "productId": "9855926599996"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-north-carolina-pricing",
+          "productId": "9855927124284"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-north-dakota-pricing",
+          "productId": "9855927877948"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-ohio-pricing",
+          "productId": "9855942459708"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-oklahoma-pricing",
+          "productId": "9855942721852"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-oregon-pricing",
+          "productId": "9855952978236"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-pennysylvania-pricing",
+          "productId": "9855953273148"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-rhode-island-pricing",
+          "productId": "9855953436988"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-south-carolina-pricing",
+          "productId": "9855953961276"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-south-dakota-pricing",
+          "productId": "9855954125116"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-tennessee-pricing",
+          "productId": "9855954714940"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-texas-pricing",
+          "productId": "9855955009852"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-utah-pricing",
+          "productId": "9855955992892"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-vermont-pricing",
+          "productId": "9855956418876"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-virginia-pricing",
+          "productId": "9855956713788"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-washington-pricing",
+          "productId": "9855958516028"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-west-virginia-pricing",
+          "productId": "9855959269692"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-wisconsin-pricing",
+          "productId": "9855959564604"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-meadow-ridge-adu-cabin-series-wyoming-pricing",
+          "productId": "9855960088892"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-midnight-manor-cabin-pre-built-shell",
+          "productId": "10300554838332"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-mountain-nest-cabin-luxury-log-home-kit",
+          "productId": "10278355665212"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-marco-polo-cabin-2-bed-1-bath-or-2-bed-2-bath-upgrade",
+          "productId": "9894508101948"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-polar-bear-modern-cabin",
+          "productId": "9800015774012"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-puma-cabin-luxury-log-home-kit",
+          "productId": "10278995558716"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-rick-james-cabin-1-bed-1-bath",
+          "productId": "9899611849020"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-cabin-pre-built-shell",
+          "productId": "10300553724220"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-rustic-charm-cabin-new-model",
+          "productId": "10136439619900"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-samuel-modular-cabin-7-sizes-and-price-points-to-choose-from",
+          "productId": "10091859902780"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-pricing",
+          "productId": "9789557375292"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-alaska-pricing",
+          "productId": "9789570416956"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-arizona-pricing",
+          "productId": "9789575463228"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-arkansas-pricing",
+          "productId": "9789580673340"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-california-pricing",
+          "productId": "9789583524156"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-colorado-pricing",
+          "productId": "9789593321788"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-connecticut-pricing",
+          "productId": "9789597417788"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-delaware-pricing",
+          "productId": "9789601317180"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-florida-pricing",
+          "productId": "9789608558908"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-georgia-pricing",
+          "productId": "9789615898940"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-hawaii-pricing",
+          "productId": "9789618913596"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-idaho-pricing",
+          "productId": "9789622124860"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-illinois-pricing",
+          "productId": "9789643456828"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "modern-cottage-retreat",
+          "productId": "9789486858556"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-iowa-pricing",
+          "productId": "9789647257916"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-kansas-pricing",
+          "productId": "9789649617212"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-kentucky-pricing",
+          "productId": "9789549936956"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-louisiana-pricing",
+          "productId": "9789653287228"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-maine-pricing",
+          "productId": "9789656203580"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-maine-pricing-copy",
+          "productId": "9791608258876"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-maryland-pricing-copy",
+          "productId": "9791610945852"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-massachusetts-pricing-copy",
+          "productId": "9791613993276"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-michigan-pricing-copy",
+          "productId": "9791616024892"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-minnesota-pricing-copy",
+          "productId": "9791619432764"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-mississippi-pricing-copy",
+          "productId": "9791621792060"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-alaska-pricing-copy",
+          "productId": "9792039518524"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-nebraska-pricing",
+          "productId": "9792041287996"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-nebraska-pricing-copy",
+          "productId": "9792042238268"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-nevada-pricing-copy",
+          "productId": "9792044335420"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-new-hampshire-pricing-copy",
+          "productId": "9792046006588"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-new-jersey-pricing-copy",
+          "productId": "9792047350076"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-new-mexico-pricing-copy",
+          "productId": "9792049873212"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-north-carolina-pricing",
+          "productId": "9792051413308"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-new-carolina-pricing-copy",
+          "productId": "9792052855100"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-missouri-pricing-copy",
+          "productId": "9792038273340"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-ohio-pricing-copy",
+          "productId": "9792064225596"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-oklahoma-pricing-copy",
+          "productId": "9792066093372"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-pennysylvania-pricing",
+          "productId": "9792069140796"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-rhode-island-pricing",
+          "productId": "9792073826620"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-south-carolina-pricing",
+          "productId": "9792076841276"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-south-dakota-pricing",
+          "productId": "9792080609596"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-tennessee-pricing",
+          "productId": "9789604004156"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-texas-pricing",
+          "productId": "9792082903356"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-utah-pricing",
+          "productId": "9792084181308"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-vermont-pricing",
+          "productId": "9792089882940"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-virginia-pricing",
+          "productId": "9792120127804"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-washington-pricing",
+          "productId": "9792131465532"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-west-virginia-pricing",
+          "productId": "9792132546876"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-wisconsin-pricing",
+          "productId": "9792136053052"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-smoky-mountain-cabin-series-wyoming-pricing",
+          "productId": "9792139264316"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-snow-top-cabin-2-bed-2-bath",
+          "productId": "9945243124028"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-sparrow-cabin-luxury-log-home-kit",
+          "productId": "10278223872316"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-timber-charm-amish-built-modular-cabin",
+          "productId": "10135654990140"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-timberland-ranch-cabin-pre-built-shell",
+          "productId": "10300555329852"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-villa-cottage-amish-built-modular-cabin",
+          "productId": "10169116885308"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-warrior-cabin-log-cabin-kit",
+          "productId": "9856714670396"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-woodland-panelized-log-home-kit-panelized-cabin-kits-copy",
+          "productId": "10031169077564"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook",
+          "productId": "9802007544124"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-alaska-pricing",
+          "productId": "9802015146300"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-arizona-pricing",
+          "productId": "9802015244604"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-arkansas-pricing",
+          "productId": "9802015408444"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-california-pricing",
+          "productId": "9802015473980"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-colorado-pricing",
+          "productId": "9802020323644"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-connecticut-pricing",
+          "productId": "9802020421948"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-delaware-pricing",
+          "productId": "9802035855676"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-florida-pricing",
+          "productId": "9802036281660"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-georgia-pricing",
+          "productId": "9802036937020"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-hawaii-pricing",
+          "productId": "9802037330236"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-idaho-pricing",
+          "productId": "9802038280508"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-illinois-pricing",
+          "productId": "9802038542652"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-indiana-pricing",
+          "productId": "9802038739260"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-iowa-pricing",
+          "productId": "9802038903100"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-kansas-pricing",
+          "productId": "9802039066940"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-kentucky-pricing",
+          "productId": "9802039361852"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-louisiana-pricing",
+          "productId": "9802039689532"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-maine-pricing",
+          "productId": "9802039886140"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-maryland-pricing",
+          "productId": "9802040148284"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-massachusetts-pricing",
+          "productId": "9802041491772"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-michigan-pricing",
+          "productId": "9802041721148"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-minnesota-pricing",
+          "productId": "9802042212668"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-mississippi-pricing",
+          "productId": "9802042442044"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-missouri-pricing",
+          "productId": "9802042736956"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-montana-pricing",
+          "productId": "9802042966332"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-nebraska-pricing",
+          "productId": "9802043359548"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-nevada-pricing",
+          "productId": "9802043556156"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-new-hampshire-pricing",
+          "productId": "9802043785532"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-new-jersey-pricing",
+          "productId": "9802044047676"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-new-mexico-pricing",
+          "productId": "9802044866876"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-new-york-pricing",
+          "productId": "9802045129020"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-north-carolina-pricing",
+          "productId": "9802045423932"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-north-dakota-pricing",
+          "productId": "9802045522236"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-ohio-pricing",
+          "productId": "9802045784380"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-oklahoma-pricing",
+          "productId": "9802046308668"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-oregon-pricing",
+          "productId": "9802046505276"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-pennysylvania-pricing",
+          "productId": "9802046767420"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-rhode-island-pricing",
+          "productId": "9802047029564"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-south-carolina-pricing",
+          "productId": "9802047357244"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-south-dakota-pricing",
+          "productId": "9802047750460"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-tennessee-pricing",
+          "productId": "9802048045372"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-texas-pricing",
+          "productId": "9802048373052"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-utah-pricing",
+          "productId": "9802048536892"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-vermont-pricing",
+          "productId": "9802048799036"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-virginia-pricing",
+          "productId": "9802049093948"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-washington-pricing",
+          "productId": "9802049388860"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-west-virigina-pricing",
+          "productId": "9802049847612"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-wisconsin-pricing",
+          "productId": "9802050142524"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-willow-brook-cabin-wyoming-pricing",
+          "productId": "9802050470204"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-wolf-lodge-cabin-3-bed-2-bath",
+          "productId": "9902607794492"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-woodland-retreat-cabin-pre-built-shell",
+          "productId": "10300554248508"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-woodsman-cabin-turnkey-move-in-ready",
+          "productId": "9891450388796"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-yellowstone-amish-built-modular-cabin",
+          "productId": "10128414245180"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "the-zorro-amish-built-modular-cabin",
+          "productId": "9820475588924"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "tiny-tim-cabin-old-order-amish-rustic-build",
+          "productId": "9896388395324"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "windy-creek-timber-frame-cabin-kit",
+          "productId": "10233519243580"
+        },
+        {
+          "collectionHandle": "prefab-homes",
+          "productHandle": "zelda-a-frame-modular-cabin-shell-turnkey-option",
+          "productId": "10176410026300"
+        }
+      ],
+      "product_count": 348,
+      "metadata": {
+        "sort_order": "Alphabet",
+        "inclusion_type": "Include",
+        "inclusion_match": "all conditions",
+        "channels": {
+          "Published: Google & YouTube": "1",
+          "Published At: Google & YouTube": "2026-02-01 13:11:02 -0500",
+          "Published: Inbox": "1",
+          "Published At: Inbox": "2024-10-17 21:36:37 -0400",
+          "Published: Online Store": "1",
+          "Published At: Online Store": "2024-10-17 21:36:37 -0400",
+          "Published: Pinterest": "1",
+          "Published At: Pinterest": "2024-10-22 23:37:14 -0400",
+          "Published: Point of Sale": "1",
+          "Published At: Point of Sale": "2024-10-17 21:36:37 -0400",
+          "Published: Shop": "1",
+          "Published At: Shop": "2024-10-17 21:36:37 -0400",
+          "Source: ID": "21629043004",
+          "Source: Command": "MERGE",
+          "Source: Type": "Products",
+          "Source: Title": "Untitled Source"
+        }
+      },
+      "findings": []
+    },
+    {
+      "source_id": "506296959292",
+      "handle": "barndominium-kits",
+      "title": "Barndominium Kits  - Barndo Kits - Barndominium House Kits",
+      "description_html": "<p><meta charset=\"utf-8\"><strong data-start=\"177\" data-end=\"245\">Looking for high-quality barndominium kits at unbeatable prices?</strong> Our customizable barndominium kits are engineered for strength, style, and simplicity — perfect for your dream home, workshop, or multi-use space. We offer nationwide shipping and a wide range of floor plans, including metal barndominium kits with open-concept living, integrated garages, and modern finishes. Whether you're building in the country or the suburbs, our barndominium kits are easy to assemble, energy-efficient, and designed to meet local codes. Start your journey with the best barndominium kit supplier in the USA. <strong data-start=\"778\" data-end=\"865\">Get a free quote today and see why thousands trust us for their barndominium build.</strong></p>",
+      "seo_title": "Barndominium Kits  - Barndo Kits - Barndominium House Kits | ModularHome",
+      "seo_description": "Looking for high-quality barndominium kits at unbeatable prices? Our customizable barndominium kits are engineered for strength, style, and simplicity — perfect",
+      "published": false,
+      "sort_order": "Best Selling",
+      "rules": [
+        {
+          "command": "MERGE",
+          "field": "Title",
+          "relation": "Contains",
+          "value": "barndominium",
+          "match": "AND"
+        }
+      ],
+      "product_links": [
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-homestead-barndominium-kit",
+          "productId": "10430292721980"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-frontier-barndominium-kit-1",
+          "productId": "10430291214652"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-yellowstone-barndominium-kit",
+          "productId": "10430289740092"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-ridgeline-barndominium-kit",
+          "productId": "10430288888124"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-durango-barndominium-kit",
+          "productId": "10430287216956"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-timber-creek-barndominium-kit",
+          "productId": "10430275944764"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-telluride-barndominium-kit",
+          "productId": "10426620444988"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-aspen-barndominium-kit",
+          "productId": "10426616545596"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-prairie-rose-barndominium-kit",
+          "productId": "10426584105276"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-sierra-barndominium-kit",
+          "productId": "10426583253308"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-sedona-barndominium-kit",
+          "productId": "10426566967612"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-cheyenne-barndominium-kit",
+          "productId": "10426564444476"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-boulder-barndominium-kit",
+          "productId": "10426563887420"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "pinewood-barndominium-house-kit",
+          "productId": "10241210908988"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-workshop-barndominium-house-kit",
+          "productId": "9789444161852"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-goliath-barndominium-house-kit",
+          "productId": "9789442392380"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "red-rocks-barndominium-house-kit",
+          "productId": "9789440885052"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-nashville-barndominium-house-kit",
+          "productId": "9789439738172"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-bloomington-barndominium-house-kit",
+          "productId": "9789437509948"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "three-forks-barndominium-house-kit",
+          "productId": "9789435543868"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-lookout-barndominium-house-kit",
+          "productId": "9789434036540"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-cheyenne-barndominium-house-kit",
+          "productId": "9789432529212"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-orange-beach-barndominium-house-kit",
+          "productId": "9789429219644"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-big-sky-barndominium-house-kit",
+          "productId": "9789427974460"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-belgrade-barndominium-house-kit",
+          "productId": "9789421453628"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-topeka-barndominium-house-kit-copy",
+          "productId": "9789420142908"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-topeka-barndominium-house-kit",
+          "productId": "9789411557692"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-provo-barndominium-house-kit",
+          "productId": "9789408969020"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-dallas-barndominium-house-kit",
+          "productId": "9789403889980"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-reno-barndominium-house-kit",
+          "productId": "9789402906940"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-missoula-barndominium-house-kit",
+          "productId": "9789400187196"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-steamboat-springs-barndominium-house-kit",
+          "productId": "9789398122812"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-savannah-barndominium-house-kit",
+          "productId": "9789392814396"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-douglas-lake-barndominium-house-kit",
+          "productId": "9789391274300"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-lexington-barndominium-house-kit",
+          "productId": "9789387178300"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-hahns-place-barndominium-house-kit",
+          "productId": "9789385113916"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-whitefish-barndominium-house-kit",
+          "productId": "9789383475516"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-pavilion-barndominium-house-kit",
+          "productId": "9789377052988"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-southern-charm-barndominium-house-kit",
+          "productId": "9789375021372"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-jackson-barndominium-house-kit",
+          "productId": "9789368500540"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-branson-barndominium-house-kit",
+          "productId": "9789365616956"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-sunday-morning-barndominium-house-kit",
+          "productId": "9789358801212"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-yellowstone-retreat-barndominium-house-kit",
+          "productId": "9789357162812"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-sunset-barndominium-house-kit",
+          "productId": "9789352280380"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-regal-barndominium-house-kit",
+          "productId": "9789350412604"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-knoxville-barndominium-house-kit",
+          "productId": "9789348380988"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-lakefront-barndominium-house-kit",
+          "productId": "9789345857852"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-raleigh-barndominium-house-kit",
+          "productId": "9789342744892"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-lodge-barndominium-house-kit",
+          "productId": "9789340418364"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-bozeman-barndominium-house-kit",
+          "productId": "9789336486204"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-boise-barndominium-house-kit",
+          "productId": "9789335011644"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-blackfoot-barndominium-house-kit",
+          "productId": "9789331210556"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-flagstaff-barndominium-house-kit",
+          "productId": "9789329604924"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-smokestack-barndominium-house-kit",
+          "productId": "9789327900988"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-athens-barndominium-house-kit",
+          "productId": "9789327212860"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-holler-barndominium-house-kit",
+          "productId": "9789326754108"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-open-plain-barndominium-house-kit",
+          "productId": "9789325574460"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-ranch-barndominium-house-kit-copy",
+          "productId": "9789314629948"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-ranch-barndominium-house-kit",
+          "productId": "9789313220924"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-frontier-barndominium-house-kit",
+          "productId": "9789312368956"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-whitetail-barndominium-house-kit",
+          "productId": "9789307355452"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-birmingham-barndominium-house-kit-copy",
+          "productId": "9789306241340"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-scandinavian-barndominium-kit-copy",
+          "productId": "9789305127228"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-scandinavian-barndominium-kit",
+          "productId": "9789302767932"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-shire-barndominium-kit-copy",
+          "productId": "9789301457212"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-cody-barndominium-kit-copy",
+          "productId": "9789299687740"
+        },
+        {
+          "collectionHandle": "barndominium-kits",
+          "productHandle": "the-bozeman-barndominium-kit",
+          "productId": "9789294084412"
+        }
+      ],
+      "product_count": 67,
+      "metadata": {
+        "sort_order": "Best Selling",
+        "inclusion_type": "Include",
+        "inclusion_match": "all conditions",
+        "channels": {
+          "Published: Google & YouTube": "0",
+          "Published: Inbox": "0",
+          "Published: Online Store": "0",
+          "Published: Pinterest": "0",
+          "Published: Point of Sale": "0",
+          "Published: Shop": "0",
+          "Source: ID": "22688825660",
+          "Source: Command": "MERGE",
+          "Source: Type": "Products",
+          "Source: Title": "Untitled Source"
+        }
+      },
+      "findings": []
+    },
+    {
+      "source_id": "506316947772",
+      "handle": "steel-barndominium-kits",
+      "title": "Steel Barndominium Kits - Steel Barndo Kits For Sale",
+      "description_html": "<p><meta charset=\"utf-8\">Looking for the best <strong data-start=\"216\" data-end=\"243\">steel barndominium kits</strong> on the market? At AmishBuiltCabins.com , we specialize in affordable, customizable <strong data-start=\"321\" data-end=\"348\">steel barndominium kits</strong> that are engineered for strength, energy efficiency, and easy installation. Whether you're building a modern farmhouse, a rural retreat, or a full-time residence, our <strong data-start=\"516\" data-end=\"531\">barndo kits</strong> come pre-designed with precision-cut steel framing, roof panels, and siding for long-term durability. We ship nationwide and offer sizes ranging from 30x40 to 60x100, all backed by detailed blueprints and support. Join hundreds of happy customers who trust us for high-quality <strong data-start=\"809\" data-end=\"845\">steel barndominium building kits</strong> that are built to last. Get a fast quote today and take the first step toward your dream metal home.</p>",
+      "seo_title": "Steel Barndominium Kits - Steel Barndo Kits For Sale | ModularHome",
+      "seo_description": "Looking for the best steel barndominium kits on the market? At AmishBuiltCabins.com , we specialize in affordable, customizable steel barndominium kits that are",
+      "published": false,
+      "sort_order": "Best Selling",
+      "rules": [
+        {
+          "command": "MERGE",
+          "field": "Title",
+          "relation": "Contains",
+          "value": "barndominium",
+          "match": "AND"
+        }
+      ],
+      "product_links": [
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-homestead-barndominium-kit",
+          "productId": "10430292721980"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-frontier-barndominium-kit-1",
+          "productId": "10430291214652"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-yellowstone-barndominium-kit",
+          "productId": "10430289740092"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-ridgeline-barndominium-kit",
+          "productId": "10430288888124"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-durango-barndominium-kit",
+          "productId": "10430287216956"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-timber-creek-barndominium-kit",
+          "productId": "10430275944764"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-telluride-barndominium-kit",
+          "productId": "10426620444988"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-aspen-barndominium-kit",
+          "productId": "10426616545596"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-prairie-rose-barndominium-kit",
+          "productId": "10426584105276"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-sierra-barndominium-kit",
+          "productId": "10426583253308"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-sedona-barndominium-kit",
+          "productId": "10426566967612"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-cheyenne-barndominium-kit",
+          "productId": "10426564444476"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-boulder-barndominium-kit",
+          "productId": "10426563887420"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "pinewood-barndominium-house-kit",
+          "productId": "10241210908988"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-workshop-barndominium-house-kit",
+          "productId": "9789444161852"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-goliath-barndominium-house-kit",
+          "productId": "9789442392380"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "red-rocks-barndominium-house-kit",
+          "productId": "9789440885052"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-nashville-barndominium-house-kit",
+          "productId": "9789439738172"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-bloomington-barndominium-house-kit",
+          "productId": "9789437509948"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "three-forks-barndominium-house-kit",
+          "productId": "9789435543868"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-lookout-barndominium-house-kit",
+          "productId": "9789434036540"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-cheyenne-barndominium-house-kit",
+          "productId": "9789432529212"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-orange-beach-barndominium-house-kit",
+          "productId": "9789429219644"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-big-sky-barndominium-house-kit",
+          "productId": "9789427974460"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-belgrade-barndominium-house-kit",
+          "productId": "9789421453628"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-topeka-barndominium-house-kit-copy",
+          "productId": "9789420142908"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-topeka-barndominium-house-kit",
+          "productId": "9789411557692"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-provo-barndominium-house-kit",
+          "productId": "9789408969020"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-dallas-barndominium-house-kit",
+          "productId": "9789403889980"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-reno-barndominium-house-kit",
+          "productId": "9789402906940"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-missoula-barndominium-house-kit",
+          "productId": "9789400187196"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-steamboat-springs-barndominium-house-kit",
+          "productId": "9789398122812"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-savannah-barndominium-house-kit",
+          "productId": "9789392814396"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-douglas-lake-barndominium-house-kit",
+          "productId": "9789391274300"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-lexington-barndominium-house-kit",
+          "productId": "9789387178300"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-hahns-place-barndominium-house-kit",
+          "productId": "9789385113916"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-whitefish-barndominium-house-kit",
+          "productId": "9789383475516"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-pavilion-barndominium-house-kit",
+          "productId": "9789377052988"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-southern-charm-barndominium-house-kit",
+          "productId": "9789375021372"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-jackson-barndominium-house-kit",
+          "productId": "9789368500540"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-branson-barndominium-house-kit",
+          "productId": "9789365616956"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-sunday-morning-barndominium-house-kit",
+          "productId": "9789358801212"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-yellowstone-retreat-barndominium-house-kit",
+          "productId": "9789357162812"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-sunset-barndominium-house-kit",
+          "productId": "9789352280380"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-regal-barndominium-house-kit",
+          "productId": "9789350412604"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-knoxville-barndominium-house-kit",
+          "productId": "9789348380988"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-lakefront-barndominium-house-kit",
+          "productId": "9789345857852"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-raleigh-barndominium-house-kit",
+          "productId": "9789342744892"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-lodge-barndominium-house-kit",
+          "productId": "9789340418364"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-bozeman-barndominium-house-kit",
+          "productId": "9789336486204"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-boise-barndominium-house-kit",
+          "productId": "9789335011644"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-blackfoot-barndominium-house-kit",
+          "productId": "9789331210556"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-flagstaff-barndominium-house-kit",
+          "productId": "9789329604924"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-smokestack-barndominium-house-kit",
+          "productId": "9789327900988"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-athens-barndominium-house-kit",
+          "productId": "9789327212860"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-holler-barndominium-house-kit",
+          "productId": "9789326754108"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-open-plain-barndominium-house-kit",
+          "productId": "9789325574460"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-ranch-barndominium-house-kit-copy",
+          "productId": "9789314629948"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-ranch-barndominium-house-kit",
+          "productId": "9789313220924"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-frontier-barndominium-house-kit",
+          "productId": "9789312368956"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-whitetail-barndominium-house-kit",
+          "productId": "9789307355452"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-birmingham-barndominium-house-kit-copy",
+          "productId": "9789306241340"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-scandinavian-barndominium-kit-copy",
+          "productId": "9789305127228"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-scandinavian-barndominium-kit",
+          "productId": "9789302767932"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-shire-barndominium-kit-copy",
+          "productId": "9789301457212"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-cody-barndominium-kit-copy",
+          "productId": "9789299687740"
+        },
+        {
+          "collectionHandle": "steel-barndominium-kits",
+          "productHandle": "the-bozeman-barndominium-kit",
+          "productId": "9789294084412"
+        }
+      ],
+      "product_count": 67,
+      "metadata": {
+        "sort_order": "Best Selling",
+        "inclusion_type": "Include",
+        "inclusion_match": "all conditions",
+        "channels": {
+          "Published: Google & YouTube": "1",
+          "Published At: Google & YouTube": "2026-02-01 13:11:18 -0500",
+          "Published: Inbox": "1",
+          "Published At: Inbox": "2025-05-28 21:43:48 -0400",
+          "Published: Online Store": "1",
+          "Published At: Online Store": "2025-05-28 21:43:48 -0400",
+          "Published: Pinterest": "1",
+          "Published At: Pinterest": "2025-05-28 21:43:48 -0400",
+          "Published: Point of Sale": "1",
+          "Published At: Point of Sale": "2025-05-28 21:43:48 -0400",
+          "Published: Shop": "1",
+          "Published At: Shop": "2025-05-28 21:43:48 -0400",
+          "Source: ID": "22691610940",
+          "Source: Command": "MERGE",
+          "Source: Type": "Products",
+          "Source: Title": "Untitled Source"
+        }
+      },
+      "findings": []
+    },
+    {
+      "source_id": "506297057596",
+      "handle": "barndo-kits",
+      "title": "Barndo Kits - Barndo House Kits",
+      "description_html": "<p><meta charset=\"utf-8\"><strong data-start=\"98\" data-end=\"172\">Shop the best barndo kits for your dream build — delivered nationwide!</strong> Our premium barndo kits combine the durability of steel with the charm of open-concept living, offering flexible layouts for homes, shops, or hybrid spaces. With customizable options, fast lead times, and easy-to-assemble components, our barndo kits are perfect for DIYers, contractors, and landowners ready to build smarter and faster. Whether you need a small barndo kit or a full-sized barndo home with a garage, we've got you covered. <strong data-start=\"612\" data-end=\"705\">Start building with the most trusted name in barndo kits — request your free quote today!</strong></p>",
+      "seo_title": "Barndo Kits - Barndo House Kits | ModularHome",
+      "seo_description": "Shop the best barndo kits for your dream build — delivered nationwide! Our premium barndo kits combine the durability of steel with the charm of open-concept li",
+      "published": false,
+      "sort_order": "Best Selling",
+      "rules": [
+        {
+          "command": "MERGE",
+          "field": "Title",
+          "relation": "Contains",
+          "value": "barndominium",
+          "match": "AND"
+        }
+      ],
+      "product_links": [
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-homestead-barndominium-kit",
+          "productId": "10430292721980"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-frontier-barndominium-kit-1",
+          "productId": "10430291214652"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-yellowstone-barndominium-kit",
+          "productId": "10430289740092"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-ridgeline-barndominium-kit",
+          "productId": "10430288888124"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-durango-barndominium-kit",
+          "productId": "10430287216956"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-timber-creek-barndominium-kit",
+          "productId": "10430275944764"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-telluride-barndominium-kit",
+          "productId": "10426620444988"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-aspen-barndominium-kit",
+          "productId": "10426616545596"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-prairie-rose-barndominium-kit",
+          "productId": "10426584105276"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-sierra-barndominium-kit",
+          "productId": "10426583253308"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-sedona-barndominium-kit",
+          "productId": "10426566967612"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-cheyenne-barndominium-kit",
+          "productId": "10426564444476"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-boulder-barndominium-kit",
+          "productId": "10426563887420"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "pinewood-barndominium-house-kit",
+          "productId": "10241210908988"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-workshop-barndominium-house-kit",
+          "productId": "9789444161852"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-goliath-barndominium-house-kit",
+          "productId": "9789442392380"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "red-rocks-barndominium-house-kit",
+          "productId": "9789440885052"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-nashville-barndominium-house-kit",
+          "productId": "9789439738172"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-bloomington-barndominium-house-kit",
+          "productId": "9789437509948"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "three-forks-barndominium-house-kit",
+          "productId": "9789435543868"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-lookout-barndominium-house-kit",
+          "productId": "9789434036540"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-cheyenne-barndominium-house-kit",
+          "productId": "9789432529212"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-orange-beach-barndominium-house-kit",
+          "productId": "9789429219644"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-big-sky-barndominium-house-kit",
+          "productId": "9789427974460"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-belgrade-barndominium-house-kit",
+          "productId": "9789421453628"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-topeka-barndominium-house-kit-copy",
+          "productId": "9789420142908"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-topeka-barndominium-house-kit",
+          "productId": "9789411557692"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-provo-barndominium-house-kit",
+          "productId": "9789408969020"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-dallas-barndominium-house-kit",
+          "productId": "9789403889980"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-reno-barndominium-house-kit",
+          "productId": "9789402906940"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-missoula-barndominium-house-kit",
+          "productId": "9789400187196"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-steamboat-springs-barndominium-house-kit",
+          "productId": "9789398122812"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-savannah-barndominium-house-kit",
+          "productId": "9789392814396"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-douglas-lake-barndominium-house-kit",
+          "productId": "9789391274300"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-lexington-barndominium-house-kit",
+          "productId": "9789387178300"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-hahns-place-barndominium-house-kit",
+          "productId": "9789385113916"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-whitefish-barndominium-house-kit",
+          "productId": "9789383475516"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-pavilion-barndominium-house-kit",
+          "productId": "9789377052988"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-southern-charm-barndominium-house-kit",
+          "productId": "9789375021372"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-jackson-barndominium-house-kit",
+          "productId": "9789368500540"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-branson-barndominium-house-kit",
+          "productId": "9789365616956"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-sunday-morning-barndominium-house-kit",
+          "productId": "9789358801212"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-yellowstone-retreat-barndominium-house-kit",
+          "productId": "9789357162812"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-sunset-barndominium-house-kit",
+          "productId": "9789352280380"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-regal-barndominium-house-kit",
+          "productId": "9789350412604"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-knoxville-barndominium-house-kit",
+          "productId": "9789348380988"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-lakefront-barndominium-house-kit",
+          "productId": "9789345857852"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-raleigh-barndominium-house-kit",
+          "productId": "9789342744892"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-lodge-barndominium-house-kit",
+          "productId": "9789340418364"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-bozeman-barndominium-house-kit",
+          "productId": "9789336486204"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-boise-barndominium-house-kit",
+          "productId": "9789335011644"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-blackfoot-barndominium-house-kit",
+          "productId": "9789331210556"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-flagstaff-barndominium-house-kit",
+          "productId": "9789329604924"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-smokestack-barndominium-house-kit",
+          "productId": "9789327900988"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-athens-barndominium-house-kit",
+          "productId": "9789327212860"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-holler-barndominium-house-kit",
+          "productId": "9789326754108"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-open-plain-barndominium-house-kit",
+          "productId": "9789325574460"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-ranch-barndominium-house-kit-copy",
+          "productId": "9789314629948"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-ranch-barndominium-house-kit",
+          "productId": "9789313220924"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-frontier-barndominium-house-kit",
+          "productId": "9789312368956"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-whitetail-barndominium-house-kit",
+          "productId": "9789307355452"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-birmingham-barndominium-house-kit-copy",
+          "productId": "9789306241340"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-scandinavian-barndominium-kit-copy",
+          "productId": "9789305127228"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-scandinavian-barndominium-kit",
+          "productId": "9789302767932"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-shire-barndominium-kit-copy",
+          "productId": "9789301457212"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-cody-barndominium-kit-copy",
+          "productId": "9789299687740"
+        },
+        {
+          "collectionHandle": "barndo-kits",
+          "productHandle": "the-bozeman-barndominium-kit",
+          "productId": "9789294084412"
+        }
+      ],
+      "product_count": 67,
+      "metadata": {
+        "sort_order": "Best Selling",
+        "inclusion_type": "Include",
+        "inclusion_match": "all conditions",
+        "channels": {
+          "Published: Google & YouTube": "1",
+          "Published At: Google & YouTube": "2026-02-01 13:11:17 -0500",
+          "Published: Inbox": "1",
+          "Published At: Inbox": "2025-05-28 08:49:28 -0400",
+          "Published: Online Store": "1",
+          "Published At: Online Store": "2025-05-28 08:49:28 -0400",
+          "Published: Pinterest": "1",
+          "Published At: Pinterest": "2025-05-28 08:49:28 -0400",
+          "Published: Point of Sale": "1",
+          "Published At: Point of Sale": "2025-05-28 08:49:28 -0400",
+          "Published: Shop": "1",
+          "Published At: Shop": "2025-05-28 08:49:28 -0400",
+          "Source: ID": "22688858428",
+          "Source: Command": "MERGE",
+          "Source: Type": "Products",
+          "Source: Title": "Untitled Source"
+        }
+      },
+      "findings": []
+    }
+  ]
+}

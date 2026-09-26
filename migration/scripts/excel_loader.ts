@@ -34,8 +34,26 @@ export class ExcelSourceLoader {
     this.sourceDir = sourceDir || path.resolve(__dirname, "../source");
   }
 
+  private resolveSourceFile(baseName: string): string {
+    const csvPath = path.join(this.sourceDir, `${baseName}.csv`);
+    if (fs.existsSync(csvPath)) return csvPath;
+
+    const xlsxPath = path.join(this.sourceDir, `${baseName}.xlsx`);
+    if (fs.existsSync(xlsxPath)) return xlsxPath;
+
+    const xlsPath = path.join(this.sourceDir, `${baseName}.xls`);
+    if (fs.existsSync(xlsPath)) return xlsPath;
+
+    return path.join(this.sourceDir, `${baseName}.csv`);
+  }
+
   public loadPages(): { pages: MappedPage[]; rawRows: number } {
-    const filePath = path.join(this.sourceDir, "Pages.xlsx");
+    const filePath = this.resolveSourceFile("Pages");
+    if (!fs.existsSync(filePath)) {
+      console.warn(`Pages source file not found at ${filePath}`);
+      return { pages: [], rawRows: 0 };
+    }
+
     const wb = XLSX.readFile(filePath, { raw: true });
     const rows: any[] = XLSX.utils.sheet_to_json(wb.Sheets["Pages"] || Object.values(wb.Sheets)[0], { defval: "" });
     
@@ -54,7 +72,12 @@ export class ExcelSourceLoader {
   }
 
   public loadBlogs(): { blogs: MappedBlogPost[]; rawRows: number } {
-    const filePath = path.join(this.sourceDir, "Blogs.xlsx");
+    const filePath = this.resolveSourceFile("Blogs");
+    if (!fs.existsSync(filePath)) {
+      console.warn(`Blogs source file not found at ${filePath}`);
+      return { blogs: [], rawRows: 0 };
+    }
+
     const wb = XLSX.readFile(filePath, { raw: true });
     const rows: any[] = XLSX.utils.sheet_to_json(wb.Sheets["Blog Posts"] || Object.values(wb.Sheets)[0], { defval: "" });
 
@@ -74,7 +97,12 @@ export class ExcelSourceLoader {
   }
 
   public loadRedirects(): { redirects: MappedRedirect[]; rawRows: number } {
-    const filePath = path.join(this.sourceDir, "Redirects.xlsx");
+    const filePath = this.resolveSourceFile("Redirects");
+    if (!fs.existsSync(filePath)) {
+      console.warn(`Redirects source file not found at ${filePath}`);
+      return { redirects: [], rawRows: 0 };
+    }
+
     const wb = XLSX.readFile(filePath, { raw: true });
     const rows: any[] = XLSX.utils.sheet_to_json(wb.Sheets["Redirects"] || Object.values(wb.Sheets)[0], { defval: "" });
 
@@ -97,7 +125,12 @@ export class ExcelSourceLoader {
     links: Array<{ productHandle: string; collectionHandle: string }>;
     rawRows: number;
   } {
-    const filePath = path.join(this.sourceDir, "Collections.xlsx");
+    const filePath = this.resolveSourceFile("Collections");
+    if (!fs.existsSync(filePath)) {
+      console.warn(`Collections source file not found at ${filePath}`);
+      return { collections: [], links: [], rawRows: 0 };
+    }
+
     const wb = XLSX.readFile(filePath, { raw: true });
     const rows: any[] = XLSX.utils.sheet_to_json(wb.Sheets["Collections"] || Object.values(wb.Sheets)[0], { defval: "" });
 
@@ -112,7 +145,7 @@ export class ExcelSourceLoader {
         currentCollectionHandle = String(r["Handle"]).trim().toLowerCase();
       }
 
-      if (r["Title"] && (r["Top Row"] === true || r["TopRow"] === true || r["Handle"])) {
+      if (r["Title"] && (r["Top Row"] === true || r["Top Row"] === "true" || r["TopRow"] === true || r["Handle"])) {
         const handle = String(r["Handle"] || currentCollectionHandle).trim().toLowerCase();
         if (handle && !collectionMap.has(handle)) {
           collectionMap.set(handle, mapCollectionRow(r));
@@ -143,7 +176,12 @@ export class ExcelSourceLoader {
     productCollectionLinks: Array<{ productHandle: string; collectionHandle: string }>;
     rawRows: number;
   } {
-    const filePath = path.join(this.sourceDir, "Products.xlsx");
+    const filePath = this.resolveSourceFile("Products");
+    if (!fs.existsSync(filePath)) {
+      console.warn(`Products source file not found at ${filePath}`);
+      return { products: [], variants: [], media: [], productCollectionLinks: [], rawRows: 0 };
+    }
+
     const wb = XLSX.readFile(filePath, { raw: true });
     const rows: any[] = XLSX.utils.sheet_to_json(wb.Sheets["Products"] || Object.values(wb.Sheets)[0], { defval: "" });
 
@@ -170,7 +208,7 @@ export class ExcelSourceLoader {
         }
       }
 
-      if (r["Title"] && (r["Top Row"] === true || r["TopRow"] === true || r["Handle"])) {
+      if (r["Title"] && (r["Top Row"] === true || r["Top Row"] === "true" || r["TopRow"] === true || r["Handle"])) {
         const handle = String(r["Handle"] || currentProductHandle).trim().toLowerCase();
         if (handle && !productMap.has(handle)) {
           productMap.set(handle, mapProductRow(r));
@@ -229,19 +267,19 @@ export class ExcelSourceLoader {
   }
 
   public loadAll(): LoadedMigrationData {
-    console.log("Loading Pages.xlsx...");
+    console.log("Loading Pages (CSV/XLSX)...");
     const pagesData = this.loadPages();
 
-    console.log("Loading Blogs.xlsx...");
+    console.log("Loading Blogs (CSV/XLSX)...");
     const blogsData = this.loadBlogs();
 
-    console.log("Loading Redirects.xlsx...");
+    console.log("Loading Redirects (CSV/XLSX)...");
     const redirectsData = this.loadRedirects();
 
-    console.log("Loading Collections.xlsx...");
+    console.log("Loading Collections (CSV/XLSX)...");
     const collectionsData = this.loadCollections();
 
-    console.log("Loading Products.xlsx...");
+    console.log("Loading Products (CSV/XLSX)...");
     const productsData = this.loadProducts();
 
     // Merge collection product links from both files

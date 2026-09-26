@@ -18,22 +18,79 @@ export async function GET(
       });
     }
 
-    const { data: product, error } = await supabaseAdmin
+    const { data: p, error } = await supabaseAdmin
       .from("products")
-      .select("*, product_collections(collection_id)")
-      .eq("id", id)
+      .select("*, product_variants(*), product_media(*), product_collections(collection_id)")
+      .or(`id.eq.${id},handle.eq.${id}`)
       .single();
 
-    if (error || !product) {
+    if (error || !p) {
       return NextResponse.json(
         { success: false, error: { message: "Product not found.", code: "NOT_FOUND" } },
         { status: 404 }
       );
     }
 
+    const primaryImg =
+      p.product_media && Array.isArray(p.product_media) && p.product_media.length > 0
+        ? p.product_media[0].source_url
+        : "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80";
+
+    const gallery =
+      p.product_media && Array.isArray(p.product_media) && p.product_media.length > 0
+        ? p.product_media.map((m: any) => m.source_url)
+        : [primaryImg];
+
+    let startingPrice = 89000;
+    if (p.product_variants && Array.isArray(p.product_variants) && p.product_variants.length > 0) {
+      const prices = p.product_variants
+        .map((v: any) => Number(v.price))
+        .filter((pr: number) => !isNaN(pr) && pr > 0);
+      if (prices.length > 0) {
+        startingPrice = Math.min(...prices);
+      }
+    }
+
+    const collectionIds = p.product_collections
+      ? p.product_collections.map((pc: any) => pc.collection_id)
+      : [];
+
     const formatted = {
-      ...product,
-      collectionIds: product.product_collections ? product.product_collections.map((pc: any) => pc.collection_id) : [],
+      id: p.id,
+      _id: p.id,
+      name: p.title || p.name || "",
+      title: p.title || p.name || "",
+      slug: p.handle || p.slug || "",
+      handle: p.handle || p.slug || "",
+      tagline: `Engineered ${p.title || "Modular Home"}`,
+      description: p.description_html || p.description || "",
+      description_html: p.description_html || p.description || "",
+      shortDescription: p.description_html ? p.description_html.replace(/<[^>]*>?/gm, "").slice(0, 180) : "",
+      category: p.product_type || p.category || "Modular Homes",
+      product_type: p.product_type || p.category || "Modular Homes",
+      vendor: p.vendor || "ModularHome",
+      series: "Essential Series",
+      architecturalStyle: "Modern Minimalist",
+      sqft: 800,
+      bedrooms: 2,
+      bathrooms: 1,
+      stories: 1,
+      startingPrice,
+      dimensions: "24' x 36'",
+      frameType: "100% Commercial-Grade Galvanized Light Gauge Steel",
+      roofPitch: "4:12 Pitch",
+      windRating: "Up to 150 MPH",
+      snowLoad: "50 PSF",
+      warranty: "50-Year Structural Steel Frame Warranty",
+      primaryImage: primaryImg,
+      gallery,
+      isPublished: p.status !== "draft" && p.status !== "archived",
+      status: p.status || "active",
+      seoTitle: p.seo_title || `${p.title} | ModularHome`,
+      metaDescription: p.seo_description || (p.description_html ? p.description_html.replace(/<[^>]*>?/gm, "").slice(0, 160) : ""),
+      collectionIds,
+      created_at: p.created_at,
+      updated_at: p.updated_at,
     };
 
     return NextResponse.json({ success: true, data: formatted });
@@ -57,74 +114,41 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    const parseJson = (val: any) => {
-      if (typeof val === "string") {
-        try {
-          return JSON.parse(val);
-        } catch {
-          return val;
-        }
-      }
-      return val;
-    };
+    const rawSlug = body.slug || body.handle;
+    const cleanSlug = rawSlug
+      ? rawSlug.toLowerCase().trim().replace(/[^a-z0-9_-]+/g, "-")
+      : undefined;
 
     const updatePayload: Record<string, any> = {
       updated_at: new Date().toISOString(),
     };
 
-    if (body.name !== undefined) updatePayload.name = body.name;
-    if (body.slug !== undefined) {
-      updatePayload.slug = body.slug.toLowerCase().trim().replace(/[^a-z0-9_-]+/g, "-");
+    if (body.name !== undefined || body.title !== undefined) {
+      updatePayload.title = body.name || body.title;
     }
-    if (body.tagline !== undefined) updatePayload.tagline = body.tagline;
-    if (body.description !== undefined) updatePayload.description = body.description;
-    if (body.shortDescription !== undefined) updatePayload.short_description = body.shortDescription;
-    if (body.short_description !== undefined) updatePayload.short_description = body.short_description;
-    if (body.category !== undefined) updatePayload.category = body.category;
-    if (body.series !== undefined) updatePayload.series = body.series;
-    if (body.architecturalStyle !== undefined) updatePayload.architectural_style = body.architecturalStyle;
-    if (body.architectural_style !== undefined) updatePayload.architectural_style = body.architectural_style;
-    if (body.sqft !== undefined) updatePayload.sqft = Number(body.sqft);
-    if (body.bedrooms !== undefined) updatePayload.bedrooms = Number(body.bedrooms);
-    if (body.bathrooms !== undefined) updatePayload.bathrooms = Number(body.bathrooms);
-    if (body.stories !== undefined) updatePayload.stories = Number(body.stories);
-    if (body.startingPrice !== undefined) updatePayload.starting_price = Number(body.startingPrice);
-    if (body.starting_price !== undefined) updatePayload.starting_price = Number(body.starting_price);
-    if (body.dimensions !== undefined) updatePayload.dimensions = body.dimensions;
-    if (body.frameType !== undefined) updatePayload.frame_type = body.frameType;
-    if (body.frame_type !== undefined) updatePayload.frame_type = body.frame_type;
-    if (body.roofPitch !== undefined) updatePayload.roof_pitch = body.roofPitch;
-    if (body.roof_pitch !== undefined) updatePayload.roof_pitch = body.roof_pitch;
-    if (body.windRating !== undefined) updatePayload.wind_rating = body.windRating;
-    if (body.wind_rating !== undefined) updatePayload.wind_rating = body.wind_rating;
-    if (body.snowLoad !== undefined) updatePayload.snow_load = body.snowLoad;
-    if (body.snow_load !== undefined) updatePayload.snow_load = body.snow_load;
-    if (body.warranty !== undefined) updatePayload.warranty = body.warranty;
-    if (body.primaryImage !== undefined) updatePayload.primary_image = body.primaryImage;
-    if (body.primary_image !== undefined) updatePayload.primary_image = body.primary_image;
-    if (body.gallery !== undefined) updatePayload.gallery = parseJson(body.gallery);
-    if (body.floorPlanImage !== undefined) updatePayload.floor_plan_image = body.floorPlanImage;
-    if (body.floor_plan_image !== undefined) updatePayload.floor_plan_image = body.floor_plan_image;
-    if (body.videoUrl !== undefined) updatePayload.video_url = body.videoUrl;
-    if (body.video_url !== undefined) updatePayload.video_url = body.video_url;
-    if (body.features !== undefined) updatePayload.features = parseJson(body.features);
-    if (body.specs !== undefined) updatePayload.specs = parseJson(body.specs);
-    if (body.customizableOptions !== undefined) updatePayload.customizable_options = parseJson(body.customizableOptions);
-    if (body.customizable_options !== undefined) updatePayload.customizable_options = parseJson(body.customizable_options);
-    if (body.isPublished !== undefined) updatePayload.is_published = body.isPublished;
-    if (body.is_published !== undefined) updatePayload.is_published = body.is_published;
-    if (body.isFeatured !== undefined) updatePayload.is_featured = body.isFeatured;
-    if (body.is_featured !== undefined) updatePayload.is_featured = body.is_featured;
-    if (body.displayOrder !== undefined) updatePayload.display_order = Number(body.displayOrder);
-    if (body.display_order !== undefined) updatePayload.display_order = Number(body.display_order);
-    if (body.seoTitle !== undefined) updatePayload.seo_title = body.seoTitle;
-    if (body.seo_title !== undefined) updatePayload.seo_title = body.seo_title;
-    if (body.metaDescription !== undefined) updatePayload.meta_description = body.metaDescription;
-    if (body.meta_description !== undefined) updatePayload.meta_description = body.meta_description;
-    if (body.imageAltText !== undefined) updatePayload.image_alt_text = body.imageAltText;
-    if (body.image_alt_text !== undefined) updatePayload.image_alt_text = body.image_alt_text;
-    if (body.canonicalUrl !== undefined) updatePayload.canonical_url = body.canonicalUrl;
-    if (body.canonical_url !== undefined) updatePayload.canonical_url = body.canonical_url;
+    if (cleanSlug !== undefined) {
+      updatePayload.handle = cleanSlug;
+    }
+    if (body.description !== undefined || body.description_html !== undefined) {
+      updatePayload.description_html = body.description || body.description_html;
+    }
+    if (body.category !== undefined || body.product_type !== undefined) {
+      updatePayload.product_type = body.category || body.product_type;
+    }
+    if (body.vendor !== undefined) {
+      updatePayload.vendor = body.vendor;
+    }
+    if (body.isPublished !== undefined) {
+      updatePayload.status = body.isPublished ? "active" : "draft";
+    } else if (body.status !== undefined) {
+      updatePayload.status = body.status;
+    }
+    if (body.seoTitle !== undefined || body.seo_title !== undefined) {
+      updatePayload.seo_title = body.seoTitle || body.seo_title;
+    }
+    if (body.metaDescription !== undefined || body.seo_description !== undefined) {
+      updatePayload.seo_description = body.metaDescription || body.seo_description;
+    }
 
     if (isSupabaseConfigured()) {
       const { data: updatedProduct, error } = await supabaseAdmin
@@ -136,6 +160,7 @@ export async function PUT(
 
       if (error) throw error;
 
+      // Update collections junction
       if (Array.isArray(body.collectionIds)) {
         await supabaseAdmin.from("product_collections").delete().eq("product_id", id);
         if (body.collectionIds.length > 0) {
@@ -147,22 +172,75 @@ export async function PUT(
         }
       }
 
+      // Update primary image if passed
+      if (body.primaryImage) {
+        const { data: existingMedia } = await supabaseAdmin
+          .from("product_media")
+          .select("id")
+          .eq("product_id", id)
+          .eq("position", 1)
+          .maybeSingle();
+
+        if (existingMedia) {
+          await supabaseAdmin
+            .from("product_media")
+            .update({ source_url: body.primaryImage })
+            .eq("id", existingMedia.id);
+        } else {
+          await supabaseAdmin.from("product_media").insert({
+            product_id: id,
+            source_url: body.primaryImage,
+            position: 1,
+          });
+        }
+      }
+
+      // Update starting price if passed
+      if (body.startingPrice) {
+        const { data: existingVar } = await supabaseAdmin
+          .from("product_variants")
+          .select("id")
+          .eq("product_id", id)
+          .maybeSingle();
+
+        if (existingVar) {
+          await supabaseAdmin
+            .from("product_variants")
+            .update({ price: Number(body.startingPrice) })
+            .eq("id", existingVar.id);
+        } else {
+          await supabaseAdmin.from("product_variants").insert({
+            product_id: id,
+            title: "Standard",
+            price: Number(body.startingPrice),
+            position: 1,
+          });
+        }
+      }
+
       return NextResponse.json({
         success: true,
-        data: updatedProduct,
-        message: "Product updated successfully.",
+        data: {
+          ...updatedProduct,
+          name: updatedProduct.title,
+          slug: updatedProduct.handle,
+          category: updatedProduct.product_type,
+          isPublished: updatedProduct.status === "active",
+          collectionIds: body.collectionIds || [],
+        },
+        message: "Home model updated successfully.",
       });
     }
 
     return NextResponse.json({
       success: true,
       data: { id, ...updatePayload },
-      message: "Product updated successfully (offline fallback).",
+      message: "Home model updated successfully (offline fallback).",
     });
   } catch (error: any) {
     console.error("Error updating product:", error);
     return NextResponse.json(
-      { success: false, error: { message: error?.message || "Failed to update product.", code: "UPDATE_ERROR" } },
+      { success: false, error: { message: error?.message || "Failed to update home model.", code: "UPDATE_ERROR" } },
       { status: 500 }
     );
   }
@@ -179,22 +257,18 @@ export async function DELETE(
     const { id } = await params;
 
     if (isSupabaseConfigured()) {
-      const { error } = await supabaseAdmin
-        .from("products")
-        .delete()
-        .eq("id", id);
-
+      const { error } = await supabaseAdmin.from("products").delete().eq("id", id);
       if (error) throw error;
     }
 
     return NextResponse.json({
       success: true,
-      message: "Product deleted successfully.",
+      message: "Home model deleted successfully.",
     });
   } catch (error: any) {
     console.error("Error deleting product:", error);
     return NextResponse.json(
-      { success: false, error: { message: "Failed to delete product.", code: "DELETE_ERROR" } },
+      { success: false, error: { message: "Failed to delete home model.", code: "DELETE_ERROR" } },
       { status: 500 }
     );
   }

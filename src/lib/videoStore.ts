@@ -106,7 +106,7 @@ export function readSyncStats(): SyncStats {
   } catch (error) {}
 
   if (syncStatsFallback) {
-    memoryStatsCache = syncStatsFallback as SyncStats;
+    memoryStatsCache = (syncStatsFallback as unknown) as SyncStats;
     return memoryStatsCache;
   }
 

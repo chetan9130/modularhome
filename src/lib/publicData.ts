@@ -646,8 +646,8 @@ export async function getPublicCollections(): Promise<PublicCollection[]> {
           product_id
         )
       `)
-      .eq("status", "PUBLISHED")
-      .order("display_order", { ascending: true });
+      .eq("published", true)
+      .order("title", { ascending: true });
 
     if (error || !dbCollections || dbCollections.length === 0) {
       return [];
@@ -655,19 +655,21 @@ export async function getPublicCollections(): Promise<PublicCollection[]> {
 
     return dbCollections.map((col: any) => {
       const pIds = col.product_collections ? col.product_collections.map((pc: any) => pc.product_id) : [];
+      const title = col.title || col.name || "";
+      const handle = col.handle || col.slug || "";
       return {
         id: col.id,
-        name: col.name,
-        slug: col.slug,
-        tagline: col.tagline || "",
-        description: col.description || "",
+        name: title,
+        slug: handle,
+        tagline: col.tagline || `Engineered ${title}`,
+        description: col.description_html || col.description || "",
         image: col.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
-        bannerImage: col.banner_image || col.image,
+        bannerImage: col.banner_image || col.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1200&q=80",
         isFeatured: Boolean(col.is_featured),
-        status: col.status || "PUBLISHED",
+        status: col.published !== false ? "PUBLISHED" : "DRAFT",
         displayOrder: Number(col.display_order) || 0,
-        seoTitle: col.seo_title || `${col.name} | ModularHome`,
-        metaDescription: col.meta_description || col.description || "",
+        seoTitle: col.seo_title || `${title} | ModularHome`,
+        metaDescription: col.seo_description || col.meta_description || (col.description_html ? col.description_html.replace(/<[^>]*>?/gm, "").slice(0, 160) : ""),
         productCount: pIds.length,
         productIds: pIds,
       };

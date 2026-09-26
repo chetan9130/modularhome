@@ -41,6 +41,9 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# scratch
+# scratch & local cache
 /scratch/
+src/data/custom_admin_sessions.json
 
+# large dataset files exceeding GitHub 100MB limit
+migration/source/Products.csv

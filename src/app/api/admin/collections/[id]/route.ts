@@ -27,7 +27,7 @@ export async function GET(
           product_id
         )
       `)
-      .eq("id", id)
+      .or(`id.eq.${id},handle.eq.${id}`)
       .single();
 
     if (error || !collection) {
@@ -43,6 +43,14 @@ export async function GET(
 
     const formatted = {
       ...collection,
+      name: collection.title || collection.name,
+      title: collection.title || collection.name,
+      slug: collection.handle || collection.slug,
+      handle: collection.handle || collection.slug,
+      description: collection.description_html || collection.description || "",
+      description_html: collection.description_html || collection.description || "",
+      status: collection.published !== false ? "PUBLISHED" : "DRAFT",
+      published: collection.published !== false,
       productIds: pIds,
       productCount: pIds.length,
     };
@@ -68,26 +76,35 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    const cleanSlug = body.slug
-      ? body.slug.toLowerCase().trim().replace(/[^a-z0-9_-]+/g, "-")
+    const rawSlug = body.slug || body.handle;
+    const cleanSlug = rawSlug
+      ? rawSlug.toLowerCase().trim().replace(/[^a-z0-9_-]+/g, "-")
       : undefined;
 
     const updates: Record<string, any> = {
       updated_at: new Date().toISOString(),
     };
 
-    if (body.name !== undefined) updates.name = body.name;
-    if (cleanSlug !== undefined) updates.slug = cleanSlug;
-    if (body.description !== undefined) updates.description = body.description;
-    if (body.tagline !== undefined) updates.tagline = body.tagline;
-    if (body.bannerImage !== undefined) updates.banner_image = body.bannerImage;
-    if (body.image !== undefined) updates.image = body.image;
-    if (body.displayOrder !== undefined) updates.display_order = Number(body.displayOrder);
-    if (body.isFeatured !== undefined) updates.is_featured = Boolean(body.isFeatured);
-    if (body.status !== undefined) updates.status = body.status;
-    if (body.seoTitle !== undefined) updates.seo_title = body.seoTitle;
-    if (body.metaDescription !== undefined) updates.meta_description = body.metaDescription;
-    if (body.imageAltText !== undefined) updates.image_alt_text = body.imageAltText;
+    if (body.title !== undefined || body.name !== undefined) {
+      updates.title = body.title || body.name;
+    }
+    if (cleanSlug !== undefined) {
+      updates.handle = cleanSlug;
+    }
+    if (body.description_html !== undefined || body.description !== undefined) {
+      updates.description_html = body.description_html || body.description;
+    }
+    if (body.seoTitle !== undefined || body.seo_title !== undefined) {
+      updates.seo_title = body.seoTitle || body.seo_title;
+    }
+    if (body.metaDescription !== undefined || body.seo_description !== undefined) {
+      updates.seo_description = body.metaDescription || body.seo_description;
+    }
+    if (body.published !== undefined) {
+      updates.published = Boolean(body.published);
+    } else if (body.status !== undefined) {
+      updates.published = body.status === "PUBLISHED";
+    }
 
     if (isSupabaseConfigured()) {
       const { data: updated, error } = await supabaseAdmin
@@ -112,7 +129,14 @@ export async function PUT(
 
       return NextResponse.json({
         success: true,
-        data: updated,
+        data: {
+          ...updated,
+          name: updated.title,
+          slug: updated.handle,
+          status: updated.published ? "PUBLISHED" : "DRAFT",
+          productIds: body.productIds || [],
+          productCount: (body.productIds || []).length,
+        },
         message: "Collection updated successfully.",
       });
     }

@@ -13,6 +13,7 @@ import {
   Eye,
   EyeOff,
   RefreshCw,
+  SlidersHorizontal,
 } from "lucide-react";
 
 export default function AdminProductsPage() {
@@ -21,25 +22,25 @@ export default function AdminProductsPage() {
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("ALL");
   const [publishFilter, setPublishFilter] = useState("ALL");
+  const [fetchError, setFetchError] = useState("");
 
   const categories = [
+    "Modular Home",
+    "House Kit",
+    "Cabin",
+    "Barndominium",
+    "ADU",
+    "Tiny Home",
     "Residential",
-    "Modular Homes",
-    "Prefab Homes",
-    "Barndominiums",
-    "Cabins",
-    "Tiny Homes",
-    "ADUs",
-    "House Kits",
-    "A-Frames",
     "Commercial",
   ];
 
   const fetchProducts = async () => {
     setIsLoading(true);
+    setFetchError("");
     try {
       const url = new URL("/api/admin/products", window.location.origin);
-      if (search) url.searchParams.set("search", search);
+      if (search.trim()) url.searchParams.set("search", search.trim());
       if (categoryFilter !== "ALL") url.searchParams.set("category", categoryFilter);
       if (publishFilter !== "ALL") url.searchParams.set("isPublished", publishFilter === "PUBLISHED" ? "true" : "false");
 
@@ -47,22 +48,23 @@ export default function AdminProductsPage() {
       const json = await res.json();
       if (json.success) {
         setProducts(json.data || []);
+      } else {
+        setFetchError(json.error?.message || "Failed to load home models.");
       }
-    } catch (e) {
+    } catch (e: any) {
       console.error("Error loading products:", e);
+      setFetchError(e.message || "Network error loading home models.");
     } finally {
       setIsLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchProducts();
-  }, [categoryFilter, publishFilter]);
-
-  const handleSearchSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    fetchProducts();
-  };
+    const timer = setTimeout(() => {
+      fetchProducts();
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [search, categoryFilter, publishFilter]);
 
   const handleTogglePublish = async (id: string, current: boolean) => {
     try {
@@ -74,7 +76,7 @@ export default function AdminProductsPage() {
       const json = await res.json();
       if (json.success) {
         setProducts((prev) =>
-          prev.map((p) => ((p._id || p.id) === id ? { ...p, isPublished: !current } : p))
+          prev.map((p) => ((p._id || p.id) === id ? { ...p, isPublished: !current, status: !current ? "active" : "draft" } : p))
         );
       }
     } catch (e) {
@@ -111,27 +113,29 @@ export default function AdminProductsPage() {
           </p>
         </div>
 
-        <Link
-          href="/admin/products/new"
-          className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] text-xs font-black uppercase tracking-wider shadow-sm transition-all self-start sm:self-auto cursor-pointer"
-        >
-          <Plus className="w-4 h-4" />
-          <span>Add New Model</span>
-        </Link>
+        <div className="flex items-center gap-3 self-start sm:self-auto">
+          <Link
+            href="/admin/products/new"
+            className="inline-flex items-center gap-2 px-5 py-3 rounded-xl bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] text-xs font-black uppercase tracking-wider shadow-sm transition-all cursor-pointer"
+          >
+            <Plus className="w-4 h-4" />
+            <span>Add New Model</span>
+          </Link>
+        </div>
       </div>
 
       {/* Filter and Search Bar */}
       <div className="bg-white p-4 sm:p-5 rounded-[20px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-4">
-        <form onSubmit={handleSearchSubmit} className="relative w-full lg:w-80">
+        <div className="relative w-full lg:w-96">
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search by name, slug, or keyword..."
+            placeholder="Search by model name, slug, or category..."
             className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] font-medium focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
           />
           <Search className="w-4 h-4 text-[#6b7280] absolute left-3.5 top-1/2 -translate-y-1/2" />
-        </form>
+        </div>
 
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex items-center gap-2">
@@ -157,13 +161,46 @@ export default function AdminProductsPage() {
               onChange={(e) => setPublishFilter(e.target.value)}
               className="px-3.5 py-2 rounded-xl border border-[#d5d9e0] bg-[#f8f9fa] text-xs text-[#101114] font-bold focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#fcb907]"
             >
-              <option value="ALL">All</option>
-              <option value="PUBLISHED">Published</option>
-              <option value="UNPUBLISHED">Hidden</option>
+              <option value="ALL">All Statuses</option>
+              <option value="PUBLISHED">Published Only</option>
+              <option value="UNPUBLISHED">Hidden Only</option>
             </select>
           </div>
+
+          <button
+            onClick={fetchProducts}
+            className="p-2.5 bg-white border border-[#d5d9e0] rounded-xl text-[#6b7280] hover:text-[#101114] hover:bg-[#f8f9fa] transition-colors"
+            title="Refresh models"
+          >
+            <RefreshCw className={`w-4 h-4 ${isLoading ? "animate-spin" : ""}`} />
+          </button>
         </div>
       </div>
+
+      {/* Count overview banner */}
+      <div className="flex items-center justify-between text-xs text-[#6b7280] px-1 font-medium">
+        <span>
+          Showing <strong className="text-[#101114]">{products.length}</strong> home models
+        </span>
+        {(search || categoryFilter !== "ALL" || publishFilter !== "ALL") && (
+          <button
+            onClick={() => {
+              setSearch("");
+              setCategoryFilter("ALL");
+              setPublishFilter("ALL");
+            }}
+            className="text-amber-700 font-bold hover:underline"
+          >
+            Clear Filters
+          </button>
+        )}
+      </div>
+
+      {fetchError && (
+        <div className="p-4 bg-red-50 border border-red-200 text-red-800 rounded-2xl text-xs font-semibold">
+          {fetchError}
+        </div>
+      )}
 
       {/* Products Table */}
       <div className="bg-white rounded-[20px] border border-[#e7e9ee] shadow-[0_12px_35px_rgba(16,24,40,0.04)] overflow-hidden">
@@ -183,7 +220,6 @@ export default function AdminProductsPage() {
                 <tr className="bg-[#f8f9fa] border-b border-[#e7e9ee] text-[#6b7280] font-bold uppercase tracking-wider text-[10px] font-mono">
                   <th className="py-4 px-5">Model / Preview</th>
                   <th className="py-4 px-5">Category</th>
-                  <th className="py-4 px-5">Specifications</th>
                   <th className="py-4 px-5">Starting Price</th>
                   <th className="py-4 px-5">Status</th>
                   <th className="py-4 px-5 text-right">Actions</th>
@@ -199,27 +235,24 @@ export default function AdminProductsPage() {
                           <div className="relative w-14 h-14 rounded-xl overflow-hidden bg-[#f8f9fa] shrink-0 border border-[#e7e9ee]">
                             <Image
                               src={prod.primaryImage || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=600&q=80"}
-                              alt={prod.name}
+                              alt={prod.name || prod.title}
                               fill
                               className="object-cover"
                             />
                           </div>
                           <div>
-                            <div className="font-bold text-[#101114] text-sm font-sans">{prod.name}</div>
-                            <div className="text-[11px] font-mono text-[#6b7280]">/models/{prod.slug}</div>
+                            <div className="font-bold text-[#101114] text-sm font-sans line-clamp-1">{prod.name || prod.title}</div>
+                            <div className="text-[11px] font-mono text-[#6b7280]">/buildings/{prod.slug || prod.handle}</div>
                           </div>
                         </div>
                       </td>
                       <td className="py-4 px-5">
                         <span className="px-2.5 py-1 rounded-lg bg-[#f8f9fa] text-[#101114] border border-[#d5d9e0] font-bold text-[11px]">
-                          {prod.category}
+                          {prod.category || prod.product_type}
                         </span>
                       </td>
-                      <td className="py-4 px-5 text-[#101114] text-xs font-medium">
-                        {prod.sqft?.toLocaleString()} sq ft • {prod.bedrooms} Bed, {prod.bathrooms} Bath
-                      </td>
                       <td className="py-4 px-5 font-bold text-[#101114] text-sm font-serif">
-                        ${prod.startingPrice?.toLocaleString()}
+                        ${(prod.startingPrice || 89000).toLocaleString()}
                       </td>
                       <td className="py-4 px-5">
                         <button
@@ -243,7 +276,7 @@ export default function AdminProductsPage() {
                           <Edit2 className="w-4 h-4" />
                         </Link>
                         <button
-                          onClick={() => handleDelete(prodId, prod.name)}
+                          onClick={() => handleDelete(prodId, prod.name || prod.title)}
                           className="p-2 rounded-xl text-[#6b7280] hover:text-[#d97706] hover:bg-red-50 border border-transparent hover:border-red-200 inline-block transition-all cursor-pointer"
                           title="Delete Model"
                         >
