@@ -5,10 +5,10 @@ import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, BookOpen, Clock } from "lucide-react";
 import SectionHeading from "@/components/SectionHeading";
-import { RESOURCE_ARTICLES } from "@/data/resources";
+import { ResourceArticle } from "@/data/resources";
 
 export default function ResourcesSection() {
-  const [articles, setArticles] = useState(RESOURCE_ARTICLES);
+  const [articles, setArticles] = useState<ResourceArticle[]>([]);
 
   useEffect(() => {
     async function loadDynamicBlogs() {

@@ -1,1 +1,32 @@
-[]
+[
+  {
+    "id": "eml-1790428554670-wynbu",
+    "recipient": "test.client.1790428554223@example.com",
+    "template_type": "EMAIL_VERIFICATION",
+    "subject": "Verify your ModularHome.com customer account",
+    "customer_id": "cust-1790428554456-876da81b",
+    "status": "SENT",
+    "metadata": {
+      "callbackUrl": "https://modularhome.com/auth/callback?token=4299b8a3637c43ea9975b4b4e0900e42ef2470be0203496d1684d46bb0fda2ff",
+      "directVerifyUrl": "https://modularhome.com/verify-email?token=4299b8a3637c43ea9975b4b4e0900e42ef2470be0203496d1684d46bb0fda2ff",
+      "name": "Sarah Jenkins",
+      "html_preview": "\n    <div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05);\">\n      <!-- Header -->\n      <div style=\"background: #101114; padding: 28px 24px; text-align: center; border-bottom: 3px solid #fcb907;\">\n        <h1 style=\"color: #ffffff; margin: 0; font-size: 26px; font-weight: 900; let"
+    },
+    "created_at": "2026-09-26T13:15:54.670Z"
+  },
+  {
+    "id": "eml-1790428554461-5txvh",
+    "recipient": "test.client.1790428554223@example.com",
+    "template_type": "EMAIL_VERIFICATION",
+    "subject": "Verify your ModularHome.com customer account",
+    "customer_id": "cust-1790428554456-876da81b",
+    "status": "SENT",
+    "metadata": {
+      "callbackUrl": "https://modularhome.com/auth/callback?token=0adf784766dc89f8047fc2e633981ab774519848bd4bff8731f5bbd395aa07e4",
+      "directVerifyUrl": "https://modularhome.com/verify-email?token=0adf784766dc89f8047fc2e633981ab774519848bd4bff8731f5bbd395aa07e4",
+      "name": "Sarah Jenkins",
+      "html_preview": "\n    <div style=\"font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05);\">\n      <!-- Header -->\n      <div style=\"background: #101114; padding: 28px 24px; text-align: center; border-bottom: 3px solid #fcb907;\">\n        <h1 style=\"color: #ffffff; margin: 0; font-size: 26px; font-weight: 900; let"
+    },
+    "created_at": "2026-09-26T13:15:54.461Z"
+  }
+]

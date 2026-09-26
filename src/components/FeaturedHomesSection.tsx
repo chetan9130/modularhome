@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import BuildingCard from "@/components/BuildingCard";
 import SectionHeading from "@/components/SectionHeading";
-import { BUILDING_MODELS, BuildingModel } from "@/data/models";
+import { BuildingModel } from "@/data/models";
 
 const FEATURED_TABS = [
   "All",
@@ -19,7 +19,7 @@ const FEATURED_TABS = [
 
 export default function FeaturedHomesSection() {
   const [activeTab, setActiveTab] = useState<string>("All");
-  const [homes, setHomes] = useState<BuildingModel[]>(BUILDING_MODELS);
+  const [homes, setHomes] = useState<BuildingModel[]>([]);
 
   useEffect(() => {
     async function loadDynamicHomes() {
@@ -38,7 +38,11 @@ export default function FeaturedHomesSection() {
 
   const filteredHomes = homes.filter((home) => {
     if (activeTab === "All") return true;
-    return home.category === activeTab;
+    const tabLower = activeTab.toLowerCase().replace(/-/g, " ");
+    const hCat = (home.category || "").toLowerCase();
+    const hSeries = (home.series || "").toLowerCase();
+    const hName = (home.name || "").toLowerCase();
+    return hCat.includes(tabLower) || hSeries.includes(tabLower) || hName.includes(tabLower);
   });
 
   return (

@@ -1,0 +1,27 @@
+[
+  {
+    "entityType": "media",
+    "sourceRowIndex": 19475,
+    "sourceId": "10378505683260",
+    "handle": "the-skyhaven-modern-park-model-rv-with-loft-and-monoslope-design",
+    "title": "Error from Shopify API: IMAGE_DOWNLOAD_FAILURE: Could not download image: [\"The uploaded image is corrupt and cannot be processed. Please try a different image.\"]",
+    "status": "REJECTED",
+    "reason": "Invalid media URL format: Error from Shopify API: IMAGE_DOWNLOAD_FAILURE: Could not download image: [\"The uploaded image is corrupt and cannot be processed. Please try a different image.\"]",
+    "errors": [
+      {
+        "field": "source_url",
+        "message": "Invalid media URL format: Error from Shopify API: IMAGE_DOWNLOAD_FAILURE: Could not download image: [\"The uploaded image is corrupt and cannot be processed. Please try a different image.\"]",
+        "severity": "ERROR"
+      }
+    ],
+    "recommendedAction": "Check valid image URL and parent product association",
+    "rawRecord": {
+      "productHandle": "the-skyhaven-modern-park-model-rv-with-loft-and-monoslope-design",
+      "source_url": "Error from Shopify API: IMAGE_DOWNLOAD_FAILURE: Could not download image: [\"The uploaded image is corrupt and cannot be processed. Please try a different image.\"]",
+      "alt_text": null,
+      "position": 1,
+      "media_type": "image",
+      "source_id": "10378505683260"
+    }
+  }
+]

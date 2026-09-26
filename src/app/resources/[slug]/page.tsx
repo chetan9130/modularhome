@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, ArrowRight, BookOpen, Calendar, Clock, CheckCircle2, Share2, Tag, User } from "lucide-react";
 import { getPublicBlogBySlug, getPublicBlogs } from "@/lib/publicData";
 import { resolveVideoEmbedUrl } from "@/lib/videoUtils";
+import RichHtmlContent from "@/components/RichHtmlContent";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -199,18 +200,14 @@ export default async function ResourceDetailPage({ params }: ResourceDetailPageP
               </div>
             )}
 
-            {/* Body Paragraphs */}
-            <div className="space-y-5 text-sm sm:text-base text-[#2c323f] leading-[1.75] font-body">
+            {/* Body Content */}
+            <div className="space-y-6">
               {Array.isArray(article.content) ? (
-                article.content.map((para: string, idx: number) => (
-                  <p key={idx} className="leading-relaxed">
-                    {para}
-                  </p>
+                article.content.map((block: string, idx: number) => (
+                  <RichHtmlContent key={idx} content={block} />
                 ))
               ) : (
-                <div className="whitespace-pre-line leading-relaxed">
-                  {article.content}
-                </div>
+                <RichHtmlContent content={article.content} />
               )}
             </div>
 

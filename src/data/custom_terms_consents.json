@@ -1,0 +1,47 @@
+[
+  {
+    "id": "tc-1790428554459-j7al9",
+    "customer_id": "cust-1790428554456-876da81b",
+    "email": "test.client.1790428554223@example.com",
+    "policy_version": "v1.0",
+    "ip_address": "203.0.113.195",
+    "user_agent": "ModularHomeTestAgent/1.0",
+    "accepted_at": "2026-09-26T13:15:54.456Z"
+  },
+  {
+    "id": "tc-1790412861529-tdawi",
+    "customer_id": "cust-1790412861519-3b2d40c4",
+    "email": "test.client.1790412861267@example.com",
+    "policy_version": "v1.0",
+    "ip_address": "203.0.113.195",
+    "user_agent": "ModularHomeTestAgent/1.0",
+    "accepted_at": "2026-09-26T08:54:21.520Z"
+  },
+  {
+    "id": "tc-1790412568665-ets4r",
+    "customer_id": "cust-1790412568661-dcab62d1",
+    "email": "test.client.1790412568444@example.com",
+    "policy_version": "v1.0",
+    "ip_address": "203.0.113.195",
+    "user_agent": "ModularHomeTestAgent/1.0",
+    "accepted_at": "2026-09-26T08:49:28.661Z"
+  },
+  {
+    "id": "tc-1790412542944-h8bt7",
+    "customer_id": "cust-1790412542940-2ae0b588",
+    "email": "test.client.1790412542730@example.com",
+    "policy_version": "v1.0",
+    "ip_address": "203.0.113.195",
+    "user_agent": "ModularHomeTestAgent/1.0",
+    "accepted_at": "2026-09-26T08:49:02.940Z"
+  },
+  {
+    "id": "tc-1790412511593-gzuxv",
+    "customer_id": "cust-1790412511590-03c2237f",
+    "email": "test.client.1790412511348@example.com",
+    "policy_version": "v1.0",
+    "ip_address": "203.0.113.195",
+    "user_agent": "ModularHomeTestAgent/1.0",
+    "accepted_at": "2026-09-26T08:48:31.590Z"
+  }
+]

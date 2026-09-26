@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { FloorPlan, INITIAL_FLOOR_PLANS } from "@/data/floorPlans";
+import { FloorPlan } from "@/data/floorPlans";
 import FloorPlanCard from "@/components/FloorPlanCard";
 import FloorPlanCheckoutModal from "@/components/FloorPlanCheckoutModal";
 import {
@@ -16,7 +16,8 @@ import {
 } from "lucide-react";
 
 export default function FloorPlansPage() {
-  const [plans, setPlans] = useState<FloorPlan[]>(INITIAL_FLOOR_PLANS);
+  const [loading, setLoading] = useState(true);
+  const [plans, setPlans] = useState<FloorPlan[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [bedroomFilter, setBedroomFilter] = useState<string>("ALL");
@@ -24,12 +25,14 @@ export default function FloorPlansPage() {
   const [selectedPlanForBuy, setSelectedPlanForBuy] = useState<FloorPlan | null>(null);
 
   useEffect(() => {
+    let isMounted = true;
     async function loadFloorPlans() {
+      setLoading(true);
       try {
         const res = await fetch("/api/floor-plans");
         if (res.ok) {
           const json = await res.json();
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
+          if (isMounted && json.success && Array.isArray(json.data) && json.data.length > 0) {
             // Map db schema to FloorPlan interface
             const mapped = json.data.map((p: any) => ({
               id: p.id,
@@ -66,9 +69,14 @@ export default function FloorPlansPage() {
         }
       } catch {
         // Use static initial floor plans
+      } finally {
+        if (isMounted) setLoading(false);
       }
     }
     loadFloorPlans();
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   const categories = ["ALL", "Cabins", "ADUs", "Barndominiums", "Modern Residential", "Duplex & Multi-Family"];
@@ -212,7 +220,24 @@ export default function FloorPlansPage() {
         </div>
 
         {/* Catalog Grid */}
-        {filteredPlans.length > 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <div key={idx} className="bg-white rounded-2xl border border-stone-200/80 overflow-hidden animate-pulse">
+                <div className="aspect-[16/10] bg-stone-200 w-full" />
+                <div className="p-5 space-y-3">
+                  <div className="h-5 bg-stone-200 rounded w-3/4" />
+                  <div className="h-3 bg-stone-200 rounded w-full" />
+                  <div className="h-3 bg-stone-200 rounded w-2/3" />
+                  <div className="pt-3 border-t border-stone-100 flex justify-between items-center">
+                    <div className="h-6 bg-stone-200 rounded w-1/3" />
+                    <div className="h-8 bg-stone-200 rounded-lg w-1/4" />
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : filteredPlans.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
             {filteredPlans.map((plan) => (
               <FloorPlanCard
@@ -236,7 +261,7 @@ export default function FloorPlansPage() {
                 setBedroomFilter("ALL");
                 setSearchQuery("");
               }}
-              className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold hover:bg-orange-700 transition-colors"
+              className="mt-4 px-4 py-2 bg-orange-600 text-white rounded-xl text-xs font-bold hover:bg-orange-700 transition-colors cursor-pointer"
             >
               Reset Filters
             </button>

@@ -66,12 +66,14 @@ export default function HomeSearchBox({ onFilterChange }: HomeSearchBoxProps) {
               >
                 <option value="All Types">All Types</option>
                 <option value="Modular Homes">Modular Homes</option>
-                <option value="Prefab Homes">Prefab Homes</option>
+                <option value="Prefab Cabins">Prefab Cabins</option>
                 <option value="Barndominiums">Barndominiums</option>
-                <option value="House Kits">House Kits</option>
-                <option value="Tiny Homes">Tiny Homes</option>
-                <option value="Cabins">Cabins</option>
-                <option value="ADUs & Granny Pods">ADUs</option>
+                <option value="Kit Homes">Kit Homes</option>
+                <option value="Turnkey Homes">Turnkey Homes</option>
+                <option value="Affordable Housing">Affordable Housing</option>
+                <option value="Panelized Log Homes">Panelized Log Homes</option>
+                <option value="Tiny Homes & ADUs">Tiny Homes & ADUs</option>
+                <option value="Commercial Buildings">Commercial Buildings</option>
               </select>
             </div>
 

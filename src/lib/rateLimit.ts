@@ -20,7 +20,7 @@ export interface RateLimitCheckResult {
  */
 export async function checkLoginRateLimit(
   email: string,
-  ip: string = "unknown"
+  _ip: string = "unknown"
 ): Promise<RateLimitCheckResult> {
   const normalizedEmail = email.toLowerCase().trim();
   const now = Date.now();
@@ -183,5 +183,77 @@ export async function clearLoginAttempts(email: string): Promise<void> {
         .delete()
         .eq("email", normalizedEmail);
     } catch {}
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Email Verification Resend Rate Limiting (60s cooldown & max 5 per hour)
+// ---------------------------------------------------------------------------
+
+const resendAttempts = new Map<
+  string,
+  { lastAttempt: number; count: number; windowStart: number }
+>();
+
+const RESEND_COOLDOWN_MS = 60 * 1000; // 60 seconds minimum between requests
+const RESEND_MAX_HOURLY = 5;
+const RESEND_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+export function checkResendRateLimit(email: string): {
+  allowed: boolean;
+  cooldownSeconds?: number;
+  message?: string;
+} {
+  const normalizedEmail = email.toLowerCase().trim();
+  const now = Date.now();
+  const record = resendAttempts.get(normalizedEmail);
+
+  if (!record) {
+    return { allowed: true };
+  }
+
+  // Check 60-second cooldown
+  const timeSinceLast = now - record.lastAttempt;
+  if (timeSinceLast < RESEND_COOLDOWN_MS) {
+    const remainingSecs = Math.ceil((RESEND_COOLDOWN_MS - timeSinceLast) / 1000);
+    return {
+      allowed: false,
+      cooldownSeconds: remainingSecs,
+      message: `Please wait ${remainingSecs} second${remainingSecs === 1 ? "" : "s"} before requesting another email.`,
+    };
+  }
+
+  // Check hourly limit
+  if (now - record.windowStart < RESEND_WINDOW_MS) {
+    if (record.count >= RESEND_MAX_HOURLY) {
+      const remainingMinutes = Math.ceil((RESEND_WINDOW_MS - (now - record.windowStart)) / 60000);
+      return {
+        allowed: false,
+        cooldownSeconds: remainingMinutes * 60,
+        message: `Too many verification requests. Please try again in ${remainingMinutes} minute${remainingMinutes === 1 ? "" : "s"}.`,
+      };
+    }
+  }
+
+  return { allowed: true };
+}
+
+export function recordResendAttempt(email: string): void {
+  const normalizedEmail = email.toLowerCase().trim();
+  const now = Date.now();
+  const record = resendAttempts.get(normalizedEmail);
+
+  if (!record || now - record.windowStart >= RESEND_WINDOW_MS) {
+    resendAttempts.set(normalizedEmail, {
+      lastAttempt: now,
+      count: 1,
+      windowStart: now,
+    });
+  } else {
+    resendAttempts.set(normalizedEmail, {
+      lastAttempt: now,
+      count: record.count + 1,
+      windowStart: record.windowStart,
+    });
   }
 }

@@ -1,0 +1,74 @@
+[
+  {
+    "entity": "Collections",
+    "targetTable": "collections",
+    "sourceUniqueRows": 461,
+    "dbRowCount": 461,
+    "discrepancy": 0,
+    "status": "MATCHED"
+  },
+  {
+    "entity": "Products",
+    "targetTable": "products",
+    "sourceUniqueRows": 5925,
+    "dbRowCount": 5925,
+    "discrepancy": 0,
+    "status": "MATCHED"
+  },
+  {
+    "entity": "Product Variants",
+    "targetTable": "product_variants",
+    "sourceUniqueRows": 120513,
+    "dbRowCount": 120513,
+    "discrepancy": 0,
+    "status": "MATCHED"
+  },
+  {
+    "entity": "Product Media",
+    "targetTable": "product_media",
+    "sourceUniqueRows": 20192,
+    "dbRowCount": 20191,
+    "discrepancy": -1,
+    "status": "INVESTIGATE"
+  },
+  {
+    "entity": "Pages",
+    "targetTable": "pages",
+    "sourceUniqueRows": 233,
+    "dbRowCount": 233,
+    "discrepancy": 0,
+    "status": "MATCHED"
+  },
+  {
+    "entity": "Blog Posts",
+    "targetTable": "blog_posts",
+    "sourceUniqueRows": 199,
+    "dbRowCount": 199,
+    "discrepancy": 0,
+    "status": "MATCHED"
+  },
+  {
+    "entity": "Redirects (Source + Generated)",
+    "targetTable": "redirects",
+    "sourceUniqueRows": 472,
+    "dbRowCount": 6829,
+    "discrepancy": 6357,
+    "status": "MATCHED_OR_EXPANDED"
+  },
+  {
+    "entity": "ModularHome URL Migrations",
+    "targetTable": "url_migrations",
+    "sourceUniqueRows": 6818,
+    "dbRowCount": 6818,
+    "discrepancy": 0,
+    "status": "MATCHED"
+  },
+  {
+    "entity": "Product ↔ Collection Memberships",
+    "targetTable": "product_collections",
+    "sourceUniqueRows": 215717,
+    "dbRowCount": 215717,
+    "discrepancy": 0,
+    "status": "POPULATED"
+  }
+]

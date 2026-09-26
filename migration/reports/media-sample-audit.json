@@ -1,0 +1,260 @@
+[
+  {
+    "id": "14eaa372-7e5a-41ad-9707-7ecd815e1507",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/yellowstone_1.jpg?v=1732331743",
+    "productHandle": "hummingbird-hollow-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 133951
+  },
+  {
+    "id": "7dbf82c0-1a80-429d-b429-1fa1e5d6f177",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/hh1.png?v=1732467513",
+    "productHandle": "hummingbird-hollow-panelized-sip-panel-house-kit-energy-efficient-sip-home-kit",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/png",
+    "contentLength": 3097966
+  },
+  {
+    "id": "05c00f52-2662-479f-b389-e8c00743b58b",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/newwow5.jpg?v=1732340600",
+    "productHandle": "14-by-36-driftwood-modern-cabin-house-shell",
+    "status": "FAILED",
+    "error": "This operation was aborted"
+  },
+  {
+    "id": "ae048a82-1a1a-49c5-8081-4d28e16c8b5f",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/newwow8.jpg?v=1732341147",
+    "productHandle": "14-by-52-sunnyside-modern-cabin-house-shell",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 353880
+  },
+  {
+    "id": "bb59c3be-28cc-4fb8-bba5-3b296f53ef77",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/newwow.jpg?v=1732341345",
+    "productHandle": "14-by-40-azteca-modern-cabin",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 337874
+  },
+  {
+    "id": "c027664d-2438-47c5-9873-d65c6bbb3c9e",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/newwow7.jpg?v=1732341691",
+    "productHandle": "14-by-52-sunnyside-modern-cabin-house-shell-copy",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 246381
+  },
+  {
+    "id": "458ca197-72a4-47f9-9c27-edd930c0744c",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_175901.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 2721245
+  },
+  {
+    "id": "513019b2-d0e7-4b58-abe5-ce3fdfa3e3d5",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_175919.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 3248326
+  },
+  {
+    "id": "bcf6081d-5ba8-4c5b-a6b6-92ace7c3bb98",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_175924.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "FAILED",
+    "error": "This operation was aborted"
+  },
+  {
+    "id": "59d9ed2e-fa40-4fdf-8371-f55260267146",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_175933.jpg?v=1732393145",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 2240563
+  },
+  {
+    "id": "b17d41d2-ac88-488e-b386-9ff0e588758d",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_175950.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 2409944
+  },
+  {
+    "id": "1d305e4d-a605-4c49-8657-ec149e37e2a7",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_175953.jpg?v=1732393145",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 2284771
+  },
+  {
+    "id": "aa624f1d-401f-45a2-96e3-429b4fa8c03a",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_180002.jpg?v=1732393145",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 1717394
+  },
+  {
+    "id": "3b9dcdc8-f429-4ad8-a10d-39ed71ae7141",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_180014.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 2230641
+  },
+  {
+    "id": "9043b54b-3fc5-4dac-898d-e6b03e859ba1",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_180029.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 2506707
+  },
+  {
+    "id": "e8dc03e3-91c2-4327-aa87-c83d808d1479",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_180051.jpg?v=1732393145",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 1703295
+  },
+  {
+    "id": "4344bb32-8d1a-4681-b139-def435cb6e23",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_180059.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 2201077
+  },
+  {
+    "id": "84632381-e93f-4226-80bd-63103adcdfab",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_180106.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 2300153
+  },
+  {
+    "id": "ba6c0fef-0b0f-4f5b-9a30-be936d55c17a",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_180109.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 2340902
+  },
+  {
+    "id": "540047f2-f0be-4abc-aaa2-2d5cc95e7753",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_180116.jpg?v=1732463900",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 1309074
+  },
+  {
+    "id": "b2cf8fd0-d684-4b0b-9c6b-49cabcd42394",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_180131.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 2619912
+  },
+  {
+    "id": "b9a164f5-a28d-4d98-971e-293a55dcacb3",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_180135.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "FAILED",
+    "error": "This operation was aborted"
+  },
+  {
+    "id": "abe1fb47-29a3-4fe9-b88e-cd73138712b7",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_180140.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 2215358
+  },
+  {
+    "id": "691231e6-7b8e-449a-a5e9-8c7f639eaba1",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_180148.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 2958887
+  },
+  {
+    "id": "f9cdc9ad-87f0-4a93-b5bd-c9c16800165b",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_180229.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 2347921
+  },
+  {
+    "id": "efaa5505-acbf-4d5e-adeb-4a77e0607bca",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240606_180236.jpg?v=1732393146",
+    "productHandle": "big-bertha-rustic-cabin-kentucky-pricing",
+    "status": "FAILED",
+    "error": "This operation was aborted"
+  },
+  {
+    "id": "4cf20294-ee64-47b1-a8a2-1864598e9274",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/2e53b3e19aee30e29f66f688190d2da6_0_d4c3cd0e-f427-435d-a982-dbc0c18bdc74.jpg?v=1732343423",
+    "productHandle": "el-chapo-muchacho",
+    "status": "FAILED",
+    "error": "This operation was aborted"
+  },
+  {
+    "id": "7569f5d7-4711-49a4-8deb-2734482b4c8d",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/1cebe3999213bd98f52120a39eb7d0ed_0.jpg?v=1732343423",
+    "productHandle": "el-chapo-muchacho",
+    "status": "FAILED",
+    "error": "This operation was aborted"
+  },
+  {
+    "id": "e80590ed-8d29-43df-85bc-d0e68ef9a4ac",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240901_153030.jpg?v=1732343423",
+    "productHandle": "el-chapo-muchacho",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 2885945
+  },
+  {
+    "id": "887f01ca-9070-4f8f-bc22-bc41a5d7cae8",
+    "sourceUrl": "https://cdn.shopify.com/s/files/1/0897/2959/7756/files/20240901_153032.jpg?v=1732343423",
+    "productHandle": "el-chapo-muchacho",
+    "status": "VALID",
+    "statusCode": 200,
+    "contentType": "image/jpeg",
+    "contentLength": 1869776
+  }
+]

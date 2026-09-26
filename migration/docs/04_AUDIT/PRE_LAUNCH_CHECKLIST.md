@@ -1,0 +1,19 @@
+# Pre-launch checklist
+- [ ] Source counts reconciled
+- [ ] Duplicate handles resolved
+- [ ] Products/variants/media imported
+- [ ] Collections + memberships imported
+- [ ] Pages + blogs imported
+- [ ] Redirects imported/tested
+- [ ] Existing ModularHome URLs mapped
+- [ ] Amish-specific customer-facing branding reviewed
+- [ ] All images load
+- [ ] Titles/meta descriptions checked
+- [ ] Canonicals use modularhome.com
+- [ ] Sitemap + robots correct
+- [ ] Structured data validated
+- [ ] 404 crawl reviewed
+- [ ] Mobile/desktop QA passed
+- [ ] Admin CRUD tested
+- [ ] Production backup taken
+- [ ] Domain/DNS switch approved

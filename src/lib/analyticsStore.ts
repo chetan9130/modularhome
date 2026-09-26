@@ -1,6 +1,5 @@
 import { supabaseAdmin, isSupabaseConfigured } from "./supabase";
 import { getAllCustomers } from "./customerStore";
-import { INITIAL_FLOOR_PLANS } from "@/data/floorPlans";
 
 export interface AnalyticsSummary {
   grossRevenue: number;

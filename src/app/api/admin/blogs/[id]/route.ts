@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 import { getCustomBlogByIdOrSlug, saveCustomBlog, deleteCustomBlog } from "@/lib/blogStore";
-import { RESOURCE_ARTICLES } from "@/data/resources";
 
 export async function GET(
   request: NextRequest,
@@ -23,43 +22,45 @@ export async function GET(
     // 2. Check Supabase
     if (isSupabaseConfigured()) {
       const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id);
-      const orFilter = isUuid ? `id.eq.${id},slug.eq.${id}` : `slug.eq.${id}`;
+      const orFilter = isUuid ? `id.eq.${id},handle.eq.${id}` : `handle.eq.${id}`;
 
-      const { data: blog, error } = await supabaseAdmin
-        .from("blogs")
+      let { data: blog, error } = await supabaseAdmin
+        .from("blog_posts")
         .select("*")
         .or(orFilter)
         .maybeSingle();
 
-      if (!error && blog) {
-        return NextResponse.json({ success: true, data: blog });
+      if (error || !blog) {
+        const legacyFilter = isUuid ? `id.eq.${id},slug.eq.${id}` : `slug.eq.${id}`;
+        const { data: legacy } = await supabaseAdmin
+          .from("blogs")
+          .select("*")
+          .or(legacyFilter)
+          .maybeSingle();
+        blog = legacy;
       }
-    }
 
-    // 3. Check static RESOURCE_ARTICLES
-    const staticRes = RESOURCE_ARTICLES.find(
-      (r) => r.id === id || r.slug.toLowerCase() === id.toLowerCase()
-    );
-    if (staticRes) {
-      return NextResponse.json({
-        success: true,
-        data: {
-          id: staticRes.id,
-          slug: staticRes.slug,
-          title: staticRes.title,
-          category: staticRes.category,
-          readTime: staticRes.readTime,
-          excerpt: staticRes.excerpt,
-          content: Array.isArray(staticRes.content) ? staticRes.content.join("\n\n") : staticRes.content,
-          featuredImage: staticRes.image,
-          featured_image: staticRes.image,
-          author: staticRes.author || "ModularHome Engineering Team",
-          status: "PUBLISHED",
-          publishedAt: staticRes.date,
-          tags: staticRes.tags || [],
-          keyTakeaways: staticRes.keyTakeaways || [],
-        },
-      });
+      if (blog) {
+        return NextResponse.json({
+          success: true,
+          data: {
+            id: blog.id,
+            slug: blog.handle || blog.slug,
+            title: blog.title,
+            category: blog.blog_title || blog.category || "Building Guides",
+            readTime: blog.read_time || "5 min read",
+            excerpt: blog.excerpt || blog.seo_description || "",
+            content: blog.body_html || blog.content || "",
+            featuredImage: blog.image_url || blog.featured_image || "",
+            featured_image: blog.image_url || blog.featured_image || "",
+            author: blog.author || blog.author_name || "ModularHome Engineering Team",
+            status: blog.status || "PUBLISHED",
+            publishedAt: blog.published_at || blog.created_at,
+            tags: Array.isArray(blog.tags) ? blog.tags : [],
+            keyTakeaways: Array.isArray(blog.key_takeaways) ? blog.key_takeaways : [],
+          },
+        });
+      }
     }
 
     return NextResponse.json(

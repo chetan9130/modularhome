@@ -1,27 +1,8 @@
 import { notFound } from "next/navigation";
-import Image from "next/image";
-import Link from "next/link";
-import { 
-  ArrowRight, 
-  Phone, 
-  ShieldCheck, 
-  Check, 
-  Maximize2, 
-  Layers, 
-  Wind, 
-  Compass, 
-  Play, 
-  FileDown, 
-  Calculator,
-  Bed,
-  Bath,
-  Home
-} from "lucide-react";
-import { BUILDING_MODELS, BuildingModel } from "@/data/models";
-import BuildingCard from "@/components/BuildingCard";
 import ModelDetailClient from "./ModelDetailClient";
 import { getPublicProductBySlug, getPublicProducts } from "@/lib/publicData";
 import { getPublicGlobalSettings } from "@/lib/settings";
+import { truncateText } from "@/utils/text";
 
 export const dynamic = "force-dynamic";
 
@@ -36,7 +17,7 @@ export async function generateMetadata({
 
   return {
     title: `${model.name} (${model.sqft} SQ FT) | ModularHome.com`,
-    description: model.description,
+    description: truncateText(model.description, 160) || `Explore the ${model.name} modular home model on ModularHome.com.`,
   };
 }
 

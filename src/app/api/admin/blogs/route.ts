@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 import { readBlogsFromStore, saveCustomBlog } from "@/lib/blogStore";
-import { RESOURCE_ARTICLES } from "@/data/resources";
 
 export async function GET(request: NextRequest) {
   const authResult = await requireAdminAuth();
@@ -18,7 +17,7 @@ export async function GET(request: NextRequest) {
     if (isSupabaseConfigured()) {
       try {
         let query = supabaseAdmin
-          .from("blogs")
+          .from("blog_posts")
           .select("*")
           .order("published_at", { ascending: false });
 
@@ -26,8 +25,16 @@ export async function GET(request: NextRequest) {
           query = query.eq("status", status);
         }
 
-        const { data, error } = await query;
-        if (!error && data) {
+        let { data, error } = await query;
+        if (error || !data || data.length === 0) {
+          const { data: legacy } = await supabaseAdmin
+            .from("blogs")
+            .select("*")
+            .order("published_at", { ascending: false });
+          data = legacy || [];
+        }
+
+        if (data) {
           dbBlogs = data;
         }
       } catch (err) {
@@ -38,7 +45,7 @@ export async function GET(request: NextRequest) {
     // Read local custom blogs
     const localBlogs = readBlogsFromStore();
 
-    // Merge: Supabase + local custom blogs + static seeds if needed
+    // Merge: Supabase + local custom blogs
     const existingSlugs = new Set<string>();
     const merged: any[] = [];
 
@@ -61,38 +68,20 @@ export async function GET(request: NextRequest) {
 
     // 2. Add DB blogs
     for (const db of dbBlogs) {
-      if (!existingSlugs.has((db.slug || "").toLowerCase())) {
-        existingSlugs.add((db.slug || "").toLowerCase());
+      const slug = db.handle || db.slug || db.id;
+      if (!existingSlugs.has((slug || "").toLowerCase())) {
+        existingSlugs.add((slug || "").toLowerCase());
         merged.push({
           id: db.id,
-          slug: db.slug,
+          slug,
           title: db.title,
-          category: db.category || (Array.isArray(db.categories) ? db.categories[0] : "Building Guides"),
+          category: db.blog_title || db.category || (Array.isArray(db.categories) ? db.categories[0] : "Building Guides"),
           author: db.author || db.author_name || "ModularHome Engineering Team",
-          publishedAt: db.published_at,
+          publishedAt: db.published_at || db.created_at,
           status: db.status || "PUBLISHED",
-          featuredImage: db.featured_image,
-          excerpt: db.excerpt,
-          content: db.content,
-        });
-      }
-    }
-
-    // 3. Add default static resources if none match
-    for (const res of RESOURCE_ARTICLES) {
-      if (!existingSlugs.has(res.slug.toLowerCase())) {
-        existingSlugs.add(res.slug.toLowerCase());
-        merged.push({
-          id: res.id,
-          slug: res.slug,
-          title: res.title,
-          category: res.category,
-          author: res.author || "ModularHome Engineering Team",
-          publishedAt: res.date,
-          status: "PUBLISHED",
-          featuredImage: res.image,
-          excerpt: res.excerpt,
-          content: Array.isArray(res.content) ? res.content.join("\n\n") : res.content,
+          featuredImage: db.image_url || db.featured_image,
+          excerpt: db.excerpt || db.seo_description,
+          content: db.body_html || db.content,
         });
       }
     }

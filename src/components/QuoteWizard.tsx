@@ -14,17 +14,8 @@ import {
   RotateCcw,
   Loader2,
 } from "lucide-react";
-import { BUILDING_MODELS, CATEGORIES, BuildingModel } from "@/data/models";
+import { CATEGORIES, BuildingModel } from "@/data/models";
 import { formatPrice } from "@/utils/currency";
-
-const AVAILABLE_OPTIONS = [
-  { id: "opt-porch", name: "Wraparound Covered Timber Porch", price: 14500, desc: "Solid 8x8 posts with black structural brackets" },
-  { id: "opt-insul", name: "Extreme Climate R-38 Spray Foam Insulation", price: 9200, desc: "Superior closed-cell thermal break envelope" },
-  { id: "opt-garage", name: "Attached 2-Car Insulated Garage Bay", price: 21000, desc: "Includes high-lift 10ft doors and concrete threshold" },
-  { id: "opt-glass", name: "16ft Black Aluminum Panoramic Glass Wall", price: 12800, desc: "Multi-slide low-E architectural glass opening" },
-  { id: "opt-loft", name: "Second-Story Structural Mezzanine / Loft", price: 16400, desc: "Adds 500+ sq ft floor joists and iron railing" },
-  { id: "opt-standing-seam", name: "Concealed Fastener Standing Seam Roof Upgrade", price: 7800, desc: "26-gauge ultra-durability concealed roof fasteners" },
-];
 
 const DEFAULT_MODEL: BuildingModel = {
   id: "custom-blueprint",
@@ -53,11 +44,20 @@ const DEFAULT_MODEL: BuildingModel = {
   customizableOptions: [],
 };
 
+const AVAILABLE_OPTIONS = [
+  { id: "opt-porch", name: "Wraparound Covered Timber Porch", price: 14500, desc: "Solid 8x8 posts with black structural brackets" },
+  { id: "opt-insul", name: "Extreme Climate R-38 Spray Foam Insulation", price: 9200, desc: "Superior closed-cell thermal break envelope" },
+  { id: "opt-garage", name: "Attached 2-Car Insulated Garage Bay", price: 21000, desc: "Includes high-lift 10ft doors and concrete threshold" },
+  { id: "opt-glass", name: "16ft Black Aluminum Panoramic Glass Wall", price: 12800, desc: "Multi-slide low-E architectural glass opening" },
+  { id: "opt-loft", name: "Second-Story Structural Mezzanine / Loft", price: 16400, desc: "Adds 500+ sq ft floor joists and iron railing" },
+  { id: "opt-standing-seam", name: "Concealed Fastener Standing Seam Roof Upgrade", price: 7800, desc: "26-gauge ultra-durability concealed roof fasteners" },
+];
+
 export default function QuoteWizard() {
   const [step, setStep] = useState(1);
   const [category, setCategory] = useState<string>("Cabins");
-  const [allModels, setAllModels] = useState<BuildingModel[]>(BUILDING_MODELS);
-  const [selectedModel, setSelectedModel] = useState<BuildingModel>(BUILDING_MODELS[0] || DEFAULT_MODEL);
+  const [allModels, setAllModels] = useState<BuildingModel[]>([]);
+  const [selectedModel, setSelectedModel] = useState<BuildingModel>(DEFAULT_MODEL);
   const [sqft, setSqft] = useState<number>(1200);
   const [selectedOptions, setSelectedOptions] = useState<string[]>(["opt-insul", "opt-porch"]);
 
@@ -264,7 +264,7 @@ export default function QuoteWizard() {
                         key={cat.id}
                         onClick={() => {
                           setCategory(cat.id);
-                          const firstMatching = BUILDING_MODELS.find((m) => m.category === cat.id);
+                          const firstMatching = allModels.find((m) => m.category === cat.id);
                           if (firstMatching) {
                             setSelectedModel(firstMatching);
                             setSqft(firstMatching.sqft);

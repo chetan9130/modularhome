@@ -49,15 +49,19 @@ export async function createCustomerSession(customer: Customer): Promise<string>
     created_at: new Date().toISOString(),
   });
 
-  const cookieStore = await cookies();
-  cookieStore.set(COOKIE_NAME, sessionToken, {
-    httpOnly: true,
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "lax",
-    path: "/",
-    expires: new Date(expiresAt),
-    maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60,
-  });
+  try {
+    const cookieStore = await cookies();
+    cookieStore.set(COOKIE_NAME, sessionToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/",
+      expires: new Date(expiresAt),
+      maxAge: SESSION_EXPIRY_DAYS * 24 * 60 * 60,
+    });
+  } catch {
+    // In test runner / non-request context, cookies() is not attached to a request store
+  }
 
   return sessionToken;
 }
@@ -67,8 +71,13 @@ export async function createCustomerSession(customer: Customer): Promise<string>
  */
 export async function getCustomerSession(): Promise<CustomerSessionUser | null> {
   try {
-    const cookieStore = await cookies();
-    const token = cookieStore.get(COOKIE_NAME)?.value;
+    let token: string | undefined;
+    try {
+      const cookieStore = await cookies();
+      token = cookieStore.get(COOKIE_NAME)?.value;
+    } catch {
+      return null;
+    }
     if (!token) return null;
 
     if (isSupabaseConfigured()) {
@@ -122,9 +131,10 @@ export async function getCustomerSession(): Promise<CustomerSessionUser | null> 
     const path = await import("path");
     const sessionsFile = path.join(process.cwd(), "src", "data", "custom_customer_sessions.json");
     if (fs.existsSync(sessionsFile)) {
-      const list = JSON.parse(fs.readFileSync(sessionsFile, "utf-8")) || [];
-      const match = list.find((s: any) => s.session_token === token);
-      if (match && Number(match.expires_at) > Date.now()) {
+      const list: Array<{ session_token?: string; expires_at?: number; customer_id?: string }> =
+        JSON.parse(fs.readFileSync(sessionsFile, "utf-8")) || [];
+      const match = list.find((s) => s.session_token === token);
+      if (match && match.customer_id && Number(match.expires_at) > Date.now()) {
         const cust = await getCustomerById(match.customer_id);
         if (cust && cust.status === "ACTIVE") {
           return {

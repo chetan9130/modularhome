@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
-import { INITIAL_FLOOR_PLANS } from "@/data/floorPlans";
 
 export async function GET(request: NextRequest) {
   try {
@@ -10,13 +9,9 @@ export async function GET(request: NextRequest) {
     const status = searchParams.get("status");
 
     if (!isSupabaseConfigured()) {
-      let filtered = [...INITIAL_FLOOR_PLANS];
-      if (category && category !== "ALL") {
-        filtered = filtered.filter((f) => f.category === category);
-      }
       return NextResponse.json({
         success: true,
-        data: filtered,
+        data: [],
       });
     }
 
@@ -35,22 +30,22 @@ export async function GET(request: NextRequest) {
 
     const { data: plans, error } = await query;
     if (error) {
-      console.warn("Supabase query error on floor_plans, falling back to static dataset:", error.message);
+      console.warn("Supabase query error on floor_plans:", error.message);
       return NextResponse.json({
         success: true,
-        data: INITIAL_FLOOR_PLANS,
+        data: [],
       });
     }
 
     return NextResponse.json({
       success: true,
-      data: plans && plans.length > 0 ? plans : INITIAL_FLOOR_PLANS,
+      data: plans || [],
     });
   } catch (error: any) {
-    console.error("Error fetching floor plans, falling back to static dataset:", error);
+    console.error("Error fetching floor plans:", error);
     return NextResponse.json({
       success: true,
-      data: INITIAL_FLOOR_PLANS,
+      data: [],
     });
   }
 }

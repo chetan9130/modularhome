@@ -38,6 +38,8 @@ export interface BuildingModel {
     price: number;
     description: string;
   }[];
+  tags?: string[];
+  collections?: string[];
 }
 
 export const CATEGORIES = [
@@ -124,8 +126,8 @@ export const CATEGORIES = [
   {
     id: "A-Frame Homes",
     title: "A-Frame Homes",
-    tagline: "Distinctive triangular architectural designs.",
-    description: "Iconic steep-pitched roof structures with dramatic glass walls ideal for modern vacation living.",
+    tagline: "Iconic steep-pitch architectural homes with panoramic glass.",
+    description: "High-performance A-frame structural packages engineered for heavy snow loads and mountain views.",
     image: "https://images.unsplash.com/photo-1510798831971-661eb04b3739?auto=format&fit=crop&w=1200&q=80",
     count: 0,
     href: "/buildings?category=A-Frame+Homes",

@@ -9,6 +9,13 @@ export default function robots(): MetadataRoute.Robots {
         userAgent: "*",
         allow: "/",
         disallow: [
+          "/signup",
+          "/login",
+          "/verify-email",
+          "/auth/callback",
+          "/account",
+          "/account/*",
+          "/api/customer/*",
           "/admin",
           "/admin/*",
           "/api/admin",

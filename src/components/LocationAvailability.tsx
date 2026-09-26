@@ -1,11 +1,11 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Truck, ArrowRight, CheckCircle2, Search, Building2 } from "lucide-react";
 import SectionHeading from "@/components/SectionHeading";
-import { BUILDING_MODELS } from "@/data/models";
+import { BuildingModel } from "@/data/models";
 import { formatPrice } from "@/utils/currency";
 
 const STATES_DATA = [
@@ -26,10 +26,26 @@ export default function LocationAvailability() {
   const [cityInput, setCityInput] = useState<string>("");
   const [zipInput, setZipInput] = useState<string>("");
   const [searched, setSearched] = useState<boolean>(false);
+  const [allModels, setAllModels] = useState<BuildingModel[]>([]);
+
+  useEffect(() => {
+    async function loadModels() {
+      try {
+        const res = await fetch("/api/products");
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && Array.isArray(json.data)) {
+            setAllModels(json.data);
+          }
+        }
+      } catch (e) {}
+    }
+    loadModels();
+  }, []);
 
   const activeStateObj = STATES_DATA.find((s) => s.code === selectedState) || STATES_DATA[0];
 
-  const availableHomes = BUILDING_MODELS.slice(0, 3);
+  const availableHomes = allModels.slice(0, 3);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();

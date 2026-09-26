@@ -1,6 +1,6 @@
 import fs from "fs";
 import path from "path";
-import { RESOURCE_ARTICLES, ResourceArticle } from "@/data/resources";
+import type { ResourceArticle } from "@/data/resources";
 
 const DATA_DIR = path.join(process.cwd(), "src", "data");
 const BLOGS_FILE = path.join(DATA_DIR, "custom_blogs.json");

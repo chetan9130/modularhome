@@ -20,6 +20,7 @@ import BuildingCard from "@/components/BuildingCard";
 import VideoModal from "@/components/VideoModal";
 import { VideoItem } from "@/data/videos";
 import { formatPrice } from "@/utils/currency";
+import RichHtmlContent from "@/components/RichHtmlContent";
 
 interface ModelDetailClientProps {
   model: BuildingModel;
@@ -238,12 +239,9 @@ export default function ModelDetailClient({
               <div className="text-xs font-bold uppercase tracking-[0.2em] text-[#d97706]">
                 Design & Architecture
               </div>
-              <h2 className="text-2xl sm:text-3xl font-black tracking-tight text-[#101114]">
-                Architectural Overview
-              </h2>
-              <p className="text-sm sm:text-base text-[#6b7280] leading-relaxed">
-                {model.description}
-              </p>
+              <div className="pt-1">
+                <RichHtmlContent content={model.description} />
+              </div>
             </section>
 
             {/* Floor Plan Section */}

@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import {
   Download,
   ShoppingBag,
@@ -23,9 +24,13 @@ import {
   Lock,
   ChevronRight,
   HeadphonesIcon,
+  RefreshCw,
 } from "lucide-react";
 
-export default function CustomerDashboardPage() {
+function CustomerDashboardContent() {
+  const searchParams = useSearchParams();
+  const justVerified = searchParams.get("verified") === "true";
+
   const [activeTab, setActiveTab] = useState<"overview" | "downloads" | "orders" | "profile">("overview");
   const [profile, setProfile] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
@@ -39,7 +44,23 @@ export default function CustomerDashboardPage() {
 
   // Resend Verification State
   const [isResending, setIsResending] = useState(false);
-  const [resendMsg, setResendMsg] = useState<string | null>(null);
+  const [resendMsg, setResendMsg] = useState<{ type: "success" | "error"; message: string } | null>(null);
+  const [cooldownSeconds, setCooldownSeconds] = useState(0);
+
+  // Cooldown timer
+  useEffect(() => {
+    if (cooldownSeconds <= 0) return;
+    const timer = setInterval(() => {
+      setCooldownSeconds((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [cooldownSeconds]);
 
   useEffect(() => {
     async function loadData() {
@@ -100,14 +121,37 @@ export default function CustomerDashboardPage() {
   };
 
   const handleResendVerification = async () => {
+    if (cooldownSeconds > 0 || isResending) return;
     setIsResending(true);
     setResendMsg(null);
     try {
       const res = await fetch("/api/customer/auth/resend-verification", { method: "POST" });
       const data = await res.json();
-      setResendMsg(data.message || "Verification link sent to your email.");
-    } catch {
-      setResendMsg("Could not send email. Please try again.");
+
+      if (res.status === 429) {
+        const cd = data.error?.cooldownSeconds || 60;
+        setCooldownSeconds(cd);
+        setResendMsg({
+          type: "error",
+          message: data.error?.message || `Please wait ${cd} seconds before requesting again.`,
+        });
+        return;
+      }
+
+      if (!res.ok || !data.success) {
+        throw new Error(data.error?.message || "Could not send verification email.");
+      }
+
+      setResendMsg({
+        type: "success",
+        message: data.message || "Fresh verification link sent to your email.",
+      });
+      setCooldownSeconds(60);
+    } catch (err: any) {
+      setResendMsg({
+        type: "error",
+        message: err?.message || "Could not send email. Please try again.",
+      });
     } finally {
       setIsResending(false);
     }
@@ -146,6 +190,28 @@ export default function CustomerDashboardPage() {
 
   return (
     <div className="space-y-8 animate-in fade-in duration-300">
+      {/* Just Verified Success Alert */}
+      {justVerified && (
+        <div className="bg-emerald-50 border border-emerald-200 rounded-3xl p-5 sm:p-6 flex items-start sm:items-center justify-between gap-4 shadow-sm animate-in zoom-in-95">
+          <div className="flex items-center gap-3.5">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+              <CheckCircle2 className="w-6 h-6" />
+            </div>
+            <div>
+              <h4 className="text-sm font-black text-emerald-900">
+                Email Address Verified!
+              </h4>
+              <p className="text-xs text-emerald-700 mt-0.5">
+                Your customer account is now fully active with full blueprint downloading privileges.
+              </p>
+            </div>
+          </div>
+          <span className="hidden sm:inline-block px-3 py-1 rounded-full bg-emerald-200/60 text-emerald-800 text-[10px] font-bold uppercase tracking-wider font-mono">
+            Active Verified
+          </span>
+        </div>
+      )}
+
       {/* Luxury Hero Banner */}
       <div className="bg-gradient-to-br from-[#101114] via-[#16181f] to-[#0b0d11] text-white rounded-3xl p-6 sm:p-10 relative overflow-hidden shadow-2xl border border-white/10">
         <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6">
@@ -153,7 +219,7 @@ export default function CustomerDashboardPage() {
             <div className="flex flex-wrap items-center gap-2">
               <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#fcb907]/15 text-[#fcb907] text-[11px] font-mono font-bold tracking-wider uppercase border border-[#fcb907]/30">
                 <Sparkles className="w-3 h-3" />
-                Verified Client Account
+                Customer Account
               </span>
               {profile?.email_verified ? (
                 <span className="inline-flex items-center gap-1 bg-emerald-500/20 text-emerald-300 text-[10px] font-bold px-2.5 py-0.5 rounded-full border border-emerald-500/30">
@@ -169,7 +235,7 @@ export default function CustomerDashboardPage() {
             </div>
 
             <h1 className="text-2xl sm:text-4xl font-black font-serif tracking-tight leading-tight">
-              Welcome back, <span className="text-[#fcb907]">{profile?.name || "Homeowner"}</span>
+              Welcome back, <span className="text-[#fcb907]">{profile?.name || "Customer"}</span>
             </h1>
 
             <p className="text-xs sm:text-sm text-gray-300 leading-relaxed font-sans">
@@ -202,31 +268,59 @@ export default function CustomerDashboardPage() {
 
       {/* Unverified Email Alert Box */}
       {!profile?.email_verified && (
-        <div className="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-4 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-xs">
-          <div className="flex items-start gap-3">
-            <div className="p-2 rounded-xl bg-amber-100 text-amber-700 shrink-0 mt-0.5">
-              <AlertCircle className="w-4 h-4" />
+        <div className="bg-amber-50 border border-amber-200 rounded-3xl p-5 sm:p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4 shadow-sm animate-in fade-in">
+          <div className="flex items-start gap-3.5">
+            <div className="p-2.5 rounded-2xl bg-amber-100 text-amber-700 shrink-0 mt-0.5">
+              <AlertCircle className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <h4 className="text-sm font-bold text-amber-900">Please Verify Your Email Address</h4>
+              <h4 className="text-sm font-black text-amber-900">Your Email Is Not Verified Yet</h4>
               <p className="text-xs text-amber-800/90 mt-0.5 leading-relaxed">
-                Verification ensures permanent license recovery, notification of engineering revision updates, and priority support.
+                Please verify your email address to ensure permanent license recovery, notifications of engineering revisions, and blueprint download access.
               </p>
               {resendMsg && (
-                <p className="text-xs font-bold text-emerald-700 mt-1.5 flex items-center gap-1">
-                  <CheckCircle2 className="w-3.5 h-3.5" />
-                  {resendMsg}
-                </p>
+                <div
+                  className={`mt-2 text-xs font-bold flex items-center gap-1.5 ${
+                    resendMsg.type === "success" ? "text-emerald-700" : "text-red-700"
+                  }`}
+                >
+                  {resendMsg.type === "success" ? (
+                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                  ) : (
+                    <AlertCircle className="w-3.5 h-3.5 text-red-600" />
+                  )}
+                  <span>{resendMsg.message}</span>
+                </div>
               )}
             </div>
           </div>
-          <button
-            onClick={handleResendVerification}
-            disabled={isResending}
-            className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors cursor-pointer shrink-0 disabled:opacity-50 shadow-xs"
-          >
-            {isResending ? "Sending..." : "Resend Verification Email"}
-          </button>
+          <div className="flex items-center gap-2.5 shrink-0">
+            <Link
+              href="/verify-email"
+              className="text-xs font-bold text-amber-900 hover:underline px-3 py-2"
+            >
+              Verify Page →
+            </Link>
+            <button
+              onClick={handleResendVerification}
+              disabled={isResending || cooldownSeconds > 0}
+              className="bg-amber-600 hover:bg-amber-700 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-all cursor-pointer shrink-0 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm flex items-center gap-1.5"
+            >
+              {isResending ? (
+                <>
+                  <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                  <span>Sending...</span>
+                </>
+              ) : cooldownSeconds > 0 ? (
+                <>
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Resend in {cooldownSeconds}s</span>
+                </>
+              ) : (
+                <span>Resend Verification Email</span>
+              )}
+            </button>
+          </div>
         </div>
       )}
 
@@ -692,5 +786,22 @@ export default function CustomerDashboardPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CustomerDashboardPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="py-24 flex flex-col items-center justify-center text-gray-500 space-y-3">
+          <Loader2 className="w-8 h-8 animate-spin text-[#fcb907]" />
+          <span className="text-xs font-mono font-bold uppercase tracking-widest text-[#101114]">
+            Loading Client Portal...
+          </span>
+        </div>
+      }
+    >
+      <CustomerDashboardContent />
+    </Suspense>
   );
 }

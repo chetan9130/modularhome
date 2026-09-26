@@ -1,0 +1,138 @@
+{
+  "runMode": "PRODUCTION",
+  "timestamp": "2026-09-26T06:41:45.798Z",
+  "durationTotalMs": 488148,
+  "sourceFiles": [
+    "Collections.xlsx",
+    "Products.xlsx",
+    "Pages.xlsx",
+    "Blogs.xlsx",
+    "Redirects.xlsx"
+  ],
+  "sourceStats": {
+    "rawCollectionRows": 214504,
+    "rawProductRows": 133472,
+    "rawPageRows": 233,
+    "rawBlogRows": 200,
+    "rawRedirectRows": 472
+  },
+  "stageResults": [
+    {
+      "stageName": "1. Collections",
+      "status": "SUCCESS",
+      "sourceRecords": 461,
+      "processed": 461,
+      "created": 0,
+      "updated": 461,
+      "skipped": 0,
+      "rejected": 0,
+      "errors": 0,
+      "durationMs": 3636
+    },
+    {
+      "stageName": "2. Products",
+      "status": "SUCCESS",
+      "sourceRecords": 5925,
+      "processed": 5925,
+      "created": 0,
+      "updated": 5925,
+      "skipped": 0,
+      "rejected": 0,
+      "errors": 0,
+      "durationMs": 12651
+    },
+    {
+      "stageName": "3. Variants",
+      "status": "SUCCESS",
+      "sourceRecords": 120513,
+      "processed": 120513,
+      "created": 120513,
+      "updated": 0,
+      "skipped": 0,
+      "rejected": 0,
+      "errors": 0,
+      "durationMs": 120954
+    },
+    {
+      "stageName": "4. Product Media",
+      "status": "WARNING",
+      "sourceRecords": 20192,
+      "processed": 20191,
+      "created": 20191,
+      "updated": 0,
+      "skipped": 0,
+      "rejected": 1,
+      "errors": 0,
+      "durationMs": 17759
+    },
+    {
+      "stageName": "5. Product ↔ Collection Memberships",
+      "status": "SUCCESS",
+      "sourceRecords": 215717,
+      "processed": 215717,
+      "created": 215717,
+      "updated": 0,
+      "skipped": 0,
+      "rejected": 0,
+      "errors": 0,
+      "durationMs": 159253
+    },
+    {
+      "stageName": "6. Pages",
+      "status": "SUCCESS",
+      "sourceRecords": 233,
+      "processed": 233,
+      "created": 233,
+      "updated": 0,
+      "skipped": 0,
+      "rejected": 0,
+      "errors": 0,
+      "durationMs": 1280
+    },
+    {
+      "stageName": "7. Blogs / Articles",
+      "status": "SUCCESS",
+      "sourceRecords": 199,
+      "processed": 199,
+      "created": 199,
+      "updated": 0,
+      "skipped": 0,
+      "rejected": 0,
+      "errors": 0,
+      "durationMs": 8288
+    },
+    {
+      "stageName": "8. Existing Redirects",
+      "status": "SUCCESS",
+      "sourceRecords": 472,
+      "processed": 472,
+      "created": 472,
+      "updated": 0,
+      "skipped": 0,
+      "rejected": 0,
+      "errors": 0,
+      "durationMs": 888
+    },
+    {
+      "stageName": "9. ModularHome URL Mappings & 301s",
+      "status": "SUCCESS",
+      "sourceRecords": 6818,
+      "processed": 6818,
+      "created": 6818,
+      "updated": 0,
+      "skipped": 0,
+      "rejected": 0,
+      "errors": 0,
+      "durationMs": 11420
+    }
+  ],
+  "rejectedSummary": {
+    "total": 1,
+    "byType": {
+      "media": 1
+    }
+  },
+  "brandingSummary": {
+    "totalFindingsNormalized": 1038
+  }
+}

@@ -5,6 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { FloorPlan } from "@/data/floorPlans";
 import { useCart } from "@/context/CartContext";
+import { stripHtml } from "@/utils/text";
 import { Bed, Bath, Maximize2, Layers, Download, CheckCircle, ArrowRight, ShoppingBag } from "lucide-react";
 
 interface FloorPlanCardProps {
@@ -70,7 +71,7 @@ export default function FloorPlanCard({ plan, onInstantBuy }: FloorPlanCardProps
             </h3>
           </div>
           <p className="text-xs text-stone-500 line-clamp-2 leading-relaxed">
-            {plan.tagline || plan.description}
+            {stripHtml(plan.tagline || plan.description)}
           </p>
 
           {/* Included Features Bullet Points */}

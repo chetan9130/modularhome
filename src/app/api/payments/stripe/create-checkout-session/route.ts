@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { stripe, isStripeConfigured } from "@/lib/stripe";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
-import { INITIAL_FLOOR_PLANS } from "@/data/floorPlans";
 import { getCustomerSession } from "@/lib/customerAuth";
 import { getCustomerByEmail } from "@/lib/customerStore";
 
@@ -72,15 +71,9 @@ export async function POST(request: NextRequest) {
             .from("floor_plans")
             .select("*")
             .or(`id.eq.${item.floorPlanId},slug.eq.${item.floorPlanId}`)
-            .single();
+            .maybeSingle();
           plan = data;
         } catch {}
-      }
-
-      if (!plan) {
-        plan = INITIAL_FLOOR_PLANS.find(
-          (fp) => fp.id === item.floorPlanId || fp.slug === item.floorPlanId
-        );
       }
 
       if (!plan) {

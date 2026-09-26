@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { requireAdminAuth } from "@/lib/auth";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
-import { INITIAL_FLOOR_PLANS } from "@/data/floorPlans";
 
 export async function GET(
   request: NextRequest,
@@ -11,27 +10,19 @@ export async function GET(
     const { id } = await params;
 
     if (!isSupabaseConfigured()) {
-      const found = INITIAL_FLOOR_PLANS.find((f) => f.id === id || f.slug === id);
-      if (!found) {
-        return NextResponse.json(
-          { success: false, error: { message: "Floor plan not found.", code: "NOT_FOUND" } },
-          { status: 404 }
-        );
-      }
-      return NextResponse.json({ success: true, data: found });
+      return NextResponse.json(
+        { success: false, error: { message: "Database not configured.", code: "DB_NOT_CONFIGURED" } },
+        { status: 503 }
+      );
     }
 
     const { data: plan, error } = await supabaseAdmin
       .from("floor_plans")
       .select("*")
       .or(`id.eq.${id},slug.eq.${id}`)
-      .single();
+      .maybeSingle();
 
     if (error || !plan) {
-      const fallback = INITIAL_FLOOR_PLANS.find((f) => f.id === id || f.slug === id);
-      if (fallback) {
-        return NextResponse.json({ success: true, data: fallback });
-      }
       return NextResponse.json(
         { success: false, error: { message: "Floor plan not found.", code: "NOT_FOUND" } },
         { status: 404 }

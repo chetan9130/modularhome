@@ -1,29 +1,32 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import { useSearchParams } from "next/navigation";
+import { useState, useMemo, useEffect, useCallback } from "react";
+import { useSearchParams, useRouter, usePathname } from "next/navigation";
 import { 
   Search, 
   X, 
   RotateCcw, 
   Building2, 
+  SlidersHorizontal,
+  Loader2,
+  Sparkles,
+  Home
 } from "lucide-react";
 import BuildingCard from "@/components/BuildingCard";
-import { BUILDING_MODELS, BuildingModel } from "@/data/models";
+import { BuildingModel } from "@/data/models";
+import { isCategorySelected, matchProductCategory } from "@/utils/categoryMatching";
 
-const CATEGORY_TABS = [
+const DEFAULT_CATEGORY_TABS = [
   "All",
   "Modular Homes",
-  "Prefab Homes",
+  "Prefab Cabins",
   "Barndominiums",
-  "House Kits",
-  "Tiny Homes",
-  "Park Models",
-  "Cabins",
-  "ADUs & Granny Pods",
-  "A-Frame Homes",
+  "Kit Homes",
+  "Turnkey Homes",
+  "Affordable Housing",
+  "Panelized Log Homes",
+  "Tiny Homes & ADUs",
   "Commercial Buildings",
-  "Custom Homes",
 ];
 
 const ARCHITECTURAL_STYLES = [
@@ -38,12 +41,32 @@ const ARCHITECTURAL_STYLES = [
   "Multi-Family",
 ];
 
+// Loading Skeleton Card
+function BuildingCardSkeleton() {
+  return (
+    <div className="card overflow-hidden bg-white border border-[#e7e9ee] animate-pulse rounded-[14px]">
+      <div className="aspect-[16/10] w-full bg-gray-200" />
+      <div className="p-4 space-y-3">
+        <div className="h-5 bg-gray-200 rounded w-3/4" />
+        <div className="h-3.5 bg-gray-200 rounded w-1/2" />
+        <div className="h-6 bg-gray-200 rounded w-1/3 mt-2" />
+        <div className="h-9 bg-gray-200 rounded-lg w-full mt-3" />
+      </div>
+    </div>
+  );
+}
+
 export default function ModelsCatalog() {
+  const router = useRouter();
+  const pathname = usePathname();
   const searchParams = useSearchParams();
+  
   const initialCategory = searchParams.get("category") || "All";
   const initialSearch = searchParams.get("search") || "";
 
-  const [models, setModels] = useState<BuildingModel[]>(BUILDING_MODELS);
+  const [loading, setLoading] = useState(true);
+  const [models, setModels] = useState<BuildingModel[]>([]);
+  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORY_TABS);
   const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
   const [selectedStyle, setSelectedStyle] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState(initialSearch);
@@ -53,27 +76,57 @@ export default function ModelsCatalog() {
   const [maxPrice, setMaxPrice] = useState<number>(350000);
   const [minSqft, setMinSqft] = useState<number>(0);
 
+  // Load models and categories
   useEffect(() => {
-    async function loadDynamicProducts() {
+    let isMounted = true;
+    async function loadDynamicData() {
+      setLoading(true);
       try {
-        const res = await fetch("/api/products");
-        if (res.ok) {
-          const json = await res.json();
-          if (json.success && Array.isArray(json.data) && json.data.length > 0) {
-            setModels(json.data);
+        const [prodRes, colRes] = await Promise.all([
+          fetch("/api/products"),
+          fetch("/api/collections"),
+        ]);
+
+        if (prodRes.ok) {
+          const prodJson = await prodRes.json();
+          if (isMounted && prodJson.success && Array.isArray(prodJson.data)) {
+            setModels(prodJson.data);
+          }
+        }
+
+        if (colRes.ok) {
+          const colJson = await colRes.json();
+          if (isMounted && colJson.success && Array.isArray(colJson.data) && colJson.data.length > 0) {
+            const topCols = colJson.data
+              .filter((c: any) => c.productCount > 0 || /modular|prefab|cabin|barndo|kit|turnkey|affordable/i.test(c.name))
+              .slice(0, 15)
+              .map((c: any) => c.name);
+            const merged = Array.from(new Set(["All", ...DEFAULT_CATEGORY_TABS, ...topCols]));
+            setCategories(merged);
           }
         }
       } catch (e) {
-        // Fall back to INITIAL BUILDING_MODELS
+        console.error("Failed to load catalog data:", e);
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
     }
-    loadDynamicProducts();
+    loadDynamicData();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
+  // Sync state with URL search params
   useEffect(() => {
     const cat = searchParams.get("category");
-    if (cat && CATEGORY_TABS.includes(cat)) {
+    if (cat) {
       setSelectedCategory(cat);
+    } else {
+      setSelectedCategory("All");
     }
     const search = searchParams.get("search");
     if (search) {
@@ -81,32 +134,50 @@ export default function ModelsCatalog() {
     }
   }, [searchParams]);
 
+  // Handle category tab change with URL update
+  const handleCategoryChange = useCallback((categoryName: string) => {
+    setSelectedCategory(categoryName);
+    const params = new URLSearchParams(window.location.search);
+    if (categoryName === "All") {
+      params.delete("category");
+    } else {
+      params.set("category", categoryName);
+    }
+    const newUrl = params.toString() ? `${pathname}?${params.toString()}` : pathname;
+    window.history.replaceState(null, "", newUrl);
+  }, [pathname]);
+
   // Filtering Logic
   const filteredModels = useMemo(() => {
     return models.filter((model) => {
-      // Category Filter
-      if (selectedCategory !== "All" && model.category !== selectedCategory) {
-        return false;
-      }
-
-      // Architectural Style Filter
-      if (selectedStyle !== "All" && model.architecturalStyle !== selectedStyle) {
-        return false;
-      }
-
-      // Search Query
-      if (searchQuery.trim()) {
-        const query = searchQuery.toLowerCase();
-        const matchesName = model.name.toLowerCase().includes(query);
-        const matchesSeries = model.series.toLowerCase().includes(query);
-        const matchesTagline = model.tagline.toLowerCase().includes(query);
-        const matchesCat = model.category.toLowerCase().includes(query);
-        if (!matchesName && !matchesSeries && !matchesTagline && !matchesCat) {
+      // 1. Category Filter using smart matcher
+      if (selectedCategory && selectedCategory !== "All") {
+        if (!matchProductCategory(model, selectedCategory)) {
           return false;
         }
       }
 
-      // Bedrooms Filter
+      // 2. Architectural Style Filter
+      if (selectedStyle !== "All" && model.architecturalStyle && model.architecturalStyle !== selectedStyle) {
+        return false;
+      }
+
+      // 3. Search Query
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase().trim();
+        const matchesName = (model.name || "").toLowerCase().includes(query);
+        const matchesSeries = (model.series || "").toLowerCase().includes(query);
+        const matchesTagline = (model.tagline || "").toLowerCase().includes(query);
+        const matchesCat = (model.category || "").toLowerCase().includes(query);
+        const matchesDesc = (model.description || "").toLowerCase().includes(query);
+        const matchesTags = (model.tags || []).some((t) => t.toLowerCase().includes(query));
+        
+        if (!matchesName && !matchesSeries && !matchesTagline && !matchesCat && !matchesDesc && !matchesTags) {
+          return false;
+        }
+      }
+
+      // 4. Bedrooms Filter
       if (bedroomFilter !== "all") {
         const requiredBeds = parseInt(bedroomFilter, 10);
         if (model.bedrooms < requiredBeds) {
@@ -114,7 +185,7 @@ export default function ModelsCatalog() {
         }
       }
 
-      // Bathrooms Filter
+      // 5. Bathrooms Filter
       if (bathroomFilter !== "all") {
         const requiredBaths = parseInt(bathroomFilter, 10);
         if (model.bathrooms < requiredBaths) {
@@ -122,7 +193,7 @@ export default function ModelsCatalog() {
         }
       }
 
-      // Stories / Floors Filter
+      // 6. Stories / Floors Filter
       if (storiesFilter !== "all") {
         const requiredStories = parseFloat(storiesFilter);
         if (model.stories < requiredStories) {
@@ -130,22 +201,22 @@ export default function ModelsCatalog() {
         }
       }
 
-      // Max Price Filter
-      if (model.startingPrice > maxPrice) {
+      // 7. Max Price Filter
+      if (model.startingPrice && model.startingPrice > maxPrice) {
         return false;
       }
 
-      // Min Sqft Filter
-      if (model.sqft < minSqft) {
+      // 8. Min Sqft Filter
+      if (model.sqft && model.sqft < minSqft) {
         return false;
       }
 
       return true;
     });
-  }, [selectedCategory, selectedStyle, searchQuery, bedroomFilter, bathroomFilter, storiesFilter, maxPrice, minSqft]);
+  }, [models, selectedCategory, selectedStyle, searchQuery, bedroomFilter, bathroomFilter, storiesFilter, maxPrice, minSqft]);
 
   const handleResetFilters = () => {
-    setSelectedCategory("All");
+    handleCategoryChange("All");
     setSelectedStyle("All");
     setSearchQuery("");
     setBedroomFilter("all");
@@ -177,26 +248,6 @@ export default function ModelsCatalog() {
           <h1 className="text-3xl sm:text-5xl md:text-6xl font-black tracking-[-1.5px] text-[#101114]">
             Explore Floor Plans & Homes
           </h1>
-          <p className="mt-3 text-sm sm:text-base text-[#6b7280] max-w-3xl">
-            Discover, compare, and customize factory-built modular homes, prefabs, barndominiums, cabins, ADUs, A-frames, and commercial structures. Filter by bedrooms, bathrooms, square footage, home type, architectural style, and budget.
-          </p>
-
-          {/* Category Tabs */}
-          <div className="mt-7 flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-            {CATEGORY_TABS.map((tab) => (
-              <button
-                key={tab}
-                onClick={() => setSelectedCategory(tab)}
-                className={`px-4 py-2 text-xs font-extrabold uppercase tracking-wider rounded-[9px] shrink-0 transition-all duration-200 cursor-pointer ${
-                  selectedCategory === tab
-                    ? "bg-[#fcb907] text-[#101114] shadow-sm"
-                    : "bg-[#f6f7f9] text-[#101114] hover:bg-[#fcb907]/20 hover:text-[#101114] border border-[#e7e9ee]"
-                }`}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
         </div>
 
         {/* Search & Advanced Filters Bar */}
@@ -222,20 +273,39 @@ export default function ModelsCatalog() {
               )}
             </div>
 
-            {/* Reset Button */}
+            {/* Quick Reset Filter Button */}
             {isFiltered && (
               <button
                 onClick={handleResetFilters}
-                className="flex items-center gap-1.5 px-3.5 py-2 text-xs font-bold text-[#d97706] hover:bg-[#fcb907] hover:text-[#101114] bg-white border border-[#dfe2e7] rounded-[9px] transition-colors shrink-0 cursor-pointer"
+                className="btn-outline py-2 px-3 text-xs font-bold rounded-[9px] flex items-center gap-1.5 self-start md:self-auto cursor-pointer"
               >
-                <RotateCcw className="w-3.5 h-3.5" />
+                <RotateCcw className="w-3.5 h-3.5 text-[#d97706]" />
                 <span>Reset All Filters</span>
               </button>
             )}
           </div>
 
-          {/* Detailed Multi-Filter Controls */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+          {/* Grid of Filter Dropdowns */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2.5 pt-2 border-t border-[#e7e9ee]">
+            {/* Category / Home Type */}
+            <div className="flex flex-col bg-white border border-[#dfe2e7] px-3 py-2 rounded-[9px]">
+              <span className="text-[10px] text-[#6b7280] uppercase font-bold">Category</span>
+              <select
+                value={selectedCategory}
+                onChange={(e) => handleCategoryChange(e.target.value)}
+                className="bg-transparent text-xs text-[#101114] focus:outline-none font-bold cursor-pointer pt-0.5 truncate"
+              >
+                <option value="All">All Categories</option>
+                {categories
+                  .filter((c) => c !== "All")
+                  .map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat}
+                    </option>
+                  ))}
+              </select>
+            </div>
+
             {/* Architectural Style */}
             <div className="flex flex-col bg-white border border-[#dfe2e7] px-3 py-2 rounded-[9px]">
               <span className="text-[10px] text-[#6b7280] uppercase font-bold">Style</span>
@@ -334,18 +404,37 @@ export default function ModelsCatalog() {
 
         {/* Results Counter & Active Criteria */}
         <div className="py-4 flex items-center justify-between text-xs text-[#6b7280]">
-          <div>
-            Showing <span className="text-[#101114] font-bold">{filteredModels.length}</span> of {models.length} models
-          </div>
-          {isFiltered && (
+          {loading ? (
+            <div className="flex items-center gap-2 text-[#d97706] font-bold">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              <span>Fetching live architectural models &amp; floor plans...</span>
+            </div>
+          ) : (
+            <div>
+              Showing <span className="text-[#101114] font-bold">{filteredModels.length}</span> of {models.length} models
+              {selectedCategory !== "All" && (
+                <span className="ml-1 text-[#d97706] font-bold">
+                  in {selectedCategory}
+                </span>
+              )}
+            </div>
+          )}
+
+          {isFiltered && !loading && (
             <span className="text-[#d97706] font-bold">
               Filtered results active
             </span>
           )}
         </div>
 
-        {/* Product Grid */}
-        {filteredModels.length > 0 ? (
+        {/* Product Grid / Loading Skeleton */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 pt-2">
+            {Array.from({ length: 6 }).map((_, idx) => (
+              <BuildingCardSkeleton key={idx} />
+            ))}
+          </div>
+        ) : filteredModels.length > 0 ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6 pt-2">
             {filteredModels.map((model) => (
               <BuildingCard key={model.id} model={model} />

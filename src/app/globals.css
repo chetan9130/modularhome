@@ -212,22 +212,43 @@ h6 *,
               repeating-linear-gradient(90deg, transparent, transparent 27px, #dddddd 28px);
 }
 
-/* Custom Scrollbar */
-::-webkit-scrollbar {
+/* Root Scrollbar */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar {
   width: 8px;
 }
 
-::-webkit-scrollbar-track {
+html::-webkit-scrollbar-track,
+body::-webkit-scrollbar-track {
   background: #f6f7f9;
 }
 
-::-webkit-scrollbar-thumb {
+html::-webkit-scrollbar-thumb,
+body::-webkit-scrollbar-thumb {
   background: #d97706;
   border-radius: 4px;
 }
 
-::-webkit-scrollbar-thumb:hover {
+html::-webkit-scrollbar-thumb:hover,
+body::-webkit-scrollbar-thumb:hover {
   background: #b45309;
+}
+
+/* Hide scrollbars completely for horizontal tabs and containers */
+.no-scrollbar::-webkit-scrollbar,
+.scrollbar-none::-webkit-scrollbar,
+[data-no-scrollbar]::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  -webkit-appearance: none !important;
+}
+
+.no-scrollbar,
+.scrollbar-none,
+[data-no-scrollbar] {
+  -ms-overflow-style: none !important;
+  scrollbar-width: none !important;
 }
 
 /* Selection */
@@ -235,4 +256,146 @@ h6 *,
   background: #fcb907;
   color: #101114;
 }
+
+/* Rich HTML Formatting for Database / Shopify / Matrixify HTML fields */
+.rich-html {
+  color: #374151;
+  font-family: var(--font-manrope), "Manrope", sans-serif;
+  line-height: 1.75;
+  font-size: 0.95rem;
+}
+
+.rich-html h1,
+.rich-html h2,
+.rich-html h3,
+.rich-html h4,
+.rich-html h5,
+.rich-html h6 {
+  color: #101114;
+  font-family: var(--font-manrope), "Manrope", sans-serif !important;
+  font-weight: 800;
+  line-height: 1.35;
+  margin-top: 1.5rem;
+  margin-bottom: 0.6rem;
+  letter-spacing: -0.015em;
+}
+
+.rich-html h1 { font-size: 1.75rem; }
+.rich-html h2 { font-size: 1.4rem; border-bottom: 1px solid #e7e9ee; padding-bottom: 0.4rem; margin-top: 1.75rem; }
+.rich-html h3 { font-size: 1.2rem; }
+.rich-html h4 { font-size: 1.05rem; }
+.rich-html h5, .rich-html h6 { font-size: 0.95rem; }
+
+.rich-html p {
+  margin-top: 0.4rem;
+  margin-bottom: 1rem;
+  color: #4b5563;
+  line-height: 1.75;
+}
+
+.rich-html strong,
+.rich-html b {
+  font-weight: 700;
+  color: #101114;
+}
+
+.rich-html ul {
+  list-style-type: disc;
+  margin-top: 0.6rem;
+  margin-bottom: 1.1rem;
+  padding-left: 1.4rem;
+  color: #4b5563;
+}
+
+.rich-html ol {
+  list-style-type: decimal;
+  margin-top: 0.6rem;
+  margin-bottom: 1.1rem;
+  padding-left: 1.4rem;
+  color: #4b5563;
+}
+
+.rich-html li {
+  margin-top: 0.35rem;
+  margin-bottom: 0.35rem;
+  line-height: 1.65;
+}
+
+.rich-html li::marker {
+  color: #d97706;
+}
+
+.rich-html a {
+  color: #d97706;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.rich-html a:hover {
+  color: #b45309;
+}
+
+.rich-html blockquote {
+  border-left: 4px solid #fcb907;
+  background: #fbfbf9;
+  padding: 0.75rem 1.25rem;
+  margin: 1.5rem 0;
+  border-radius: 0 12px 12px 0;
+  font-style: italic;
+  color: #4b5563;
+}
+
+.rich-html table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1.5rem 0;
+  border: 1px solid #e7e9ee;
+  border-radius: 12px;
+  overflow: hidden;
+  font-size: 0.875rem;
+}
+
+.rich-html th {
+  background: #f6f7f9;
+  color: #101114;
+  font-weight: 700;
+  padding: 0.75rem 1rem;
+  border: 1px solid #e7e9ee;
+  text-align: left;
+}
+
+.rich-html td {
+  padding: 0.75rem 1rem;
+  border: 1px solid #e7e9ee;
+  color: #4b5563;
+}
+
+.rich-html tr:nth-child(even) td {
+  background: #fafbfc;
+}
+
+.rich-html iframe {
+  width: 100% !important;
+  max-width: 100% !important;
+  aspect-ratio: 16 / 9;
+  height: auto !important;
+  min-height: 260px;
+  border-radius: 14px;
+  border: 1px solid #e7e9ee;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
+  display: block;
+}
+
+.rich-html img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 14px;
+  border: 1px solid #e7e9ee;
+  margin: 1.25rem 0;
+}
+
 

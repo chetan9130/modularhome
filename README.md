@@ -1,1685 +1,738 @@
-# MODULARHOME / STEELWEB
+MODULARHOME.COM — IMPLEMENT CUSTOMER ECOMMERCE MODULES 01 & 02
+
+PROJECT:
+ModularHome.com
+
+CURRENT STACK:
+- Next.js App Router
+- React
+- TypeScript
+- Tailwind CSS
+- Supabase PostgreSQL
+- Supabase Auth
+- Supabase Storage
+- Existing Stripe ecommerce infrastructure
+- Existing product/catalog/floor-plan system
+- Existing Admin CMS
+- Existing production migration/ETL
+- Existing SEO and redirect infrastructure
+
+SOURCE OF TRUTH:
+Follow the ModularHome Final Master Developer Specification.
+
+This task implements ONLY:
+
+MODULE 01 — Customer Signup
+MODULE 02 — Email Verification
+
+Both modules are CRITICAL requirements.
+
+The specification requires:
+
+MODULE 01 — Customer Signup
+- New customer can create an account before or during purchase.
+- Email/password signup.
+- Validation.
+- Consent/Terms acceptance.
+- Duplicate-account handling.
+- Secure Supabase Auth integration.
+- Successful signup should lead the customer toward their account.
+
+MODULE 02 — Email Verification
+- Confirm ownership of customer's email address.
+- Branded verification email.
+- Verification callback.
+- Verified/unverified account state.
+- Customer clicks verification link and becomes verified.
 
-# REMAINING CUSTOMER ECOMMERCE + REPORTING + CUSTOMER ACCOUNT IMPLEMENTATION PROMPT
+IMPORTANT:
+DO NOT rebuild the existing ModularHome system.
+DO NOT replace the existing Supabase architecture.
+DO NOT replace existing product/catalog functionality.
+DO NOT replace existing Stripe functionality.
+DO NOT replace existing Admin authentication.
+DO NOT modify the existing migration/ETL.
+DO NOT modify production data.
+DO NOT perform DNS/domain changes.
+DO NOT introduce a second authentication provider.
+
+==================================================
+1. INSPECT THE EXISTING PROJECT FIRST
+==================================================
+
+Before writing code, inspect:
+
+- package.json
+- Next.js app structure
+- existing Supabase client/server utilities
+- existing middleware
+- existing authentication/session logic
+- existing Admin authentication
+- existing database schema
+- existing RLS policies
+- existing environment variable conventions
+- existing public header/navigation
+- existing customer/cart/checkout code
+- existing Stripe checkout flow
+- existing email infrastructure
+- existing route structure
+- existing UI components
+- existing error handling
+- existing forms and validation utilities
 
-## PROJECT CONTEXT
+Determine whether Supabase Auth is already partially implemented.
 
-You are working on the existing **ModularHome / SteelWeb** project.
+If customer authentication already exists, EXTEND it instead of creating another implementation.
 
-The project already contains a substantial Admin CMS, public storefront, Supabase backend, Stripe payment integration, secure floor-plan downloads, Shopify migration, SEO/redirects, YouTube synchronization, CRM, security controls, RBAC, 2FA, activity logging, content versioning, and CMS functionality.
+Clearly identify reusable existing utilities before creating new ones.
 
-The purpose of this task is **NOT to rebuild the existing Admin CMS**.
+==================================================
+2. CUSTOMER AUTH MUST BE SEPARATE FROM ADMIN AUTH
+==================================================
 
-The goal is to complete the remaining requirements from the **Final Master Developer Specification**, specifically:
+There are two different authentication domains:
 
-1. Customer Ecommerce
-2. Customer Accounts
-3. Customer Account Administration
-4. Ecommerce Reporting & Analytics
-5. Data Export
-6. Remaining Payment/Order operational features
-7. Mobile Ecommerce QA
-8. Complete End-to-End Ecommerce QA
-9. Final documentation and handover
-
----
-
-# 1. CRITICAL RULE — INSPECT BEFORE IMPLEMENTING
-
-Before writing code:
-
-1. Inspect the complete existing SteelWeb codebase.
-2. Inspect the current Supabase schema.
-3. Inspect existing Stripe integration.
-4. Inspect existing authentication.
-5. Inspect existing Admin roles and permissions.
-6. Inspect existing order/payment/download implementation.
-7. Inspect existing customer/lead/quotation structures.
-8. Inspect existing email functionality.
-9. Inspect existing analytics.
-10. Inspect existing reporting/dashboard functionality.
+ADMIN:
+- /admin/*
+- Existing admin authentication/security must remain unchanged.
 
-DO NOT assume a feature is missing merely because it was not listed in the previous architecture summary.
+CUSTOMER:
+- Public website
+- Customer signup/login/account
+- Supabase Auth customer users
 
-For every requirement below, classify it as:
+Do not accidentally give customer accounts access to admin routes.
 
-* ALREADY COMPLETE
-* PARTIALLY COMPLETE
-* MISSING
-* BROKEN
-* NEEDS QA ONLY
-
-Then implement only what is actually required.
+Do not weaken existing Admin RBAC, sessions, RLS, or security.
 
-Do not duplicate existing functionality.
-
----
-
-# 2. EXISTING TECHNOLOGY — PRESERVE
-
-Continue using the existing architecture:
-
-* Next.js 16
-* React 19
-* TypeScript
-* Tailwind CSS v4
-* Supabase PostgreSQL
-* Supabase RLS
-* Supabase Storage
-* Stripe
-* Existing CMS
-* Existing Admin Dashboard
-* Existing middleware
-* Existing APIs
-* Existing publicData layer
-
-Do NOT introduce:
-
-* Convex
-* Prisma
-* MongoDB
-* Razorpay
-* Another database
-* Another CMS
-* Another payment gateway
+A normal customer must NEVER be able to access:
 
-Stripe remains the payment provider.
+/admin
+/admin/*
+/api/admin/*
 
-Supabase remains the primary database/storage platform.
+==================================================
+3. MODULE 01 — CUSTOMER SIGNUP
+==================================================
 
----
+Implement a polished customer signup experience.
 
-# 3. CUSTOMER ACCOUNT SYSTEM
+Preferred route if it does not conflict with the existing architecture:
 
-Implement a complete customer account lifecycle if not already present.
+/signup
 
-Required flow:
+If an existing route such as /register exists, inspect it first and reuse/upgrade it instead of creating a duplicate route.
 
-```text
-Visitor
-  ↓
-Signup / Login
-  ↓
-Email Verification
-  ↓
-Customer Account
-  ↓
-Browse Floor Plans
-  ↓
-Cart
-  ↓
-Checkout
-  ↓
-Stripe
-  ↓
-Verified Payment
-  ↓
-Order
-  ↓
-Invoice / Receipt
-  ↓
-Customer Dashboard
-  ↓
-Secure Download
-```
+Signup form should support:
 
----
+- First name
+- Last name
+- Email
+- Password
+- Confirm password
+- Terms/Privacy acceptance
 
-# 4. CUSTOMER SIGNUP
+Use the project's existing design system and Tailwind styling.
 
-Implement customer registration.
+Do not create a visually unrelated authentication page.
 
-Support where applicable:
+==================================================
+4. SIGNUP VALIDATION
+==================================================
 
-* Name
-* Email
-* Password
-* Phone
-* Required profile information
-* Terms/policy acceptance where required
+Implement client-side AND server/Supabase-side validation.
 
-Requirements:
+Validate:
 
-* Server-side validation
-* Password handled securely through the authentication system
-* No plaintext password storage
-* Duplicate email handling
-* Rate limiting
-* Abuse protection
+EMAIL:
+- Required
+- Valid email format
+- Normalize email appropriately
 
-After signup:
+PASSWORD:
+- Required
+- Minimum secure length
+- Confirm password must match
 
-```text
-Account Created
-      ↓
-Verification Required
-      ↓
-Verification Email
-      ↓
-Verified Customer
-```
+NAME:
+- Required where applicable
+- Trim whitespace
+- Reasonable length limits
 
----
+TERMS:
+- Must be explicitly accepted before account creation.
 
-# 5. EMAIL VERIFICATION
+Never trust client-side validation alone.
 
-Implement complete email verification.
+==================================================
+5. SUPABASE AUTH
+==================================================
 
-Requirements:
+Use the existing Supabase Auth configuration.
 
-* Verification email
-* Secure verification token/process
-* Verification status
-* Verification timestamp where available
-* Resend verification
-* Resend rate limiting
-* Expired/invalid verification handling
+Use the correct server/client Supabase utilities already present in the project.
 
-Admin should be able to see whether a customer is verified.
+Do NOT expose:
 
-Never allow admin users to manually manipulate authentication records as a substitute for the proper verification flow.
+- SUPABASE_SERVICE_ROLE_KEY
+- Stripe secret keys
+- other server secrets
 
----
+to browser/client code.
 
-# 6. CUSTOMER LOGIN
+Customer signup should create a Supabase Auth user.
 
-Implement customer login.
+Use email confirmation.
 
-Requirements:
+The application should NOT manually store customer passwords.
 
-* Email/password login
-* Secure session
-* HttpOnly cookies where applicable
-* Secure session handling
-* Rate limiting
-* Failed login handling
-* Logout
-* Session expiration
+Passwords must be handled exclusively by Supabase Auth.
 
-Do not expose authentication secrets to the browser.
+==================================================
+6. CUSTOMER PROFILE
+==================================================
 
----
+If the project already has a customer/profile table, reuse it.
 
-# 7. GOOGLE / SOCIAL LOGIN
+If not, create the minimum required profile structure according to the existing database architecture.
 
-Inspect the current authentication architecture.
+Do NOT create unnecessary duplicate customer tables.
 
-If Google authentication is already configured or enabled, complete its integration.
+Recommended relationship:
 
-If it is not configured:
+auth.users
+    ↓
+customer profile
 
-* Prepare the architecture cleanly
-* Do not introduce unnecessary providers
-* Document the required external configuration
-
-Customer identity provider information must never expose OAuth secrets/tokens.
-
----
-
-# 8. FORGOT PASSWORD / RESET PASSWORD
-
-Implement the normal secure password reset workflow.
-
-Required:
-
-```text
-Forgot Password
-      ↓
-Reset Email
-      ↓
-Secure Reset Link
-      ↓
-Customer Sets New Password
-      ↓
-Account Updated
-```
-
-Admins must NEVER:
-
-* See passwords
-* Retrieve passwords
-* Set a customer's password directly
-* Store plaintext passwords
-
-Admin assistance should only trigger the secure reset workflow.
-
----
-
-# 9. CUSTOMER PROFILE
-
-Create a customer profile/account area.
-
-Customer should be able to manage permitted information such as:
-
-* Name
-* Email through secure email-change flow
-* Phone
-* Billing/contact information
-* Account information
-
-Authentication email changes must use a secure verified workflow.
-
-Do not simply update authentication email through direct database SQL.
-
----
-
-# 10. CUSTOMER DASHBOARD
-
-Create/complete:
-
-`/account`
-
-or the existing customer account route.
-
-Dashboard should show:
-
-* Customer information
-* Account status
-* Verification status where useful
-* Recent orders
-* Purchased floor plans
-* Download access
-* Download history
-* Invoices/receipts
-* Relevant account events
-* Support/help option
-
-Example:
-
-```text
-MY ACCOUNT
-
-Welcome, Customer
-
-Orders
---------------------------------
-#MH-10021    Paid
-#MH-10019    Paid
-
-Purchased Plans
---------------------------------
-Modern Cabin 2400
-Download
-
-Invoices
---------------------------------
-INV-10021
-Download Invoice
-```
-
----
-
-# 11. CUSTOMER ORDER HISTORY
-
-Customers must be able to see their own orders.
-
-Show:
-
-* Order number
-* Order date
-* Purchased products
-* Quantity
-* Price
-* Discount if applicable
-* Tax where applicable
-* Total
-* Payment status
-* Order status
-* Download status
-
-Customers must only be able to access their own orders.
-
-Test direct API access using another customer's order ID.
-
-It must fail.
-
----
-
-# 12. CUSTOMER ORDER DETAILS
-
-Create a customer-facing order detail page.
-
-Example:
-
-`/account/orders/[orderId]`
-
-Display:
-
-* Order information
-* Product/floor plan
-* Price
-* Payment status
-* Payment date
-* Invoice
-* Download access
-* Download expiry
-* Support option
-
-Do not expose:
-
-* Stripe secret keys
-* Internal webhook data
-* Other customer's data
-* Card information
-
----
-
-# 13. SHOPPING CART
-
-Inspect the existing floor-plan ecommerce implementation.
-
-If a proper persistent cart does not exist, implement it.
-
-Support:
-
-* Add to cart
-* Remove
-* Update quantity where applicable
-* Empty cart
-* Cart persistence
-* Price display
-* Subtotal
-* Discount where supported
-* Checkout
-
-Do not treat cart data as proof of purchase.
-
-Only Stripe/server-side verified payment creates a paid entitlement.
-
----
-
-# 14. SERVER-SIDE PRICE VALIDATION
-
-This is CRITICAL.
-
-Never trust prices received from the browser.
-
-When creating Stripe checkout:
-
-```text
-Browser
-   ↓
-Product ID
-   ↓
-Server
-   ↓
-Load current authoritative price from Supabase
-   ↓
-Validate product availability
-   ↓
-Create Stripe Checkout
-```
-
-The browser must never be able to change:
-
-```text
-$595 → $1
-```
-
-or manipulate discounts.
-
-Test by modifying browser requests.
-
----
-
-# 15. STRIPE CHECKOUT
-
-Preserve the existing Stripe integration.
-
-Verify:
-
-* Checkout creation
-* Product validation
-* Correct amount
-* Correct currency
-* Customer information
-* Metadata/order reference
-* Success URL
-* Cancel URL
-* Webhook processing
-
-Do not replace the existing Stripe implementation unnecessarily.
-
----
-
-# 16. PAYMENT / WEBHOOK LOG
-
-Create or complete a payment/webhook diagnostic system.
-
-Store safe information such as:
-
-* Stripe event ID
-* Event type
-* Processing status
-* Related order
-* Received timestamp
-* Processed timestamp
-* Error state
-* Retry state
-
-Never store sensitive payment credentials.
-
-Admin should be able to diagnose:
-
-```text
-Order Pending
-↓
-Webhook Received?
-↓
-Webhook Processed?
-↓
-Payment Confirmed?
-↓
-Entitlement Created?
-```
-
----
-
-# 17. IDEMPOTENCY / DUPLICATE PROTECTION
-
-This is CRITICAL.
-
-Repeated Stripe webhook events must NOT create:
-
-* Duplicate orders
-* Duplicate payments
-* Duplicate download entitlements
-* Duplicate emails
-
-Use:
-
-* Unique Stripe event IDs
-* Unique checkout/payment references
-* Database constraints
-* Idempotent processing
-
-Test the same webhook twice.
-
-Expected:
-
-```text
-1 webhook event
-1 paid order
-1 entitlement
-```
-
----
-
-# 18. REFUND WORKFLOW
-
-If business policy allows refunds, implement controlled refund handling.
-
-Admin requirements:
-
-* Authorized refund action
-* Confirmation
-* Optional reason
-* Stripe server-side refund
-* Refund status
-* Refund history
-* Audit log
-
-After refund:
-
-* Update order state
-* Update entitlement according to business policy
-* Record refund information
-
-Never trust frontend refund status.
-
----
-
-# 19. TAX & BILLING CONFIGURATION
-
-Implement only according to the client's actual Stripe/business configuration.
-
-Support:
-
-* Currency
-* Business information
-* Billing information
-* Tax configuration
-* Stripe Tax where enabled
-* Manual tax rules where appropriate
-
-Store authoritative totals.
-
-Verify:
-
-```text
-Subtotal
-+
-Tax
--
-Discount
-=
-Final Total
-```
-
-Invoice totals must match the authoritative order/payment records.
-
----
-
-# 20. COUPONS / PROMOTIONS
-
-If required by the business, implement controlled discounts.
-
-Support:
-
-* Coupon code
-* Discount type
-* Fixed/percentage value
-* Start date
-* End date
-* Usage limits
-* Eligible products/plans
-* Active/inactive state
-
-Validate coupons server-side.
-
-Never trust discount values from the browser.
-
-If coupons are not required for launch, prepare the architecture without making it a launch blocker.
-
----
-
-# 21. ABANDONED CHECKOUT
-
-If technically and legally appropriate, track:
-
-* Cart created
-* Checkout started
-* Checkout abandoned
-* Purchase completed
-
-Never classify abandoned checkout as a purchase.
-
-If reminder emails are implemented:
-
-* Require appropriate consent/legal basis
-* Avoid spam
-* Rate-limit communication
-* Keep analytics separate from paid orders
-
----
-
-# 22. INVOICES
-
-Implement customer-accessible invoices if not already present.
-
-Invoice should contain:
-
-* Business information
-* Customer information
-* Invoice number
-* Order number
-* Date
-* Product/floor plan
-* Quantity
-* Unit price
-* Subtotal
-* Tax
-* Discount
-* Total
-* Payment status
-
-Provide:
-
-* View invoice
-* Download invoice
-
-Invoice must reflect authoritative order/payment records.
-
----
-
-# 23. TRANSACTIONAL EMAIL SYSTEM
-
-Implement/complete transactional email flows.
-
-Required where applicable:
-
-### Account
-
-* Verification email
-* Password reset
-
-### Ecommerce
-
-* Order confirmation
-* Payment receipt
-* Invoice
-* Download instructions
-
-### Refund
-
-* Refund confirmation
-
-### Support
-
-* Relevant customer/order communication
-
-Every email event should be logged where practical.
-
-Never claim delivery metrics that the email provider does not provide.
-
----
-
-# 24. DOWNLOAD HISTORY
-
-Customer dashboard should show:
-
-* Purchased plan
-* Download date
-* Download status
-* Remaining download attempts where applicable
-* Expiry
-* File/package name
-
-Existing secure download rules must remain intact.
-
-Do not weaken:
-
-* Private storage
-* Signed access
-* Token validation
-* Expiration
-* Download limits
-
----
-
-# 25. CUSTOMER SUPPORT FLOW
-
-From an order/account page provide a support route.
-
-Where possible, automatically include:
-
-* Customer
-* Order number
-* Product
-* Relevant context
-
-Do not require customers to manually re-enter information already available.
-
----
-
-# 26. ADMIN CUSTOMER MANAGEMENT
-
-Add/complete:
-
-`/admin/customers`
-
-Admin customer detail must show:
-
-* Customer ID
-* Name
-* Email
-* Phone
-* Signup method
-* Provider
-* Created date
-* Verification state
-* Account status
-* Last relevant activity
-* Orders
-* Invoices
-* Purchased plans
-* Downloads
-* Account events
-
-Admins must NEVER see customer passwords.
-
----
-
-# 27. CUSTOMER ACCOUNT ADMIN ACTIONS
-
-Authorized administrators should be able to perform:
-
-### Resend verification
-
-Use secure authentication workflow.
-
-### Send password reset
-
-Send the normal reset email.
-
-### Enable/disable account
-
-Require:
-
-* Permission
-* Confirmation
-* Reason
-* Audit log
-
-### Revoke sessions
-
-Require:
-
-* Permission
-* Confirmation
-* Audit log
-
-### Edit profile
-
-Allow permitted fields such as:
-
-* Name
-* Phone
-* Billing/contact information
-
-Separate this from authentication credentials.
-
----
-
-# 28. CUSTOMER EMAIL CHANGE
-
-Do NOT simply update the customer's authentication email in the database.
-
-Use the supported verified email-change workflow.
-
-Require appropriate:
-
-* Confirmation
-* Authorization
-* Verification
-* Audit logging
-
----
-
-# 29. CUSTOMER ACCOUNT SEARCH
-
-Admin customer search should support:
-
-* Name
-* Email
-* Phone where permitted
-* Signup date
-* Verification state
-* Account status
-* Authentication provider
-* Purchaser/non-purchaser
-
-Apply role-based access to PII.
-
----
-
-# 30. CUSTOMER ACCOUNT TIMELINE
-
-Create a customer event timeline.
-
-Example:
-
-```text
-Account Created
-      ↓
-Email Verified
-      ↓
-Quote Submitted
-      ↓
-Order Created
-      ↓
-Payment Completed
-      ↓
-Invoice Sent
-      ↓
-Download
-      ↓
-Password Reset Requested
-```
-
-Include:
-
-* Event
-* Actor
-* Timestamp
-* Safe metadata
-
----
-
-# 31. CUSTOMER DATA EXPORT
-
-Implement controlled customer exports.
-
-Supported formats:
-
-* CSV
-* XLSX
-
-Allow filtering.
+The profile should be linked to the Supabase Auth user ID.
 
 Possible fields:
 
-* Name
-* Email
-* Phone
-* Signup date
-* Verification status
-* Order count
-* Paid lifetime value
-* Last order
+- id
+- auth_user_id
+- first_name
+- last_name
+- email
+- phone if supported by current architecture
+- created_at
+- updated_at
 
-Never export:
+Use the existing naming conventions if different.
 
-* Passwords
-* Authentication secrets
-* Tokens
-* Card details
-* Unnecessary sensitive information
+Email should remain authoritative from Supabase Auth where appropriate.
 
-Log sensitive exports.
+==================================================
+7. TERMS / CONSENT
+==================================================
 
----
+Customer signup must capture acceptance of the applicable Terms/Privacy policy.
 
-# 32. CUSTOMER DATA REQUEST WORKFLOW
+Do not simply create a checkbox with no stored record if the current ecommerce architecture requires auditable acceptance.
 
-Create a controlled workflow for:
+If the database already has policy/version infrastructure, reuse it.
 
-* Account requests
-* Data requests
-* Supported deletion requests
-* Other relevant privacy requests
+Otherwise implement the minimum auditable structure needed.
 
-Do not blindly delete legally required transaction records.
+Store:
 
-Retention rules must be configurable/documented according to the client's legal/accounting requirements.
+- customer/user ID
+- policy/version identifier
+- accepted timestamp
 
----
+Do not store unnecessary personal information.
 
-# 33. ECOMMERCE ANALYTICS DASHBOARD
+==================================================
+8. DUPLICATE ACCOUNT HANDLING
+==================================================
 
-Implement the remaining ecommerce reporting layer.
+Handle duplicate signup safely.
 
-Create a dashboard showing:
+Do NOT reveal unnecessary account existence information to an unauthenticated user.
 
-* Paid revenue
-* Paid orders
-* Customers
-* New registrations
-* Average order value
-* Refunds
-* Payment failures
-* Top floor plans
-* Downloads
-* Date comparison
+Do not display sensitive database/Auth errors directly to the customer.
 
-All monetary metrics must come from authoritative paid/refunded order data.
+Use friendly messages such as:
 
----
+"Unable to create your account with these details. Please sign in or use password recovery if you already have an account."
 
-# 34. PAYMENT METHODS
+Use server-side logging for technical errors where appropriate.
 
-Do not hardcode card-only checkout.
+Do not leak:
 
-Use payment methods actually supported and enabled by the client's Stripe account and transaction context.
+- database errors
+- Supabase internal errors
+- SQL errors
+- user IDs
+- authentication internals
 
-If Stripe supports/enables another eligible method, the order architecture should support it without requiring a database redesign.
+==================================================
+9. MODULE 02 — EMAIL VERIFICATION
+==================================================
 
----
+Enable Supabase email confirmation.
 
-# 35. SALES REPORT
+After signup:
 
-Create a Sales Report Generator.
+Customer
+  ↓
+Supabase Auth signup
+  ↓
+Verification email
+  ↓
+Customer clicks verification link
+  ↓
+Verification callback
+  ↓
+Authenticated/verified session
+  ↓
+Customer account
 
-Filters:
+Use the project's existing Supabase email confirmation configuration if already present.
 
-* Date range
-* Payment status
-* Order status
-* Product/floor plan
-* Customer where authorized
+Do not implement a custom password/token system if Supabase Auth already provides the required mechanism.
 
-Show:
+==================================================
+10. VERIFICATION CALLBACK
+==================================================
 
-* Gross paid sales
-* Discounts
-* Refunds
-* Net sales
-* Orders
-* AOV
-* Daily/monthly breakdown
+Implement the appropriate callback route based on the existing Next.js/Supabase architecture.
 
----
+Preferred conceptual route:
 
-# 36. ORDERS REPORT
+/auth/callback
 
-Create downloadable order reports.
+But first inspect existing auth callback routes.
 
-Include:
+If one already exists, extend it.
 
-* Order number
-* Date
-* Customer
-* Products
-* Quantity
-* Subtotal
-* Tax
-* Discount
-* Total
-* Payment status
-* Order status
-* Download/fulfillment state
+The callback must:
 
----
+- securely process the Supabase authentication callback
+- establish/refresh the customer session as required
+- handle invalid/expired callbacks safely
+- redirect successfully verified users to the appropriate customer destination
+- display a useful error for failed verification
 
-# 37. CUSTOMER REPORT
+Do not expose authentication tokens in URLs beyond what the Supabase flow requires.
 
-Authorized admins should be able to generate customer reports.
+Do not log sensitive authentication tokens.
 
-Include:
+==================================================
+11. VERIFIED / UNVERIFIED STATE
+==================================================
 
-* Customer
-* Signup date
-* Verification
-* Order count
-* Paid lifetime value
-* Last order
-* Customer status
+The application must be able to determine whether a customer email is verified.
 
-Respect role permissions.
+Support states such as:
 
----
+VERIFIED
+UNVERIFIED
 
-# 38. FLOOR PLAN SALES REPORT
+The customer UI should clearly communicate the state.
 
-Report performance per floor plan:
+Example:
 
-* Orders
-* Units
-* Paid revenue
-* Refunds
-* Net revenue
-* Funnel metrics
+"Your email is not verified yet."
 
-Support date filtering.
+Provide:
 
----
+"Resend verification email"
 
-# 39. PAYMENTS & REFUNDS REPORT
+where supported.
 
-Create reconciliation-friendly reports containing:
+After successful verification:
 
-* Order
-* Stripe reference
-* Amount
-* Payment status
-* Payment date
-* Refund amount
-* Refund status
+"Your email has been verified."
 
-NEVER include raw card data.
+==================================================
+12. RESEND VERIFICATION
+==================================================
 
----
+Provide a safe resend verification flow.
 
-# 40. INVOICE REPORT
+Possible route/page:
 
-Allow authorized administrators to:
+/verify-email
 
-* Search invoices
-* Filter invoices
-* Download individual invoices
-* Generate invoice register
-* Export approved invoice data
+or an existing equivalent.
 
----
+The page should provide:
 
-# 41. DOWNLOAD ACTIVITY REPORT
+- current verification state
+- resend button
+- success message
+- safe error handling
 
-Report:
+Prevent abuse through appropriate rate limiting/cooldown if the project already has a rate-limiting mechanism.
 
-* Customer
-* Order
-* Product
-* Download date
-* Download status
-* Expiry
-* Download count
+Do not allow unlimited verification-email requests.
 
-Respect privacy permissions.
+==================================================
+13. SIGNUP SUCCESS FLOW
+==================================================
 
----
+After successful signup, the user should NOT simply be dumped onto an unrelated page.
 
-# 42. EMAIL PERFORMANCE REPORT
+Preferred flow:
 
-Where supported by the email provider, report:
-
-* Sent
-* Delivered
-* Failed
-* Bounced
-* Other provider-supported metrics
-
-Do not invent unavailable metrics.
-
----
-
-# 43. SIGNUP & CUSTOMER CONVERSION REPORT
-
-Track:
-
-```text
 Signup
-↓
-Verified Account
-↓
-First Purchase
-↓
-Returning Customer
-```
+ ↓
+Account created
+ ↓
+Check email
+ ↓
+/verify-email
+ ↓
+Customer verifies email
+ ↓
+Customer continues to customer account
 
-Report:
+If the project's existing architecture has a different customer flow, preserve it.
 
-* Signups
-* Verified accounts
-* First-time purchasers
-* Returning purchasers
-* Signup-to-purchase conversion
+The customer should understand exactly what they need to do next.
 
-Define event rules consistently.
+==================================================
+14. CUSTOMER SESSION SECURITY
+==================================================
 
----
+Use Supabase's existing secure session architecture.
 
-# 44. ECOMMERCE FUNNEL
+Do not store authentication tokens in localStorage unless the existing Supabase architecture explicitly requires it.
 
-Track:
+Use secure cookies/server-side session handling according to the existing project architecture.
 
-* Product view
-* Add to cart
-* Checkout start
-* Purchase
+Customer session must not grant admin privileges.
 
-Example:
+Ensure logout works correctly.
 
-```text
-1,000 Product Views
-        ↓
-120 Add to Cart
-        ↓
-70 Checkout
-        ↓
-25 Verified Purchases
-```
+Do not modify existing Admin session behavior.
 
-Prevent duplicate purchase events.
+==================================================
+15. RLS / DATABASE SECURITY
+==================================================
 
----
+Apply proper Supabase RLS to customer profile data.
 
-# 45. ATTRIBUTION
+A customer must only be able to access their own profile.
 
-Where technically and legally appropriate, capture:
+Conceptually:
 
-* UTM source
-* UTM medium
-* UTM campaign
-* Referrer
-* Approved acquisition source
+Customer A
+  ↓
+Can read/update Customer A profile
 
-Connect attribution to:
+Customer B
+  ↓
+Cannot read/update Customer A profile
 
-* Session
-* Customer
-* Order
+Anonymous user
+  ↓
+Cannot read customer profiles
 
-Do not alter authoritative Stripe/payment truth.
+Admin access should continue through the existing secure server-side authorization architecture.
 
----
+Do not rely only on frontend route hiding.
 
-# 46. DATE FILTERS
+==================================================
+16. MIDDLEWARE / ROUTE PROTECTION
+==================================================
 
-All analytics should support:
+Inspect existing middleware before modifying it.
 
-* Today
-* Yesterday
-* Last 7 days
-* Last 30 days
-* Month
-* Quarter
-* Year
-* Custom range
-* Previous-period comparison
+Do not break:
 
-Use a consistent timezone strategy.
+- /admin/*
+- public pages
+- API routes
+- Stripe webhooks
+- existing redirects
+- sitemap
+- robots.txt
+- SEO
 
----
+Customer routes that require authentication should be protected appropriately.
 
-# 47. CSV / EXCEL EXPORT
+At this stage, only protect what is actually required by Modules 01–02.
 
-Implement permission-controlled:
+Do not prematurely block public ecommerce browsing.
 
-* CSV
-* XLSX
+==================================================
+17. EMAIL DESIGN
+==================================================
 
-Exports should respect active filters.
+Use the existing email provider/infrastructure if available.
 
-Use stable column names.
+Verification email should be branded for ModularHome.
 
-Format:
+It should contain:
 
-* Dates consistently
-* Currency consistently
-* Human-readable values
+- ModularHome branding
+- verification purpose
+- clear verification CTA
+- appropriate expiration/security messaging
+- support/contact information if the existing email architecture provides it
 
----
+Do not hardcode secrets.
 
-# 48. PDF MANAGEMENT REPORTS
+Do not use development-only sender addresses in production.
 
-Create formatted PDF summaries for authorized users.
+==================================================
+18. ENVIRONMENT CONFIGURATION
+==================================================
 
-Possible reports:
+Support separate environments:
 
-* Executive sales summary
-* Monthly sales
-* Product/floor-plan performance
-* Customer summary
-* Payment/refund summary
+DEVELOPMENT
+STAGING/PREVIEW
+PRODUCTION
 
-Include:
+Do not mix Supabase projects.
 
-* Date range
-* Generated timestamp
-* Filters
-* KPIs
-* Tables
+Preview/Staging:
+    → Supabase STAGING
 
----
+Production:
+    → Supabase PRODUCTION
 
-# 49. EXPORT PERMISSIONS
+Never expose:
 
-Create strict export permissions.
+SUPABASE_SERVICE_ROLE_KEY
 
-Example:
+to the client.
 
-### Super Admin
+Use the project's existing environment variable names where possible.
 
-Can access authorized:
+Do not commit .env files containing secrets.
 
-* Customer exports
-* Payment reports
-* Financial reports
+==================================================
+19. UI / UX
+==================================================
 
-### Sales
+The signup and verification screens must visually match the existing ModularHome website.
 
-Can access:
+Use:
 
-* Sales/customer information necessary for sales
+- Existing Tailwind configuration
+- Existing typography
+- Existing buttons
+- Existing form components
+- Existing spacing
+- Existing responsive behavior
+- Existing header/footer where appropriate
 
-### Content Admin
+Responsive requirements:
 
-Should NOT access:
+Desktop
+Tablet
+Mobile
 
-* Full payment export
-* Sensitive financial data
-* Unnecessary customer PII
+Handle:
 
-Enforce on:
+- loading
+- validation errors
+- network errors
+- signup success
+- verification pending
+- verification success
+- verification failure
+- resend cooldown
 
-* API
-* Server
-* Database/RLS
+Do not use fake buttons or simulated authentication.
 
-Not only UI.
+Every control must perform the real operation.
 
----
+==================================================
+20. SEO
+==================================================
 
-# 50. DASHBOARD DRILL-DOWN
+Customer authentication pages should not be indexed.
 
-Dashboard KPIs must be clickable.
+For example:
 
-Example:
+/signup
+/login
+/verify-email
+/auth/callback
 
-```text
-12 Refunded Orders
-        ↓
-Filtered Orders
-        ↓
-Exactly those 12 orders
-```
+should use appropriate noindex behavior.
 
-Apply permissions.
+Do not allow authentication pages to generate production sitemap entries.
 
----
+Do not create canonical URLs that cause authentication pages to be indexed.
 
-# 51. REPORTING RECONCILIATION
+Preserve the existing public SEO implementation.
 
-Before declaring reporting complete:
-
-Compare reports against:
-
-* Supabase orders
-* Payment records
-* Stripe records
+==================================================
+21. SECURITY TESTING
+==================================================
 
 Test:
 
-* Totals
-* Refunds
-* Filters
-* Date boundaries
-* Timezones
-* Duplicate events
-* Export rows
+1. Valid signup
+2. Invalid email
+3. Weak password
+4. Password mismatch
+5. Missing required fields
+6. Terms not accepted
+7. Duplicate signup
+8. Verification email
+9. Verification callback
+10. Expired/invalid verification link
+11. Resend verification
+12. Unverified account state
+13. Verified account state
+14. Logout
+15. Customer cannot access admin
+16. Customer cannot read another customer's profile
+17. Anonymous user cannot read customer profile
+18. Service-role key is never exposed
+19. Authentication errors do not expose sensitive internals
+20. Mobile signup
+21. Mobile verification flow
 
----
-
-# 52. SALES ROLE
-
-Complete RBAC with:
-
-### SUPER_ADMIN
-
-Full authorized access.
-
-### CONTENT_ADMIN / EDITOR
-
-CMS/content/media access.
-
-### SALES
-
-Customer/lead/quote/sales access required for operations.
-
-Sales should NOT automatically receive:
-
-* Security administration
-* Admin-user management
-* Payment secrets
-* Unnecessary system settings
-
-Every permission must be enforced server/database-side.
-
----
-
-# 53. CUSTOMER DATA PRIVACY
-
-Verify that:
-
-* Customer A cannot access Customer B
-* Public APIs cannot expose customer PII
-* Customer orders are isolated
-* Customer invoices are isolated
-* Customer downloads are isolated
-* Admin roles only access necessary information
-* Exports respect permissions
-* Logs don't contain unnecessary sensitive information
-
----
-
-# 54. BACKUPS & RECOVERY
-
-Verify the production Supabase backup strategy.
-
-Implement/document:
-
-* Automated backups
-* Recovery process
-* PITR where supported by the selected Supabase plan
-* Pre-migration backup
-* Pre-major-release backup
-
-Do not consider a local JSON fallback equivalent to production database backup.
-
----
-
-# 55. MOBILE CUSTOMER QA
-
-Test the entire customer journey on common mobile screen sizes:
-
-* Signup
-* Verification
-* Login
-* Password reset
-* Account
-* Catalog
-* Product detail
-* Cart
-* Checkout
-* Stripe
-* Order
-* Invoice
-* Download
-
-Fix mobile-specific layout/interaction issues.
-
----
-
-# 56. COMPLETE END-TO-END QA
-
-This is the final critical test.
-
-Run:
-
-```text
-New Customer
-      ↓
-Signup
-      ↓
-Email Verification
-      ↓
-Login
-      ↓
-Browse Floor Plans
-      ↓
-Product View
-      ↓
-Add to Cart
-      ↓
-Checkout
-      ↓
-Stripe Test Payment
-      ↓
-Verified Webhook
-      ↓
-Paid Order
-      ↓
-Email
-      ↓
-Invoice
-      ↓
-Customer Dashboard
-      ↓
-Secure Download
-      ↓
-Admin Order
-      ↓
-Admin Customer
-      ↓
-Analytics
-      ↓
-Reports
-      ↓
-RLS / Permission Tests
-      ↓
-Mobile QA
-```
-
-Also test:
-
-* Failed payment
-* Cancelled checkout
-* Duplicate webhook
-* Invalid payment
-* Refund
-* Expired download
-* Download limit
-* Unauthorized customer
-* Unauthorized admin
-* Incorrect role
-* Rate limiting
-
----
-
-# 57. SECURITY REGRESSION TEST
-
-Do not weaken existing security.
+==================================================
+22. DATABASE TESTING
+==================================================
 
 Verify:
 
-### Authentication
+- Supabase Auth user is created.
+- Customer profile is correctly linked.
+- Terms acceptance is recorded if applicable.
+- Verification state is correctly represented.
+- RLS prevents unauthorized profile access.
+- Duplicate profiles are not created.
+- Repeated signup attempts do not create duplicate customer records.
 
-* Admin 2FA
-* Customer authentication
-* Session expiry
-* Logout
-* Password reset
+Do not modify migrated product/catalog data.
 
-### Authorization
+==================================================
+23. STRIPE / ECOMMERCE COMPATIBILITY
+==================================================
 
-* Admin roles
-* Customer ownership
-* API authorization
-* Supabase RLS
+Do not break the existing:
 
-### Storage
+- floor plan catalog
+- cart
+- checkout
+- Stripe integration
+- orders
+- digital downloads
 
-* Private paid files
-* Signed URLs
-* Expiration
-* Download limits
+The new customer identity system should be designed so later ecommerce modules can link:
 
-### Payments
+Customer
+  ↓
+Orders
+  ↓
+Purchased Plans
+  ↓
+Entitlements
+  ↓
+Downloads
 
-* Stripe webhook signature
-* Idempotency
-* Server-side price validation
-* Refund authorization
+Do not implement Modules 03–50 unless required to make Modules 01–02 function.
 
-### Data
+==================================================
+24. TEST COMMANDS
+==================================================
 
-* PII protection
-* Export permissions
-* Audit logs
+After implementation run:
 
----
+npm run lint
 
-# 58. DO NOT REBUILD COMPLETED FEATURES
+npx tsc --noEmit
 
-Before modifying any existing module:
+npm run build
 
-1. Inspect it.
-2. Test it.
-3. Reuse it where possible.
-4. Extend only where necessary.
+Also run any existing test suite.
 
-Especially preserve:
+If the project has existing E2E tests, add tests for:
 
-* Stripe
-* Floor-plan ecommerce
-* Secure downloads
-* Supabase
-* Admin CMS
-* Shopify migration
-* SEO redirects
-* YouTube automation
-* RBAC
-* 2FA
-* Activity logs
-* Content versioning
+- signup
+- verification state
+- verification callback
+- RLS/customer isolation
 
----
+==================================================
+25. GIT SAFETY
+==================================================
 
-# 59. DEFINITION OF COMPLETE
+Do not modify production database.
 
-A requirement is COMPLETE only when:
+Do not execute ETL.
 
-```text
-UI
- ↓
-API / Server Action
- ↓
-Authorization
- ↓
-Supabase
- ↓
-Database/RLS
- ↓
-Business Logic
- ↓
-Frontend
- ↓
-QA
-```
+Do not run:
 
-All layers must work.
+npm run migration:production
 
-Do not mark a feature complete simply because the page or button exists.
+Do not change DNS.
 
----
+Do not change production Stripe configuration.
 
-# 60. FINAL IMPLEMENTATION REPORT
+Implement and test in the current development/staging workflow.
 
-At the end, provide a detailed implementation report.
+==================================================
+26. FINAL VERIFICATION
+==================================================
 
-## A. Customer Ecommerce
+Before declaring completion, verify:
 
-Report status for Modules 1–50.
+MODULE 01 — CUSTOMER SIGNUP
 
-For each:
+[ ] Signup page exists
+[ ] Email/password signup works
+[ ] Validation works
+[ ] Password confirmation works
+[ ] Terms acceptance works
+[ ] Supabase Auth user is created
+[ ] Customer profile is linked
+[ ] Duplicate signup handled safely
+[ ] No passwords stored in application database
+[ ] RLS protects customer profile
+[ ] Mobile signup works
 
-* Completed
-* Partial
-* Missing
-* QA Required
+MODULE 02 — EMAIL VERIFICATION
 
-## B. Reporting
-
-Report status for Modules 51–70.
-
-## C. Customer Account Administration
-
-Report status for Modules 71–90.
-
-## D. Database
-
-List:
-
-* Tables added
-* Tables modified
-* Relationships
-* Indexes
-* RLS policies
-* Constraints
-
-## E. APIs
-
-List:
-
-* New API routes
-* Modified API routes
-* Authentication requirements
-* Role requirements
-
-## F. Stripe
-
-Report:
-
-* Checkout
-* Webhooks
-* Idempotency
-* Refunds
-* Payment logging
-* Price validation
-
-## G. Customer Authentication
-
-Report:
-
-* Signup
-* Verification
-* Login
-* Google/social login if enabled
-* Password reset
-* Sessions
-
-## H. Analytics
-
-Report:
-
-* Dashboard
-* Sales
-* Orders
-* Customers
-* Products
-* Payments
-* Refunds
-* Funnel
-* Attribution
-
-## I. Exports
-
-Report:
-
-* CSV
-* XLSX
-* PDF
-* Permission controls
-
-## J. Security
-
-Report:
-
-* RLS
-* RBAC
-* Rate limiting
-* Session security
-* PII protection
-* Storage
-* Stripe security
-* Audit logs
-
-## K. QA
-
-Report:
-
-* Unit tests
-* API tests
-* Integration tests
-* Stripe test-mode tests
-* RLS tests
-* Role tests
-* Mobile tests
-* End-to-end tests
-
-## L. Remaining
-
-Clearly list anything that still requires:
-
-* Client credentials
-* Stripe configuration
-* Supabase configuration
-* Email provider configuration
-* Google OAuth configuration
-* Legal/accounting decisions
-* Production deployment
-* Client verification
-
----
-
-# FINAL GOAL
-
-After completing this task, the ModularHome platform should support the complete lifecycle:
-
-```text
-CUSTOMER
-   ↓
-Signup
-   ↓
-Verification
-   ↓
-Login
-   ↓
-Browse
-   ↓
-Cart
-   ↓
-Stripe Checkout
-   ↓
-Verified Payment
-   ↓
-Order
-   ↓
-Invoice
-   ↓
-Email
-   ↓
-Customer Dashboard
-   ↓
-Secure Download
-   ↓
-Support
-
-                    ↘
-                      ADMIN
-                    ↙
-             Customer Management
-             Order Management
-             Payment Management
-             Refunds
-             Analytics
-             Reports
-             Exports
-             CRM
-             Audit
-             Security
-```
-
-The final system must allow the client to operate the customer ecommerce business **without routine developer intervention**, while preserving the security and CMS functionality already implemented.
-
-Do not declare the project fully complete until the implementation has been tested against the actual requirements and the final report clearly identifies what is **Completed, Ready for QA, or Remaining**.
+[ ] Verification email is sent
+[ ] Email is branded appropriately
+[ ] Verification callback works
+[ ] Verified state is detected
+[ ] Unverified state is detected
+[ ] Resend verification works
+[ ] Resend abuse is controlled
+[ ] Invalid/expired verification is handled
+[ ] Verified customer reaches correct destination
+[ ] Authentication pages are noindex
+[ ] No secrets/tokens are exposed
+
+==================================================
+27. DO NOT CLAIM COMPLETION WITHOUT REAL VERIFICATION
+==================================================
+
+Do not report:
+
+"Module 01 completed"
+or
+"Module 02 completed"
+
+unless the actual functionality has been implemented and tested.
+
+Final response must contain:
+
+1. Files created
+2. Files modified
+3. Database changes
+4. Supabase Auth configuration changes
+5. RLS changes
+6. Email configuration changes
+7. Routes added/modified
+8. Environment variables required (names only; NEVER output secrets)
+9. Tests executed
+10. TypeScript result
+11. Build result
+12. Module 01 status
+13. Module 02 status
+14. Any remaining limitations
+
+Keep all existing ModularHome functionality intact.

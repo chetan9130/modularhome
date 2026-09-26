@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { FloorPlan, INITIAL_FLOOR_PLANS } from "@/data/floorPlans";
+import { FloorPlan } from "@/data/floorPlans";
 import FloorPlanCheckoutModal from "@/components/FloorPlanCheckoutModal";
 import {
   Bed,
@@ -22,6 +22,7 @@ import {
   ShoppingBag,
 } from "lucide-react";
 import { useCart } from "@/context/CartContext";
+import RichHtmlContent from "@/components/RichHtmlContent";
 
 export default function FloorPlanDetailPage() {
   const params = useParams();
@@ -36,14 +37,7 @@ export default function FloorPlanDetailPage() {
 
   useEffect(() => {
     async function loadPlan() {
-      // 1. Check offline dataset
-      const found = INITIAL_FLOOR_PLANS.find((fp) => fp.slug === slug || fp.id === slug);
-      if (found) {
-        setPlan(found);
-        setSelectedImage(found.previewImage);
-      }
-
-      // 2. Fetch from DB if available
+      // Fetch from DB
       try {
         const res = await fetch(`/api/floor-plans/${slug}`);
         if (res.ok) {
@@ -186,9 +180,7 @@ export default function FloorPlanDetailPage() {
             {/* Overview & Description */}
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-stone-200/80 space-y-4">
               <h2 className="text-xl font-black text-stone-900">Architectural Overview</h2>
-              <p className="text-sm text-stone-600 leading-relaxed whitespace-pre-line">
-                {plan.description}
-              </p>
+              <RichHtmlContent content={plan.description} />
 
               {/* Key Features Highlights */}
               {plan.features && plan.features.length > 0 && (

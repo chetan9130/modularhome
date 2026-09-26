@@ -1,0 +1,10 @@
+Entity,Target Table,Source Unique Rows,DB Row Count,Discrepancy,Status
+"Collections","collections",461,461,0,"MATCHED"
+"Products","products",5925,5925,0,"MATCHED"
+"Product Variants","product_variants",120513,120513,0,"MATCHED"
+"Product Media","product_media",20192,20191,-1,"INVESTIGATE"
+"Pages","pages",233,233,0,"MATCHED"
+"Blog Posts","blog_posts",199,199,0,"MATCHED"
+"Redirects (Source + Generated)","redirects",472,6829,6357,"MATCHED_OR_EXPANDED"
+"ModularHome URL Migrations","url_migrations",6818,6818,0,"MATCHED"
+"Product ↔ Collection Memberships","product_collections",215717,215717,0,"POPULATED"

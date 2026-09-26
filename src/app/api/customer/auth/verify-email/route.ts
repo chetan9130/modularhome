@@ -5,25 +5,27 @@ import {
   logCustomerEvent,
 } from "@/lib/customerStore";
 import { createCustomerSession } from "@/lib/customerAuth";
+import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
+    const body = await request.json().catch(() => ({}));
     const token = body.token || request.nextUrl.searchParams.get("token");
 
-    if (!token) {
+    if (!token || typeof token !== "string" || !token.trim()) {
       return NextResponse.json(
         { success: false, error: { message: "Verification token is required.", code: "MISSING_TOKEN" } },
         { status: 400 }
       );
     }
 
-    const customer = await getCustomerByVerificationToken(token);
+    const cleanToken = token.trim();
+    const customer = await getCustomerByVerificationToken(cleanToken);
     if (!customer) {
       return NextResponse.json(
         {
           success: false,
-          error: { message: "Invalid or expired verification token.", code: "INVALID_TOKEN" },
+          error: { message: "Invalid or expired verification token. Please request a fresh link.", code: "INVALID_TOKEN" },
         },
         { status: 400 }
       );
@@ -36,7 +38,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json(
         {
           success: false,
-          error: { message: "Verification token has expired. Please request a new one.", code: "EXPIRED_TOKEN" },
+          error: { message: "Verification token has expired. Please request a new verification link.", code: "EXPIRED_TOKEN" },
         },
         { status: 400 }
       );
@@ -50,6 +52,17 @@ export async function POST(request: NextRequest) {
       updated_at: new Date().toISOString(),
     });
 
+    // Update Supabase Auth user if linked
+    if (customer.auth_user_id && isSupabaseConfigured()) {
+      try {
+        await supabaseAdmin.auth.admin.updateUserById(customer.auth_user_id, {
+          email_confirm: true,
+        });
+      } catch (authErr) {
+        console.warn("Supabase auth user confirmation sync note:", authErr);
+      }
+    }
+
     await logCustomerEvent({
       customer_id: updated.id,
       event_type: "EMAIL_VERIFIED",
@@ -58,6 +71,7 @@ export async function POST(request: NextRequest) {
       details: { email: updated.email },
     });
 
+    // Refresh active customer session
     await createCustomerSession(updated);
 
     return NextResponse.json({
@@ -67,6 +81,7 @@ export async function POST(request: NextRequest) {
         email: updated.email,
         name: updated.name,
         email_verified: true,
+        status: updated.status,
       },
       message: "Email verified successfully! Welcome to your customer portal.",
     });

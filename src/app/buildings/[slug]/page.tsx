@@ -1,7 +1,7 @@
 import { notFound } from "next/navigation";
-import { BUILDING_MODELS } from "@/data/models";
 import ModelDetailClient from "@/app/models/[slug]/ModelDetailClient";
 import { getPublicProductBySlug, getPublicProducts } from "@/lib/publicData";
+import { truncateText } from "@/utils/text";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +16,7 @@ export async function generateMetadata({
 
   return {
     title: `${model.name} (${model.sqft} SQ FT) | ModularHome.com`,
-    description: model.description,
+    description: truncateText(model.description, 160) || `Explore the ${model.name} modular home model on ModularHome.com.`,
   };
 }
 

@@ -77,22 +77,55 @@ export async function sendVerificationEmail(params: {
   token: string;
   customerId?: string;
 }): Promise<boolean> {
-  const verifyUrl = `${SITE_URL}/account/verify?token=${params.token}`;
+  const callbackUrl = `${SITE_URL}/auth/callback?token=${params.token}`;
+  const directVerifyUrl = `${SITE_URL}/verify-email?token=${params.token}`;
   const subject = "Verify your ModularHome.com customer account";
 
   const html = `
-    <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 12px; overflow: hidden;">
-      <div style="background: #101114; padding: 24px; text-align: center;">
-        <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Modular<span style="color: #fcb907;">Home</span></h1>
+    <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e5e7eb; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 20px rgba(0,0,0,0.05);">
+      <!-- Header -->
+      <div style="background: #101114; padding: 28px 24px; text-align: center; border-bottom: 3px solid #fcb907;">
+        <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 900; letter-spacing: -0.5px;">
+          Modular<span style="color: #fcb907;">Home</span>
+        </h1>
+        <p style="color: #9ca3af; margin: 6px 0 0 0; font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1.5px;">
+          Premium Steel Modular Residences
+        </p>
       </div>
-      <div style="padding: 32px 24px;">
-        <h2 style="color: #101114; margin-top: 0;">Welcome, ${params.name}!</h2>
-        <p style="color: #4b5563; line-height: 1.6;">Thank you for creating an account with ModularHome.com. Please confirm your email address to access your customer dashboard, view purchased architectural blueprints, and manage your orders.</p>
+
+      <!-- Body Content -->
+      <div style="padding: 36px 32px;">
+        <h2 style="color: #101114; margin-top: 0; font-size: 20px; font-weight: 800;">
+          Welcome, ${params.name}!
+        </h2>
+        <p style="color: #4b5563; font-size: 15px; line-height: 1.6; margin-bottom: 24px;">
+          Thank you for creating your customer account with ModularHome.com. Please confirm your email address to activate your customer portal, unlock instant CAD/PDF blueprint downloads, and track your architectural orders.
+        </p>
+
+        <!-- CTA Button -->
         <div style="text-align: center; margin: 32px 0;">
-          <a href="${verifyUrl}" style="background: #fcb907; color: #101114; font-weight: bold; padding: 14px 28px; text-decoration: none; border-radius: 8px; display: inline-block;">Verify Email Address</a>
+          <a href="${callbackUrl}" style="background: #fcb907; color: #101114; font-size: 15px; font-weight: 800; padding: 16px 36px; text-decoration: none; border-radius: 12px; display: inline-block; box-shadow: 0 4px 12px rgba(252, 185, 7, 0.35);">
+            Verify Email Address →
+          </a>
         </div>
-        <p style="color: #6b7280; font-size: 13px;">If the button above does not work, copy and paste this link into your browser:<br/><a href="${verifyUrl}" style="color: #d97706;">${verifyUrl}</a></p>
-        <p style="color: #9ca3af; font-size: 12px; margin-top: 32px; border-top: 1px solid #e5e7eb; padding-top: 16px;">Questions? Call our housing advisors at +1 (812) 595-4033 or reply to support@modularhome.com.</p>
+
+        <!-- Expiration Notice -->
+        <div style="background: #f9fafb; border: 1px solid #f3f4f6; border-radius: 10px; padding: 14px 18px; margin: 24px 0;">
+          <p style="color: #6b7280; font-size: 13px; margin: 0; line-height: 1.5;">
+            ⏰ <strong>Security Notice:</strong> This verification link will expire in <strong>24 hours</strong>. If you did not create this account, no further action is required.
+          </p>
+        </div>
+
+        <p style="color: #6b7280; font-size: 12px; line-height: 1.5;">
+          If the button above does not work, copy and paste this link into your browser:<br/>
+          <a href="${directVerifyUrl}" style="color: #d97706; word-break: break-all;">${directVerifyUrl}</a>
+        </p>
+
+        <!-- Support Footer -->
+        <div style="color: #9ca3af; font-size: 12px; margin-top: 36px; border-top: 1px solid #e5e7eb; padding-top: 20px;">
+          <p style="margin: 0 0 4px 0;">Need assistance? Our housing specialists are ready to help:</p>
+          <p style="margin: 0;">📞 +1 (812) 595-4033 &nbsp;|&nbsp; ✉️ <a href="mailto:support@modularhome.com" style="color: #6b7280; text-decoration: underline;">support@modularhome.com</a></p>
+        </div>
       </div>
     </div>
   `;
@@ -103,7 +136,7 @@ export async function sendVerificationEmail(params: {
     subject,
     customer_id: params.customerId,
     status: "SENT",
-    metadata: { verifyUrl, name: params.name },
+    metadata: { callbackUrl, directVerifyUrl, name: params.name, html_preview: html.substring(0, 500) },
   });
 
   return true;
@@ -144,7 +177,7 @@ export async function sendPasswordResetEmail(params: {
     subject,
     customer_id: params.customerId,
     status: "SENT",
-    metadata: { resetUrl, name: params.name },
+    metadata: { resetUrl, name: params.name, html_preview: html.substring(0, 500) },
   });
 
   return true;
@@ -191,6 +224,7 @@ export async function sendOrderConfirmationEmail(params: {
       amount: params.amount,
       downloadUrl,
       invoiceUrl,
+      items_preview: itemsHtml.substring(0, 500),
     },
   });
 

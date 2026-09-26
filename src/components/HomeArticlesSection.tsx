@@ -1,13 +1,16 @@
 import Link from "next/link";
 import Image from "next/image";
 import { ArrowRight, Clock } from "lucide-react";
-import { getPublicBlogs } from "@/lib/publicData";
+import { ResourceArticle } from "@/data/resources";
 
-export default async function HomeArticlesSection() {
-  const allArticles = await getPublicBlogs();
-  const articles = allArticles.slice(0, 3);
+interface HomeArticlesSectionProps {
+  articles?: ResourceArticle[];
+}
 
-  if (articles.length === 0) {
+export default function HomeArticlesSection({ articles = [] }: HomeArticlesSectionProps) {
+  const displayArticles = articles.slice(0, 3);
+
+  if (displayArticles.length === 0) {
     return null;
   }
 
@@ -21,7 +24,7 @@ export default async function HomeArticlesSection() {
               <span>Educational Knowledge Base</span>
             </div>
             <h2 className="text-2xl sm:text-4xl font-black tracking-[-1.3px] text-[#101114] m-0">
-              Latest News & Resources
+              Latest News &amp; Resources
             </h2>
             <p className="text-sm sm:text-base text-[#6b7280] mt-1.5 mb-0">
               Expert guides, pricing breakdowns, and architectural tips for your modular home project.
@@ -31,23 +34,23 @@ export default async function HomeArticlesSection() {
             href="/resources"
             className="text-[#d97706] hover:text-[#b45309] font-extrabold text-sm sm:text-base hover:underline whitespace-nowrap self-start sm:self-auto flex items-center gap-1.5"
           >
-            <span>View All Articles ({allArticles.length})</span>
+            <span>View All Articles ({articles.length})</span>
             <ArrowRight className="w-4 h-4" />
           </Link>
         </div>
 
         {/* Article Cards */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-          {articles.map((art: any, idx: number) => (
+          {displayArticles.map((art) => (
             <Link
-              key={art.id || art.slug || idx}
+              key={art.id || art.slug}
               href={`/resources/${art.slug}`}
               className="card overflow-hidden group hover:-translate-y-1 transition-all flex flex-col justify-between bg-white rounded-[18px] border border-[#e7e9ee] hover:border-[#d97706] hover:shadow-md"
             >
               <div>
                 <div className="relative h-[170px] sm:h-[190px] w-full overflow-hidden bg-gray-100">
                   <Image
-                    src={art.image || "/finallogo.avif"}
+                    src={art.image || "https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=800&q=80"}
                     alt={art.title}
                     fill
                     sizes="(max-width: 768px) 100vw, 33vw"
@@ -61,7 +64,7 @@ export default async function HomeArticlesSection() {
                 </div>
                 <div className="p-5 space-y-2">
                   <div className="flex items-center gap-1.5 text-[11px] text-[#6b7280]">
-                    <Clock className="w-3.5 h-3.5 text-[#d97706]" />
+                    <Clock className="w-3 h-3 text-[#d97706]" />
                     <span>{art.readTime || "5 min read"}</span>
                   </div>
                   <h3 className="text-base sm:text-lg font-black text-[#101114] group-hover:text-[#d97706] transition-colors leading-snug line-clamp-2 font-display">

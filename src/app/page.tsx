@@ -12,52 +12,44 @@ import HomeVideosSection from "@/components/HomeVideosSection";
 import HomeTestimonialsSection from "@/components/HomeTestimonialsSection";
 import HomeArticlesSection from "@/components/HomeArticlesSection";
 import CTASection from "@/components/CTASection";
-import { getPublicProducts, getPublicReviews, getPublicSettings } from "@/lib/publicData";
+import { getPublicProducts, getPublicReviews, getPublicSettings, getPublicCollections, getPublicBlogs } from "@/lib/publicData";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-const DEFAULT_AVAILABLE: ProductItem[] = [];
-const DEFAULT_TRENDING: ProductItem[] = [];
-
 export default async function HomePage() {
-  const [products, reviews, settings] = await Promise.all([
+  const [products, reviews, settings, collections, blogs] = await Promise.all([
     getPublicProducts(),
     getPublicReviews(),
     getPublicSettings(),
+    getPublicCollections(),
+    getPublicBlogs(),
   ]);
 
-  // Map dynamic products to ProductItem format
-  let availableHomes: ProductItem[] = [];
-  let trendingHomes: ProductItem[] = [];
+  // Map dynamic products from database to ProductItem format
+  const availableHomes: ProductItem[] = (products || []).slice(0, 5).map((p, idx) => ({
+    id: p.id || String(idx),
+    slug: p.slug,
+    name: p.name,
+    badge: idx === 0 ? "Best Seller" : idx === 1 ? "Quick Ship" : idx === 2 ? "Popular" : undefined,
+    image: p.primaryImage || p.image || "/finallogo.avif",
+    bedrooms: p.bedrooms || 3,
+    bathrooms: p.bathrooms || 2,
+    sqft: p.sqft || 1600,
+    price: p.startingPrice || 189000,
+  }));
 
-  if (products && products.length > 0) {
-    availableHomes = products.slice(0, 5).map((p, idx) => ({
-      id: p.id || String(idx),
-      slug: p.slug,
-      name: p.name,
-      badge: idx === 0 ? "Best Seller" : idx === 1 ? "Quick Ship" : idx === 2 ? "Popular" : undefined,
-      image: p.primaryImage || p.image || "/finallogo.avif",
-      bedrooms: p.bedrooms || 3,
-      bathrooms: p.bathrooms || 2,
-      sqft: p.sqft || 1600,
-      price: p.startingPrice || 189000,
-    }));
-
-    if (products.length > 5) {
-      trendingHomes = products.slice(5, 10).map((p, idx) => ({
-        id: p.id || String(idx),
-        slug: p.slug,
-        name: p.name,
-        badge: idx === 0 ? "Trending" : undefined,
-        image: p.primaryImage || p.image || "/finallogo.avif",
-        bedrooms: p.bedrooms || 3,
-        bathrooms: p.bathrooms || 2,
-        sqft: p.sqft || 1800,
-        price: p.startingPrice || 195000,
-      }));
-    }
-  }
+  const trendingHomes: ProductItem[] = (products || []).slice(5, 10).map((p, idx) => ({
+    id: p.id || String(idx),
+    slug: p.slug,
+    name: p.name,
+    badge: idx === 0 ? "Trending" : undefined,
+    image: p.primaryImage || p.image || "/finallogo.avif",
+    bedrooms: p.bedrooms || 3,
+    bathrooms: p.bathrooms || 2,
+    sqft: p.sqft || 1800,
+    price: p.startingPrice || 195000,
+  }));
 
   const heroHeading = settings?.defaultSeoTitle || "Modular Homes For A Better Tomorrow";
   const heroTagline = settings?.announcementText || "MODERN. AFFORDABLE. BUILT FOR LIFE.";
@@ -112,7 +104,7 @@ export default async function HomePage() {
       <HomeSearchBox />
 
       {/* 4. SHOP BY HOME TYPE (10 Category 5-Column Grid) */}
-      <CategoryGrid />
+      <CategoryGrid collections={collections} />
 
       {/* 5. HOMES AVAILABLE RIGHT NOW (5-Column Product Grid) */}
       <section id="homes" className="py-12 sm:py-16 bg-white">
@@ -208,7 +200,7 @@ export default async function HomePage() {
       <HomeTestimonialsSection initialReviews={reviews} />
 
       {/* 14. LATEST NEWS & RESOURCES (Articles) */}
-      <HomeArticlesSection />
+      <HomeArticlesSection articles={blogs} />
 
       {/* 15. READY TO BUILD YOUR DREAM HOME? (CTA Banner) */}
       <CTASection />

@@ -4,21 +4,36 @@ import { supabaseAdmin, isSupabaseConfigured } from "./supabase";
 
 export interface Customer {
   id: string;
+  auth_user_id?: string | null;
   email: string;
   password_hash: string;
   name: string;
+  first_name?: string | null;
+  last_name?: string | null;
   phone?: string | null;
-  billing_address?: any;
+  billing_address?: Record<string, unknown> | null;
   status: "ACTIVE" | "DISABLED";
   email_verified: boolean;
   verification_token?: string | null;
   verification_token_expires_at?: string | null;
+  terms_accepted_at?: string | null;
+  terms_version?: string | null;
   reset_token?: string | null;
   reset_token_expires_at?: string | null;
   provider?: string;
   last_login_at?: string | null;
   created_at: string;
   updated_at: string;
+}
+
+export interface TermsConsent {
+  id: string;
+  customer_id: string;
+  email: string;
+  policy_version: string;
+  ip_address: string;
+  user_agent?: string | null;
+  accepted_at: string;
 }
 
 export interface CustomerSession {
@@ -36,7 +51,7 @@ export interface CustomerEvent {
   actor_type: "CUSTOMER" | "ADMIN" | "SYSTEM";
   actor_id?: string | null;
   actor_name?: string | null;
-  details?: Record<string, any>;
+  details?: Record<string, unknown>;
   created_at: string;
 }
 
@@ -48,7 +63,7 @@ export interface EmailLog {
   customer_id?: string | null;
   order_id?: string | null;
   status: "SENT" | "FAILED" | "SIMULATED";
-  metadata?: Record<string, any>;
+  metadata?: Record<string, unknown>;
   created_at: string;
 }
 
@@ -59,14 +74,14 @@ export interface WebhookLog {
   order_id?: string | null;
   status: "RECEIVED" | "PROCESSED" | "FAILED" | "IGNORED";
   error_message?: string | null;
-  payload?: Record<string, any>;
+  payload?: Record<string, unknown>;
   created_at: string;
 }
 
 const CUSTOMERS_FILE = path.join(process.cwd(), "src", "data", "custom_customers.json");
+const TERMS_FILE = path.join(process.cwd(), "src", "data", "custom_terms_consents.json");
 const SESSIONS_FILE = path.join(process.cwd(), "src", "data", "custom_customer_sessions.json");
 const EVENTS_FILE = path.join(process.cwd(), "src", "data", "custom_customer_events.json");
-const EMAILS_FILE = path.join(process.cwd(), "src", "data", "custom_emails.json");
 const WEBHOOKS_FILE = path.join(process.cwd(), "src", "data", "custom_webhooks.json");
 
 function ensureFile(filePath: string, defaultContent = "[]") {
@@ -242,6 +257,64 @@ export async function getAllCustomers(params?: {
   }
 
   return list;
+}
+
+// ---------------------------------------------------------------------------
+// Terms & Conditions Consent Audit
+// ---------------------------------------------------------------------------
+
+export async function saveTermsConsent(consent: Omit<TermsConsent, "id" | "accepted_at"> & { id?: string; accepted_at?: string }): Promise<TermsConsent> {
+  const newConsent: TermsConsent = {
+    id: consent.id || `tc-${Date.now()}-${Math.random().toString(36).substring(2, 7)}`,
+    customer_id: consent.customer_id,
+    email: consent.email.toLowerCase().trim(),
+    policy_version: consent.policy_version || "v1.0",
+    ip_address: consent.ip_address || "unknown",
+    user_agent: consent.user_agent || null,
+    accepted_at: consent.accepted_at || new Date().toISOString(),
+  };
+
+  ensureFile(TERMS_FILE);
+  try {
+    const raw = fs.readFileSync(TERMS_FILE, "utf-8");
+    const list: TermsConsent[] = JSON.parse(raw) || [];
+    list.unshift(newConsent);
+    fs.writeFileSync(TERMS_FILE, JSON.stringify(list.slice(0, 5000), null, 2), "utf-8");
+  } catch (e) {
+    console.warn("Local terms consent error:", e);
+  }
+
+  if (isSupabaseConfigured()) {
+    try {
+      await supabaseAdmin.from("terms_consents").insert(newConsent);
+    } catch (e) {
+      console.warn("Supabase saveTermsConsent note:", e);
+    }
+  }
+
+  return newConsent;
+}
+
+export async function getTermsConsentsByCustomerId(customerId: string): Promise<TermsConsent[]> {
+  if (isSupabaseConfigured()) {
+    try {
+      const { data, error } = await supabaseAdmin
+        .from("terms_consents")
+        .select("*")
+        .eq("customer_id", customerId)
+        .order("accepted_at", { ascending: false });
+      if (!error && data && data.length > 0) return data as TermsConsent[];
+    } catch {}
+  }
+
+  ensureFile(TERMS_FILE);
+  try {
+    const raw = fs.readFileSync(TERMS_FILE, "utf-8");
+    const list: TermsConsent[] = JSON.parse(raw) || [];
+    return list.filter((t) => t.customer_id === customerId);
+  } catch {
+    return [];
+  }
 }
 
 // ---------------------------------------------------------------------------
