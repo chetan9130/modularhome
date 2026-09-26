@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { FloorPlan } from "@/data/floorPlans";
-import { X, Lock, CheckCircle2, ShieldCheck, Download, Sparkles, Loader2, CreditCard } from "lucide-react";
+import { useCustomerAuth } from "@/context/CustomerAuthContext";
+import { X, Lock, CheckCircle2, ShieldCheck, Download, Sparkles, Loader2, CreditCard, User } from "lucide-react";
 
 interface FloorPlanCheckoutModalProps {
   plan: FloorPlan | null;
@@ -18,6 +19,7 @@ export default function FloorPlanCheckoutModal({
   onClose,
 }: FloorPlanCheckoutModalProps) {
   const router = useRouter();
+  const { customer, isAuthenticated } = useCustomerAuth();
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -26,6 +28,17 @@ export default function FloorPlanCheckoutModal({
   });
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    if (customer && isOpen) {
+      setFormData((prev) => ({
+        name: prev.name || customer.name || "",
+        email: prev.email || customer.email || "",
+        phone: prev.phone || customer.phone || "",
+        zip: prev.zip || customer.billing_address?.zip || "",
+      }));
+    }
+  }, [customer, isOpen]);
 
   if (!isOpen || !plan) return null;
 
@@ -181,6 +194,22 @@ export default function FloorPlanCheckoutModal({
             {errorMsg && (
               <div className="p-3 text-xs bg-red-50 border border-red-200 text-red-700 rounded-xl">
                 {errorMsg}
+              </div>
+            )}
+
+            {isAuthenticated && customer && (
+              <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-stone-800">
+                <div className="flex items-center gap-2">
+                  <span className="w-5 h-5 rounded-full bg-orange-600 text-white flex items-center justify-center text-[10px] font-black shrink-0">
+                    {customer.name ? customer.name.charAt(0).toUpperCase() : "U"}
+                  </span>
+                  <span>
+                    Signed in as <strong>{customer.name}</strong> ({customer.email})
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">
+                  Linked to Portal
+                </span>
               </div>
             )}
 

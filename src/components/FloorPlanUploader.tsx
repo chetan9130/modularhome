@@ -1,16 +1,20 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { 
   UploadCloud, 
   CheckCircle2, 
   X, 
   ArrowRight, 
   FileCheck2,
-  Shield
+  Shield,
+  User,
+  ShieldCheck
 } from "lucide-react";
+import { useCustomerAuth } from "@/context/CustomerAuthContext";
 
 export default function FloorPlanUploader() {
+  const { customer, isAuthenticated } = useCustomerAuth();
   const [dragActive, setDragActive] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -25,6 +29,18 @@ export default function FloorPlanUploader() {
     approximateSqFt: "",
     description: "",
   });
+
+  useEffect(() => {
+    if (customer) {
+      setForm((prev) => ({
+        ...prev,
+        name: prev.name || customer.name || "",
+        email: prev.email || customer.email || "",
+        phone: prev.phone || customer.phone || "",
+        zip: prev.zip || customer.billing_address?.zip || "",
+      }));
+    }
+  }, [customer]);
 
   const handleDrag = (e: React.DragEvent) => {
     e.preventDefault();
@@ -161,6 +177,22 @@ export default function FloorPlanUploader() {
             <label className="block text-xs font-bold uppercase tracking-[0.2em] text-[#d97706]">
               2. Project & Contact Information
             </label>
+
+            {isAuthenticated && customer && (
+              <div className="p-2.5 bg-amber-50/80 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-[#101114]">
+                <div className="flex items-center gap-2 truncate">
+                  <span className="w-5 h-5 rounded-full bg-[#fcb907] text-[#101114] flex items-center justify-center text-[10px] font-black shrink-0">
+                    {customer.name ? customer.name.charAt(0).toUpperCase() : "U"}
+                  </span>
+                  <span className="truncate">
+                    Submitting plan as <strong>{customer.name}</strong> ({customer.email})
+                  </span>
+                </div>
+                <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">
+                  Linked to Portal
+                </span>
+              </div>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>

@@ -1,9 +1,11 @@
 "use client";
 
-import { useState } from "react";
-import { ArrowRight, CheckCircle2, Shield } from "lucide-react";
+import { useState, useEffect } from "react";
+import { ArrowRight, CheckCircle2, Shield, User, ShieldCheck } from "lucide-react";
+import { useCustomerAuth } from "@/context/CustomerAuthContext";
 
 export default function ContactForm() {
+  const { customer, isAuthenticated } = useCustomerAuth();
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -12,6 +14,18 @@ export default function ContactForm() {
     interest: "Modular Homes",
     message: "",
   });
+
+  useEffect(() => {
+    if (customer) {
+      setForm((prev) => ({
+        ...prev,
+        name: prev.name || customer.name || "",
+        email: prev.email || customer.email || "",
+        phone: prev.phone || customer.phone || "",
+        zip: prev.zip || customer.billing_address?.zip || "",
+      }));
+    }
+  }, [customer]);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -91,6 +105,22 @@ export default function ContactForm() {
       <h3 className="text-xl sm:text-2xl font-black text-[#101114] m-0">
         Send Us Your Project Details
       </h3>
+
+      {isAuthenticated && customer && (
+        <div className="p-2.5 bg-amber-50/80 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-[#101114]">
+          <div className="flex items-center gap-2 truncate">
+            <span className="w-5 h-5 rounded-full bg-[#fcb907] text-[#101114] flex items-center justify-center text-[10px] font-black shrink-0">
+              {customer.name ? customer.name.charAt(0).toUpperCase() : "U"}
+            </span>
+            <span className="truncate">
+              Inquiring as <strong>{customer.name}</strong> ({customer.email})
+            </span>
+          </div>
+          <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">
+            Linked to Portal
+          </span>
+        </div>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         <div>

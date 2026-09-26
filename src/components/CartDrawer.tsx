@@ -4,11 +4,12 @@ import { useState, useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useCart } from "@/context/CartContext";
-import { X, Trash2, ShoppingBag, ArrowRight, ShieldCheck, Download, Loader2 } from "lucide-react";
+import { useCustomerAuth } from "@/context/CustomerAuthContext";
+import { X, Trash2, ShoppingBag, ArrowRight, ShieldCheck, Download, Loader2, CheckCircle2, User } from "lucide-react";
 
 export default function CartDrawer() {
   const { items, removeItem, updateQuantity, clearCart, subtotal, itemCount, isCartOpen, setIsCartOpen } = useCart();
-  const [customer, setCustomer] = useState<any>(null);
+  const { customer, isAuthenticated } = useCustomerAuth();
   const [customerName, setCustomerName] = useState("");
   const [customerEmail, setCustomerEmail] = useState("");
   const [customerZip, setCustomerZip] = useState("");
@@ -16,17 +17,14 @@ export default function CartDrawer() {
   const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
-    fetch("/api/customer/auth/me")
-      .then((res) => (res.ok ? res.json() : null))
-      .then((data) => {
-        if (data?.success && data?.user) {
-          setCustomer(data.user);
-          setCustomerName(data.user.name || "");
-          setCustomerEmail(data.user.email || "");
-        }
-      })
-      .catch(() => {});
-  }, [isCartOpen]);
+    if (customer) {
+      if (!customerName) setCustomerName(customer.name || "");
+      if (!customerEmail) setCustomerEmail(customer.email || "");
+      if (!customerZip && customer.billing_address?.zip) {
+        setCustomerZip(customer.billing_address.zip);
+      }
+    }
+  }, [customer, isCartOpen]);
 
   if (!isCartOpen) return null;
 
@@ -204,7 +202,21 @@ export default function CartDrawer() {
                     </div>
                   )}
 
-                  {!customer && (
+                  {isAuthenticated && customer ? (
+                    <div className="p-2.5 bg-amber-50/80 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-gray-700">
+                      <div className="flex items-center gap-2 truncate">
+                        <span className="w-5 h-5 rounded-full bg-[#fcb907] text-[#101114] flex items-center justify-center text-[10px] font-black shrink-0">
+                          {customer.name ? customer.name.charAt(0).toUpperCase() : "U"}
+                        </span>
+                        <span className="truncate font-semibold">
+                          Signed in as <strong className="text-[#101114]">{customer.name}</strong>
+                        </span>
+                      </div>
+                      <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">
+                        Linked to Portal
+                      </span>
+                    </div>
+                  ) : (
                     <div className="text-xs text-gray-600 flex items-center justify-between pb-1">
                       <span>Have an account?</span>
                       <Link

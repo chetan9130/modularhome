@@ -30,8 +30,20 @@ import {
 function CustomerDashboardContent() {
   const searchParams = useSearchParams();
   const justVerified = searchParams.get("verified") === "true";
+  const urlTab = searchParams.get("tab");
 
-  const [activeTab, setActiveTab] = useState<"overview" | "downloads" | "orders" | "profile">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "downloads" | "orders" | "profile">(
+    (urlTab && ["overview", "downloads", "orders", "profile"].includes(urlTab))
+      ? (urlTab as "overview" | "downloads" | "orders" | "profile")
+      : "overview"
+  );
+
+  useEffect(() => {
+    if (urlTab && ["overview", "downloads", "orders", "profile"].includes(urlTab)) {
+      setActiveTab(urlTab as "overview" | "downloads" | "orders" | "profile");
+    }
+  }, [urlTab]);
+
   const [profile, setProfile] = useState<any>(null);
   const [orders, setOrders] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);

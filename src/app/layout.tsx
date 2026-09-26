@@ -5,6 +5,7 @@ import Footer from "@/components/Footer";
 import AIBuildAssistant from "@/components/AIBuildAssistant";
 import CartDrawer from "@/components/CartDrawer";
 import { CartProvider } from "@/context/CartContext";
+import { CustomerAuthProvider } from "@/context/CustomerAuthContext";
 import { getPublicGlobalSettings } from "@/lib/settings";
 import { getPublicPages } from "@/lib/publicData";
 import "./globals.css";
@@ -103,15 +104,17 @@ export default async function RootLayout({
         <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png?v=4" />
       </head>
       <body className={`min-h-screen flex flex-col bg-white text-[#101114] antialiased selection:bg-[#fcb907] selection:text-[#101114] ${manrope.className}`}>
-        <CartProvider>
-          <Navbar initialSettings={settings} customPages={pages} />
-          <main className="flex-1">
-            {children}
-          </main>
-          <Footer initialSettings={settings} customPages={pages} />
-          <CartDrawer />
-          <AIBuildAssistant />
-        </CartProvider>
+        <CustomerAuthProvider>
+          <CartProvider>
+            <Navbar initialSettings={settings} customPages={pages} />
+            <main className="flex-1">
+              {children}
+            </main>
+            <Footer initialSettings={settings} customPages={pages} />
+            <CartDrawer />
+            <AIBuildAssistant />
+          </CartProvider>
+        </CustomerAuthProvider>
       </body>
     </html>
   );

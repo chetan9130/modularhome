@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
 import { saveLead } from "@/lib/leadsStore";
+import { getCustomerSession } from "@/lib/customerAuth";
+import { getCustomerByEmail } from "@/lib/customerStore";
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,6 +33,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Check if customer session exists
+    let customerNote = "";
+    try {
+      const session = await getCustomerSession();
+      if (session) {
+        customerNote = `[Registered Customer: ${session.name} (${session.id})] `;
+      } else {
+        const existing = await getCustomerByEmail(leadEmail);
+        if (existing) {
+          customerNote = `[Existing Customer: ${existing.name} (${existing.id})] `;
+        }
+      }
+    } catch {}
+
     const leadData = {
       name: leadName,
       email: leadEmail,
@@ -40,7 +56,7 @@ export async function POST(request: NextRequest) {
       enquiry_details: leadEnquiry,
       source: leadSource,
       status: "NEW" as const,
-      notes: notes || null,
+      notes: customerNote ? `${customerNote}${notes || ""}`.trim() : notes || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

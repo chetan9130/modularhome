@@ -25,11 +25,15 @@ import {
   FileText,
   ShieldCheck,
   ShoppingBag,
-  User
+  User,
+  LogOut,
+  LayoutDashboard,
+  Download
 } from "lucide-react";
 import { PublicGlobalSettings } from "@/lib/settings";
 import { CmsPage } from "@/lib/publicData";
 import { useCart } from "@/context/CartContext";
+import { useCustomerAuth } from "@/context/CustomerAuthContext";
 
 interface CategoryNavOption {
   label: string;
@@ -111,12 +115,15 @@ interface NavbarContentProps {
 function NavbarContent({ initialSettings, customPages = [] }: NavbarContentProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [moreDropdownOpen, setMoreDropdownOpen] = useState(false);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const userMenuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const router = useRouter();
   const { itemCount, setIsCartOpen } = useCart();
+  const { customer, isAuthenticated, logout } = useCustomerAuth();
 
   const currentCategory = searchParams ? searchParams.get("category") : null;
 
@@ -140,17 +147,21 @@ function NavbarContent({ initialSettings, customPages = [] }: NavbarContentProps
   useEffect(() => {
     setMobileMenuOpen(false);
     setMoreDropdownOpen(false);
+    setUserMenuOpen(false);
   }, [pathname, searchParams]);
 
   if (pathname?.startsWith("/admin")) {
     return null;
   }
 
-  // Handle outside click for "More" dropdown
+  // Handle outside click for "More" dropdown and "User Menu" dropdown
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setMoreDropdownOpen(false);
+      }
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target as Node)) {
+        setUserMenuOpen(false);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
@@ -233,24 +244,50 @@ function NavbarContent({ initialSettings, customPages = [] }: NavbarContentProps
 
             {/* Right: Quick Portal Links & Social Media Icons */}
             <div className="flex items-center gap-2 sm:gap-4 shrink-0">
-              <div className="hidden lg:flex items-center gap-3 text-[11.5px] text-gray-400 font-medium">
-                <Link href="/upload-floor-plan" className="hover:text-[#fcb907] transition-colors">
-                  Upload Plans
-                </Link>
-                <span className="text-gray-700">|</span>
-                <Link href="/resources" className="hover:text-[#fcb907] transition-colors">
-                  Cost Calculator
-                </Link>
-                <span className="text-gray-700">|</span>
-                <Link href="/account" className="hover:text-[#fcb907] transition-colors flex items-center gap-1">
-                  <User className="w-3 h-3 text-[#fcb907]" />
-                  <span>My Account</span>
-                </Link>
-                <span className="text-gray-700">|</span>
-                <Link href="/contact" className="hover:text-[#fcb907] transition-colors">
-                  Support
-                </Link>
-              </div>
+              {isAuthenticated && customer ? (
+                <div className="hidden lg:flex items-center gap-3 text-[11.5px] text-gray-300 font-medium">
+                  <Link href="/account" className="hover:text-[#fcb907] transition-colors flex items-center gap-1.5 text-white font-bold group">
+                    <span className="w-4 h-4 rounded-full bg-[#fcb907] text-[#101114] flex items-center justify-center text-[9px] font-black group-hover:scale-105 transition-transform">
+                      {customer.name ? customer.name.charAt(0).toUpperCase() : "U"}
+                    </span>
+                    <span>Hi, {customer.name ? customer.name.split(" ")[0] : "Customer"}</span>
+                  </Link>
+                  <span className="text-gray-700">|</span>
+                  <Link href="/account?tab=downloads" className="hover:text-[#fcb907] transition-colors">
+                    My Blueprints
+                  </Link>
+                  <span className="text-gray-700">|</span>
+                  <Link href="/account?tab=orders" className="hover:text-[#fcb907] transition-colors">
+                    Orders
+                  </Link>
+                  <span className="text-gray-700">|</span>
+                  <button
+                    onClick={() => logout()}
+                    className="hover:text-red-400 text-gray-400 transition-colors cursor-pointer"
+                  >
+                    Sign Out
+                  </button>
+                </div>
+              ) : (
+                <div className="hidden lg:flex items-center gap-3 text-[11.5px] text-gray-400 font-medium">
+                  <Link href="/upload-floor-plan" className="hover:text-[#fcb907] transition-colors">
+                    Upload Plans
+                  </Link>
+                  <span className="text-gray-700">|</span>
+                  <Link href="/account/login" className="hover:text-[#fcb907] transition-colors flex items-center gap-1 text-gray-200">
+                    <User className="w-3 h-3 text-[#fcb907]" />
+                    <span>Sign In</span>
+                  </Link>
+                  <span className="text-gray-700">|</span>
+                  <Link href="/account/signup" className="hover:text-[#fcb907] transition-colors">
+                    Register
+                  </Link>
+                  <span className="text-gray-700">|</span>
+                  <Link href="/contact" className="hover:text-[#fcb907] transition-colors">
+                    Support
+                  </Link>
+                </div>
+              )}
 
               <div className="hidden sm:flex items-center gap-1.5">
                 <span className="text-[10.5px] font-bold tracking-wider uppercase text-gray-400 mr-1 hidden md:inline">
@@ -437,15 +474,122 @@ function NavbarContent({ initialSettings, customPages = [] }: NavbarContentProps
                 )}
               </button>
 
-              {/* Account Link */}
-              <Link
-                href="/account"
-                title="Customer Account & Orders"
-                className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-[#101114] hover:text-[#d97706] py-2 px-2.5 rounded-xl hover:bg-gray-100 transition-colors"
-              >
-                <User className="w-4 h-4" />
-                <span className="hidden md:inline">Account</span>
-              </Link>
+              {/* Customer Account Button / Dropdown */}
+              {isAuthenticated && customer ? (
+                <div
+                  ref={userMenuRef}
+                  className="relative hidden sm:inline-block"
+                  onMouseEnter={() => setUserMenuOpen(true)}
+                  onMouseLeave={() => setUserMenuOpen(false)}
+                >
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      setUserMenuOpen(!userMenuOpen);
+                    }}
+                    className={`inline-flex items-center gap-1.5 text-xs font-bold py-1.5 px-2.5 rounded-xl border transition-all cursor-pointer ${
+                      userMenuOpen
+                        ? "bg-amber-50 border-amber-300 text-[#b45309]"
+                        : "bg-[#f6f7f9] hover:bg-gray-100 border-gray-200 text-[#101114]"
+                    }`}
+                    aria-expanded={userMenuOpen}
+                  >
+                    <span className="w-5 h-5 rounded-full bg-[#fcb907] text-[#101114] flex items-center justify-center text-[10px] font-black shrink-0">
+                      {customer.name ? customer.name.charAt(0).toUpperCase() : "U"}
+                    </span>
+                    <span className="max-w-[100px] truncate hidden md:inline">
+                      {customer.name ? customer.name.split(" ")[0] : "Account"}
+                    </span>
+                    <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform duration-150 ${userMenuOpen ? "rotate-180" : ""}`} />
+                  </button>
+
+                  {/* Dropdown Menu */}
+                  {userMenuOpen && (
+                    <div
+                      className="absolute right-0 top-full pt-1.5 w-64 z-[100] animate-in fade-in zoom-in-95 duration-150"
+                      onMouseEnter={() => setUserMenuOpen(true)}
+                    >
+                      <div className="bg-white border border-[#e5e7eb] rounded-2xl p-2.5 shadow-2xl ring-1 ring-black/5 space-y-2">
+                        {/* Header Summary */}
+                        <div className="px-3 py-2 bg-gray-50 rounded-xl border border-gray-100">
+                          <div className="text-xs font-extrabold text-[#101114] truncate">
+                            {customer.name || "Customer"}
+                          </div>
+                          <div className="text-[11px] text-gray-500 truncate">
+                            {customer.email}
+                          </div>
+                          {customer.email_verified && (
+                            <div className="mt-1 flex items-center gap-1 text-[10px] font-bold text-emerald-700">
+                              <ShieldCheck className="w-3 h-3" />
+                              <span>Verified Member</span>
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Navigation Links */}
+                        <div className="space-y-0.5">
+                          <Link
+                            href="/account"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#101114] hover:bg-[#f6f7f9] hover:text-[#d97706] transition-colors"
+                          >
+                            <LayoutDashboard className="w-4 h-4 text-[#d97706]" />
+                            <span>Client Portal</span>
+                          </Link>
+                          <Link
+                            href="/account?tab=downloads"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#101114] hover:bg-[#f6f7f9] hover:text-[#d97706] transition-colors"
+                          >
+                            <Download className="w-4 h-4 text-[#d97706]" />
+                            <span>My Blueprints & CAD</span>
+                          </Link>
+                          <Link
+                            href="/account?tab=orders"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#101114] hover:bg-[#f6f7f9] hover:text-[#d97706] transition-colors"
+                          >
+                            <ShoppingBag className="w-4 h-4 text-[#d97706]" />
+                            <span>Orders & Invoices</span>
+                          </Link>
+                          <Link
+                            href="/account?tab=profile"
+                            onClick={() => setUserMenuOpen(false)}
+                            className="flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-[#101114] hover:bg-[#f6f7f9] hover:text-[#d97706] transition-colors"
+                          >
+                            <User className="w-4 h-4 text-[#d97706]" />
+                            <span>Profile & Security</span>
+                          </Link>
+                        </div>
+
+                        {/* Sign Out */}
+                        <div className="pt-1 border-t border-gray-100">
+                          <button
+                            onClick={() => {
+                              setUserMenuOpen(false);
+                              logout();
+                            }}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-xs font-bold text-red-600 hover:bg-red-50 transition-colors cursor-pointer"
+                          >
+                            <LogOut className="w-4 h-4 text-red-500" />
+                            <span>Sign Out</span>
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <Link
+                  href="/account/login"
+                  title="Sign In to Customer Account"
+                  className="hidden sm:inline-flex items-center gap-1.5 text-xs font-bold text-[#101114] hover:text-[#d97706] py-2 px-3 rounded-xl hover:bg-gray-100 border border-gray-200 transition-colors"
+                >
+                  <User className="w-3.5 h-3.5 text-[#fcb907]" />
+                  <span>Sign In</span>
+                </Link>
+              )}
 
               <Link
                 href={ctaLink}
@@ -682,19 +826,113 @@ function NavbarContent({ initialSettings, customPages = [] }: NavbarContentProps
                 </div>
               )}
 
+              {/* Mobile Customer Portal Section */}
+              <div className="pt-2 border-t border-[#e7e9ee]">
+                {isAuthenticated && customer ? (
+                  <div className="space-y-3">
+                    <div className="p-3 bg-amber-50/80 border border-amber-200/70 rounded-2xl">
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-[#fcb907] text-[#101114] flex items-center justify-center text-sm font-black shrink-0">
+                          {customer.name ? customer.name.charAt(0).toUpperCase() : "U"}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="text-xs font-black text-[#101114] truncate">
+                            {customer.name || "Customer"}
+                          </div>
+                          <div className="text-[11px] text-gray-600 truncate">
+                            {customer.email}
+                          </div>
+                          {customer.email_verified && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 mt-0.5">
+                              <ShieldCheck className="w-3 h-3" />
+                              <span>Verified Member</span>
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-2 text-xs font-bold text-[#374151]">
+                      <Link
+                        href="/account"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-[#101114] hover:text-[#d97706] flex items-center gap-2"
+                      >
+                        <LayoutDashboard className="w-4 h-4 text-[#d97706]" />
+                        <span>Portal</span>
+                      </Link>
+                      <Link
+                        href="/account?tab=downloads"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-[#101114] hover:text-[#d97706] flex items-center gap-2"
+                      >
+                        <Download className="w-4 h-4 text-[#d97706]" />
+                        <span>Downloads</span>
+                      </Link>
+                      <Link
+                        href="/account?tab=orders"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-[#101114] hover:text-[#d97706] flex items-center gap-2"
+                      >
+                        <ShoppingBag className="w-4 h-4 text-[#d97706]" />
+                        <span>Orders</span>
+                      </Link>
+                      <Link
+                        href="/account?tab=profile"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 text-[#101114] hover:text-[#d97706] flex items-center gap-2"
+                      >
+                        <User className="w-4 h-4 text-[#d97706]" />
+                        <span>Profile</span>
+                      </Link>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setMobileMenuOpen(false);
+                        logout();
+                      }}
+                      className="w-full py-2 px-3 bg-red-50 hover:bg-red-100 text-red-700 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-colors cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5 text-red-600" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-1">
+                      Customer Account
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <Link
+                        href="/account/login"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="py-2.5 px-3 bg-[#f6f7f9] hover:bg-gray-200 text-[#101114] text-xs font-bold rounded-xl flex items-center justify-center gap-1.5"
+                      >
+                        <User className="w-3.5 h-3.5 text-[#fcb907]" />
+                        <span>Sign In</span>
+                      </Link>
+                      <Link
+                        href="/account/signup"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="py-2.5 px-3 bg-[#fcb907] hover:bg-[#e5a706] text-[#101114] text-xs font-black rounded-xl flex items-center justify-center gap-1"
+                      >
+                        <span>Register</span>
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Mobile Quick Links */}
               <div className="pt-2 border-t border-[#e7e9ee]">
                 <div className="text-[10px] font-bold uppercase tracking-wider text-gray-400 mb-2">
-                  Quick Access
+                  Explore & Learn
                 </div>
                 <div className="grid grid-cols-2 gap-2 text-xs font-bold text-[#374151]">
                   <Link href="/floor-plans" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#d97706] flex items-center gap-1.5">
                     <Layers className="w-3.5 h-3.5 text-[#d97706]" />
                     <span>Plans Store</span>
-                  </Link>
-                  <Link href="/account" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#d97706] flex items-center gap-1.5 text-[#d97706]">
-                    <User className="w-3.5 h-3.5 text-[#d97706]" />
-                    <span>My Account</span>
                   </Link>
                   <Link href="/videos" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#d97706] flex items-center gap-1.5">
                     <Play className="w-3.5 h-3.5 text-[#d97706]" />
@@ -711,6 +949,10 @@ function NavbarContent({ initialSettings, customPages = [] }: NavbarContentProps
                   <Link href="/contact" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#d97706] flex items-center gap-1.5">
                     <PhoneCall className="w-3.5 h-3.5 text-[#d97706]" />
                     <span>Contact</span>
+                  </Link>
+                  <Link href="/upload-floor-plan" onClick={() => setMobileMenuOpen(false)} className="hover:text-[#d97706] flex items-center gap-1.5">
+                    <FileSpreadsheet className="w-3.5 h-3.5 text-[#d97706]" />
+                    <span>Custom Plans</span>
                   </Link>
                 </div>
               </div>

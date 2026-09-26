@@ -13,9 +13,12 @@ import {
   CheckCircle2, 
   RotateCcw,
   Loader2,
+  User,
+  ShieldCheck
 } from "lucide-react";
 import { CATEGORIES, BuildingModel } from "@/data/models";
 import { formatPrice } from "@/utils/currency";
+import { useCustomerAuth } from "@/context/CustomerAuthContext";
 
 const DEFAULT_MODEL: BuildingModel = {
   id: "custom-blueprint",
@@ -77,6 +80,8 @@ export default function QuoteWizard() {
     loadDynamicModels();
   }, []);
 
+  const { customer, isAuthenticated } = useCustomerAuth();
+
   // Contact Info
   const [formData, setFormData] = useState({
     name: "",
@@ -86,6 +91,18 @@ export default function QuoteWizard() {
     timeline: "3-6 months",
     notes: "",
   });
+
+  useEffect(() => {
+    if (customer) {
+      setFormData((prev) => ({
+        ...prev,
+        name: prev.name || customer.name || "",
+        email: prev.email || customer.email || "",
+        phone: prev.phone || customer.phone || "",
+        zip: prev.zip || customer.billing_address?.zip || "",
+      }));
+    }
+  }, [customer]);
 
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -582,6 +599,22 @@ export default function QuoteWizard() {
                     Provide your delivery location and contact information to receive the full itemized spec packet.
                   </p>
                 </div>
+
+                {isAuthenticated && customer && (
+                  <div className="p-3 bg-amber-50/80 border border-amber-200 rounded-xl flex items-center justify-between text-xs text-[#101114]">
+                    <div className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-[#fcb907] text-[#101114] flex items-center justify-center text-[10px] font-black shrink-0">
+                        {customer.name ? customer.name.charAt(0).toUpperCase() : "U"}
+                      </span>
+                      <span>
+                        Requesting estimate as <strong>{customer.name}</strong> ({customer.email})
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200 shrink-0">
+                      Linked to Portal
+                    </span>
+                  </div>
+                )}
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>

@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { supabaseAdmin, isSupabaseConfigured } from "@/lib/supabase";
+import { getCustomerSession } from "@/lib/customerAuth";
+import { getCustomerByEmail } from "@/lib/customerStore";
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,7 +35,20 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Determine customer ID from active session or email lookup
+    let customerId: string | null = null;
+    try {
+      const session = await getCustomerSession();
+      if (session && session.email.toLowerCase() === email) {
+        customerId = session.id;
+      } else {
+        const existingCust = await getCustomerByEmail(email);
+        if (existingCust) customerId = existingCust.id;
+      }
+    } catch {}
+
     const quoteData = {
+      customer_id: customerId,
       customer_name: name,
       customer_email: email,
       customer_phone: phone,
