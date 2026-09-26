@@ -105,7 +105,7 @@ export default function AdminLayout({
 
     const routeMap: Record<string, string> = {
       products: "Home Models",
-      "floor-plans": "Floor Plans",
+      "floor-plans": "Floor Plan Kits",
       collections: "Collections",
       blogs: "Blogs & News",
       leads: "Leads & Prospects",
@@ -162,7 +162,7 @@ export default function AdminLayout({
         items: [
           { label: "Home Models", href: "/admin/products", icon: Home },
           { label: "Collections & Series", href: "/admin/collections", icon: FolderOpen },
-          { label: "Floor Plans (Digital)", href: "/admin/floor-plans", icon: Download },
+          { label: "Floor Plan Kits", href: "/admin/floor-plans", icon: Download },
         ],
       },
     ] : []),

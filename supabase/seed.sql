@@ -54,7 +54,7 @@ INSERT INTO admin_users (
   'admin@modularhome.com',
   '$2b$10$XzZfqINWLflYA4ufWbMVmeYc2jbhgxuhh21P2kUJBjas.RXynzjdm', -- bcrypt hash for admin@26
   'Admin Superuser',
-  'ADMIN',
+  'SUPER_ADMIN',
   'ACTIVE'
 ) ON CONFLICT (email) DO NOTHING;
 

@@ -87,7 +87,7 @@ export default function AdminFloorPlansPage() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {["ALL", "Cabins", "ADUs", "Barndominiums", "Modern Residential"].map((cat) => (
+          {["ALL", "Cabins", "ADUs", "Barndominiums", "Modern Residential", "Duplex & Multi-Family"].map((cat) => (
             <button
               key={cat}
               type="button"

@@ -126,3 +126,68 @@ CREATE TABLE IF NOT EXISTS url_migrations (
   verified BOOLEAN DEFAULT false,
   notes TEXT
 );
+
+-- 10. Admin Users Table
+CREATE TABLE IF NOT EXISTS admin_users (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  password_hash TEXT NOT NULL,
+  name TEXT NOT NULL DEFAULT 'Admin User',
+  role TEXT NOT NULL DEFAULT 'SUPER_ADMIN',
+  status TEXT NOT NULL DEFAULT 'ACTIVE',
+  two_factor_enabled BOOLEAN DEFAULT false,
+  two_factor_secret TEXT,
+  two_factor_recovery_codes JSONB DEFAULT '[]'::jsonb,
+  last_login_at TIMESTAMPTZ,
+  created_at TIMESTAMPTZ DEFAULT now(),
+  updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_admin_users_email ON admin_users(email);
+CREATE INDEX IF NOT EXISTS idx_admin_users_status ON admin_users(status);
+
+-- 11. Admin Sessions Table
+CREATE TABLE IF NOT EXISTS sessions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_token TEXT UNIQUE NOT NULL,
+  user_id UUID REFERENCES admin_users(id) ON DELETE CASCADE,
+  expires_at BIGINT NOT NULL,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_sessions_token ON sessions(session_token);
+CREATE INDEX IF NOT EXISTS idx_sessions_user ON sessions(user_id);
+
+-- 12. Login Attempts Table (Rate Limiting & Account Lockout)
+CREATE TABLE IF NOT EXISTS login_attempts (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email TEXT UNIQUE NOT NULL,
+  attempt_count INTEGER DEFAULT 0,
+  last_attempt_at TIMESTAMPTZ DEFAULT now(),
+  locked_until TIMESTAMPTZ,
+  ip_address TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_login_attempts_email ON login_attempts(email);
+
+-- 13. Admin Activity & Audit Logs Table
+CREATE TABLE IF NOT EXISTS activity_logs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID,
+  user_name TEXT,
+  user_role TEXT,
+  action TEXT NOT NULL,
+  entity_type TEXT NOT NULL,
+  entity_id TEXT,
+  description TEXT,
+  details JSONB DEFAULT '{}'::jsonb,
+  ip_address TEXT,
+  user_agent TEXT,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+
+CREATE INDEX IF NOT EXISTS idx_activity_logs_created ON activity_logs(created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_entity ON activity_logs(entity_type);
+CREATE INDEX IF NOT EXISTS idx_activity_logs_action ON activity_logs(action);
+

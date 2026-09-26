@@ -10,7 +10,9 @@
     "migration:inventory": "tsx migration/scripts/inventory_source.ts",
     "migration:dry-run": "tsx migration/scripts/dry_run.ts",
     "migration:production": "tsx migration/scripts/production_import.ts",
-    "migration:reconcile": "tsx migration/scripts/reconciliation.ts"
+    "migration:reconcile": "tsx migration/scripts/reconciliation.ts",
+    "seed:admin": "tsx migration/scripts/setup_admin_tables_and_seed.ts",
+    "seed:floor-plans": "tsx migration/scripts/seed_floor_plans.ts"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.116.0",

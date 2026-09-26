@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useMemo, useEffect } from "react";
-import { FloorPlan } from "@/data/floorPlans";
+import { FloorPlan, INITIAL_FLOOR_PLANS } from "@/data/floorPlans";
 import FloorPlanCard from "@/components/FloorPlanCard";
 import FloorPlanCheckoutModal from "@/components/FloorPlanCheckoutModal";
 import {
@@ -17,7 +17,7 @@ import {
 
 export default function FloorPlansPage() {
   const [loading, setLoading] = useState(true);
-  const [plans, setPlans] = useState<FloorPlan[]>([]);
+  const [plans, setPlans] = useState<FloorPlan[]>(INITIAL_FLOOR_PLANS);
   const [selectedCategory, setSelectedCategory] = useState<string>("ALL");
   const [searchQuery, setSearchQuery] = useState("");
   const [bedroomFilter, setBedroomFilter] = useState<string>("ALL");
@@ -65,10 +65,14 @@ export default function FloorPlansPage() {
               displayOrder: Number(p.display_order) || 0,
             }));
             setPlans(mapped);
+          } else if (isMounted) {
+            setPlans(INITIAL_FLOOR_PLANS);
           }
+        } else if (isMounted) {
+          setPlans(INITIAL_FLOOR_PLANS);
         }
       } catch {
-        // Use static initial floor plans
+        if (isMounted) setPlans(INITIAL_FLOOR_PLANS);
       } finally {
         if (isMounted) setLoading(false);
       }

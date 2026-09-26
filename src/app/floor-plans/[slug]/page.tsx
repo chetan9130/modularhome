@@ -4,7 +4,7 @@ import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
-import { FloorPlan } from "@/data/floorPlans";
+import { FloorPlan, INITIAL_FLOOR_PLANS } from "@/data/floorPlans";
 import FloorPlanCheckoutModal from "@/components/FloorPlanCheckoutModal";
 import {
   Bed,
@@ -30,7 +30,9 @@ export default function FloorPlanDetailPage() {
   const slug = params?.slug as string;
   const { addItem } = useCart();
 
-  const [plan, setPlan] = useState<FloorPlan | null>(null);
+  const [plan, setPlan] = useState<FloorPlan | null>(() => {
+    return INITIAL_FLOOR_PLANS.find((p) => p.slug === slug || p.id === slug) || null;
+  });
   const [selectedImage, setSelectedImage] = useState<string>("");
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -76,9 +78,16 @@ export default function FloorPlanDetailPage() {
             };
             setPlan(mapped);
             setSelectedImage(mapped.previewImage);
+            return;
           }
         }
       } catch {}
+      
+      const fallback = INITIAL_FLOOR_PLANS.find((p) => p.slug === slug || p.id === slug);
+      if (fallback) {
+        setPlan(fallback);
+        setSelectedImage(fallback.previewImage);
+      }
     }
 
     if (slug) {

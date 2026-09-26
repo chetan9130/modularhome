@@ -216,7 +216,7 @@ export async function getPublicFloorPlanBySlug(slug: string): Promise<FloorPlan 
       const { data: plan, error } = await supabaseAdmin
         .from("floor_plans")
         .select("*")
-        .or(`slug.eq.${slug},id.eq.${slug}`)
+        .eq("slug", slug)
         .maybeSingle();
 
       if (!error && plan) {
